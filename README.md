@@ -40,9 +40,8 @@ There exists three types of assets in the Basis Cash system.
 ### Stability Mechanism
 
 - **Contraction**: When the price($BAC) < ($1 - epsilon), users can trade in $BAC for $BAB at the BABBAC exchange rate of 1 - price($BAC). This allows bonds to be always sold at a discount to cash during a contraction.
-- **Expansion**: When the price($BAC) > ($1 + epsilon):
-  - users can trade in $BAB for $BAC at the BABBAC exchange rate of 1 - this allows bonds to be redeemed always at a premium to the purchase price. 
-  - If there are no more bonds to be redeemed, (i.e. bond Supply is negligibly small), more $BAC is minted totalSupply($BAC) * (price($BAC) - 1), and placed in a pool for $BAS holders to claim pro-rata in a 24 hour period. 
+- **Expansion**: When the price($BAC) > ($1 + epsilon), users can trade in $BAB for $BAC at the BABBAC exchange rate of 1 - this allows bonds to be redeemed always at a premium to the purchase price. 
+- **Seigniorage Allocation**: If there are no more bonds to be redeemed, (i.e. bond Supply is negligibly small), more $BAC is minted totalSupply($BAC) * (price($BAC) - 1), and placed in a pool for $BAS holders to claim pro-rata in a 24 hour period. 
 
 Read the official [Basis Cash Documentation](docs.basis.cash) for more details.
 
