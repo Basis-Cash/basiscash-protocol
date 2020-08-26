@@ -106,7 +106,7 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
             "basis.bank: this contract is not the operator of the basis bonds contract"
         );        
         
-        emit BuyBond(msg.sender, amount_);
+        emit BuyBonds(msg.sender, amount_);
     }
     
     /**
@@ -173,7 +173,7 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
     
 
     /** Events */
+    event BuyBonds(address indexed from, uint256 amount);
     event RedeemBonds(address indexed from, uint256 amount);
-    event BuyBond(address indexed from, uint256 amount);
     event Stabilize(uint256 timestamp, uint256 seigniorage, address where);
 }
