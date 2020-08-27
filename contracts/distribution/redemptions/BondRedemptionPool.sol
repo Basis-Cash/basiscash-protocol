@@ -1,10 +1,10 @@
 pragma solidity ^0.5.0;
 
-import '../interfaces/IBasisAsset.sol';
-import '../interfaces/IERC20.sol';
-import '../owner/Ownable.sol';
-import '../lib/SafeERC20.sol';
-import '../interfaces/IOracle.sol';
+import '../../interfaces/IBasisAsset.sol';
+import '../../interfaces/IERC20.sol';
+import '../../owner/Ownable.sol';
+import '../../lib/SafeERC20.sol';
+import '../../interfaces/IOracle.sol';
 
 /**
  * @title Basis Cash's bond redemption pool contract

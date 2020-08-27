@@ -40,41 +40,41 @@ pragma solidity ^0.5.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import '../lib/math.sol';
+import '../../lib/math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import '../lib/SafeMath.sol';
+import '../../lib/SafeMath.sol';
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
-import '../owner/Context.sol';
+import '../../owner/Context.sol';
 
 // File: @openzeppelin/contracts/ownership/Ownable.sol
 
-import '../owner/Ownable.sol';
+import '../../owner/Ownable.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import '../interfaces/IERC20.sol';
+import '../../interfaces/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import '../lib/Address.sol';
+import '../../lib/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import '../lib/SafeERC20.sol';
+import '../../lib/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import '../interfaces/IRewardDistributionRecipient.sol';
+import '../../interfaces/IRewardDistributionRecipient.sol';
 
-import '../token/LPTokenWrapper.sol';
+import '../../token/LPTokenWrapper.sol';
 
-contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient {
+contract DAIBACLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient {
     IERC20 public basisShare;
-    uint256 public DURATION = 7 days;
+    uint256 public DURATION = 365 days;
 
     uint256 public starttime = 1597795200;
     uint256 public periodFinish = 0;
@@ -95,7 +95,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime,"not start");
+        require(block.timestamp >= starttime,"DAIBACLPTokenSharePool: not start");
         _;
     }
 
@@ -137,13 +137,13 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, "DAIBACLPTokenSharePool: Cannot stake 0");
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "Cannot withdraw 0");
+        require(amount > 0, "DAIBACLPTokenSharePool: Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
