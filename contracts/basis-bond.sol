@@ -11,19 +11,22 @@ contract BasisBond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     // addresses for operators
     address public basisBank;
+    address public basisStabilizer;
 
     /**
-     * @notice Constructs the Basis Bond ERC-20 contract. 
+     * @notice Construct a new bank for basis assets
      * @param bank_ The address of the bank contract
+     * @param stablizer_ The address of the stabilizer contract
      */
-    constructor(address bank_) public ERC20Detailed("basis bond", "basiscash.bond", 18) {
+    constructor(address bank_, address stablizer_) public ERC20Detailed("basis basis.bond", "basis.bond", 18) {
         basisBank = bank_;
+        basisStabilizer = stablizer_;
     }
     
     /**
-     * @notice Burns basis bonds from an account
+     * @notice Burns basis cash from an account
      * @param from_ The address of an account to burn from
-     * @param amount_ The amount of basis bonds to burn
+     * @param amount_ The amount of basis cash to burn
      * @return whether the process has been done
      */
     function burn(address from_, uint256 amount_) public returns (bool) {
@@ -34,9 +37,9 @@ contract BasisBond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
     
     /**
-     * @notice Burns basis bonds of an account from the operator 
+     * @notice Burns basis cash of an account from the operator 
      * @param from_ The address of an account to burn from
-     * @param amount_ The amount of basis bonds to burn
+     * @param amount_ The amount of basis cash to burn
      * @return whether the process has been done
      */
     function burnFrom(address from_, uint256 amount_) public returns (bool) {
@@ -51,30 +54,32 @@ contract BasisBond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /**
      * @notice Transfer operators to new ones
      * @param newBank_ The address of the bank contract
+     * @param newStabilizer_ The address of the stabilizer contract
      */
-    function transferOperators(address newBank_) public onlyOwner {
-        _transferOperators(newBank_);
+    function transferOperators(address newBank_, address newStabilizer_) public onlyOwner {
+        _transferOperators(newBank_, newStabilizer_);
     }
 
-    function _transferOperators(address newBank) internal {
+    function _transferOperators(address newBank, address newStabilizer) internal {
         require(
-            newBank != address(0),
+            newBank != address(0) && newStabilizer != address(0),
             "basis.bond: new operator is the zero address"
         );
         basisBank = newBank;
+        basisStabilizer = newStabilizer;
     }
     
     /** Operator functions **/
     
     modifier onlyOperator() {
-        require(basisBank == msg.sender, "basis.bond: caller is not the operator");
+        require(basisBank == msg.sender || basisStabilizer == msg.sender, "basis.bond: caller is not the operator");
         _;
     }
     
     /**
-     * @notice Operator mints basis bonds to a recipient
+     * @notice Operator mints basis cash to a recipient
      * @param recipient_ The address of recipient
-     * @param amount_ The amount of basis bonds to mint to 
+     * @param amount_ The amount of basis cash to mint to 
      * @return whether the process has been done
      */
     function mint(address recipient_, uint256 amount_) public onlyOperator returns (bool) {

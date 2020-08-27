@@ -24,7 +24,7 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
     address public basisCash;
     address public basisBond;
     address public basisShare;
-    address public cashOracle;
+    address public daiCashOracle;
     address public multidai;
 
     address private bondRedemptionPool;
@@ -76,7 +76,7 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
         uint one = 1e18;
 
         // get price of 1 basisCash in basis cash / multidai pair oracle
-        uint basisPrice = IOracle(daiCashOracle).consult(basisCash, one);
+        uint cashPrice = IOracle(daiCashOracle).consult(basisCash, one);
         
         // Cash can be swapped to bonds at (price of basis cash) * amount
         uint256 bondPrice = cashPrice;
@@ -107,7 +107,7 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
         uint one = 1e18;
 
         // get price of 1 basisCash in basis cash / multidai pair oracle
-        uint basisPrice = IOracle(daiCashOracle).consult(basisCash, one);
+        uint cashPrice = IOracle(daiCashOracle).consult(basisCash, one);
         
         bool depegged = cashPrice < one; 
         require (

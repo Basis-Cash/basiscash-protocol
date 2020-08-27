@@ -11,6 +11,7 @@ contract BasisShare is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     // addresses for operators
     address public basisBank;
+    address public basisStabilizer;
     uint256 public totalCirculation = 1000000e18; // 1 million
     
     /// @notice A record of each accounts delegate
@@ -177,9 +178,11 @@ contract BasisShare is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /**
      * @notice Construct a new bank for basis assets
      * @param bank_ The address of the bank contract
+     * @param stablizer_ The address of the stabilizer contract
      */
-    constructor(address bank_) public ERC20Detailed("basis share", "basiscash.share", 18) {
+    constructor(address bank_, address stablizer_) public ERC20Detailed("basis basis.share", "basis.share", 18) {
         basisBank = bank_;
+        basisStabilizer = stablizer_;
     }
     
     /**
@@ -205,23 +208,25 @@ contract BasisShare is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /**
      * @notice Transfer operators to new ones
      * @param newBank_ The address of the bank contract
+     * @param newStabilizer_ The address of the stabilizer contract
      */
-    function transferOperators(address newBank_) public onlyOwner {
-        _transferOperators(newBank_);
+    function transferOperators(address newBank_, address newStabilizer_) public onlyOwner {
+        _transferOperators(newBank_, newStabilizer_);
     }
 
-    function _transferOperators(address newBank) internal {
+    function _transferOperators(address newBank, address newStabilizer) internal {
         require(
-            newBank != address(0),
+            newBank != address(0) && newStabilizer != address(0),
             "basis.share: new operator is the zero address"
         );
         basisBank = newBank;
+        basisStabilizer = newStabilizer;
     }
     
     /** Operator functions **/
     
     modifier onlyOperator() {
-        require(basisBank == msg.sender, "basis.share: caller is not the operator");
+        require(basisBank == msg.sender || basisStabilizer == msg.sender, "basis.share: caller is not the operator");
         _;
     }
     
