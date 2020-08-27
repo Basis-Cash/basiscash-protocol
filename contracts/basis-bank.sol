@@ -62,15 +62,6 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
         lastStabilized = now;
     }
 
-    /* Returns the absolute difference between a and b */ 
-    function abs_diff(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a > b) {
-            return a.sub(b);
-        } else {
-            return b.sub(a);
-        }
-    }
-
     /* Checks that the stabilizer is run at most once a day */ 
     modifier canStabilize {
         require(now.sub(lastStabilized) >= 1 days, "canStabilize: a day has not passed yet");
@@ -89,8 +80,8 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
         // get input price from 1 multidai to basis cash
         uint256 cashPrice = IOracle(cashOracle).consult(multidai, one);
         
-        // Cash can be swapped to bonds at ($1 - price of basis cash) * amount
-        uint256 bondPrice = abs_diff(cashPrice, one);
+        // Cash can be swapped to bonds at (price of basis cash) * amount
+        uint256 bondPrice = cashPrice;
         
         // Burn basis cash
         (bool success) = IBasisAsset(basisCash).burnFrom(msg.sender, amount_);
