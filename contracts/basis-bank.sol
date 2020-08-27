@@ -40,17 +40,15 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
      * @param cash_ the cash ERC-20 contract
      * @param bond_ the bond ERC-20 contract
      * @param share_ the share ERC-20 contract
-     * @param cashOracle_ the oracle to read in basis cash prices from
-     * @param multidai_ the multi-collateral dai contract 
+     * @param daiCashOracle_ the oracle to read in basis cash prices in Basis Cash / MCD pair
      * @param bondPool_ seigniorage pool earmarked for bond redemption
      * @param sharePool_ seigniorage pool earmarked for share dividends
      */
-    constructor(address cash_, address bond_, address share_, address cashOracle_, address multidai_, address bondPool_, address sharePool_) public {
+    constructor(address cash_, address bond_, address share_, address daiCashOracle_, address bondPool_, address sharePool_) public {
         basisCash = cash_;
         basisBond = bond_;
         basisShare = share_;
-        cashOracle = cashOracle_;
-        multidai = multidai_;
+        daiCashOracle = daiCashOracle_;
 
         bondRedemptionPool = bondPool_;
         seigniorageSharePool = sharePool_;
@@ -77,8 +75,8 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
         
         uint one = 1e18;
 
-        // get price of 1 basis cash in multidai pair
-        uint256 cashPrice = IOracle(cashOracle).consult(basisCash, one);
+        // get input price from 1 multidai to basis cash
+        uint256 cashPrice = IOracle(cashOracle).consult(multidai, one);
         
         // Cash can be swapped to bonds at (price of basis cash) * amount
         uint256 bondPrice = cashPrice;
@@ -108,8 +106,8 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
         
         uint one = 1e18;
 
-        // get price of 1 basis cash in multidai pair
-        uint256 cashPrice = IOracle(cashOracle).consult(basisCash, one);
+        // get input price from 1 multidai to basis cash
+        uint256 cashPrice = IOracle(cashOracle).consult(multidai, one);
         
         bool depegged = cashPrice < one; 
         require (
@@ -139,7 +137,7 @@ contract BasisBank is ReentrancyGuard, Ownable, IOracle {
 
         uint one = 1e18;
 
-        // get price of 1 basis cash in multidai pair
+        // get price of 1 basisCash in basis cash / multidai pair oracle
         uint basisPrice = IOracle(cashOracle).consult(basisCash, one);
         
         // if basisPrice > 1 + epsilion, then mint basis cash
