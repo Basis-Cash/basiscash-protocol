@@ -66,9 +66,9 @@ contract BasisShare is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "Comp::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "Comp::delegateBySig: invalid nonce");
-        require(now <= expiry, "Comp::delegateBySig: signature expired");
+        require(signatory != address(0), "BasisShare::delegateBySig: invalid signature");
+        require(nonce == nonces[signatory]++, "BasisShare::delegateBySig: invalid nonce");
+        require(now <= expiry, "BasisShare::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
 
@@ -90,7 +90,7 @@ contract BasisShare is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @return The number of votes the account had as of the given block
      */
     function getPriorVotes(address account, uint blockNumber) public view returns (uint256) {
-        require(blockNumber < block.number, "Comp::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "BasisShare::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -153,7 +153,7 @@ contract BasisShare is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint256 oldVotes, uint256 newVotes) internal {
-      uint32 blockNumber = safe32(block.number, "Comp::_writeCheckpoint: block number exceeds 32 bits");
+      uint32 blockNumber = safe32(block.number, "BasisShare::_writeCheckpoint: block number exceeds 32 bits");
 
       if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
           checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
