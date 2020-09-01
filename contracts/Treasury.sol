@@ -58,6 +58,12 @@ contract Treasury is ReentrancyGuard, Ownable {
         bondDepletionFloor = 1000e18;
         lastAllocated = now;
     }
+    
+    /* ========== FALLBACK ========== */
+    
+    function() external payable {
+        revert();
+    }
 
     // ========== EXTERNAL SETTERS ==========
 
