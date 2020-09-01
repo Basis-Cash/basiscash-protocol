@@ -17,7 +17,7 @@ const Treasury = artifacts.require("Treasury");
 
 const migration = async (deployer, network, accounts) => {
   await Promise.all([
-    deployRs(deployer, network),
+    deployMp(deployer, network),
   ]);
 };
 
@@ -35,7 +35,7 @@ async function deployMp(deployer, network) {
     );
     
     // Deploy oracle
-    if (network != "mainnet") {
+    if (network == "mainnet") {
         let uniswap_factory = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
         let multidai = "0x6b175474e89094c44da98b954eedeac495271d0f";
         await deployer.deploy(Oracle,
@@ -51,7 +51,7 @@ async function deployMp(deployer, network) {
             Bond.address, 
             Share.address, 
             Oracle.address, 
-            multidai, 
+            multidai,
             Boardroom.address
         );
 
@@ -64,7 +64,7 @@ async function deployMp(deployer, network) {
             Bond.address, 
             Share.address, 
             MockOracle.address, 
-            multidai, 
+            Share.address, 
             Boardroom.address
         );
     }
