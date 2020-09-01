@@ -16,7 +16,7 @@ contract Bond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @notice Constructs the Basis Bond ERC-20 contract. 
      * @param bank_ The address of the bank contract
      */
-    constructor(address bank_) public ERC20Detailed("basis bond", "BAB", 18) {
+    constructor(address bank_) public ERC20Detailed("BAB", "BAB", 18) {
         basisBank = bank_;
     }
     

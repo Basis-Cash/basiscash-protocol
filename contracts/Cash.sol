@@ -12,7 +12,7 @@ contract Cash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /**
      * @notice Constructs the Basis Cash ERC-20 contract. 
      */
-    constructor() public ERC20Detailed("basis cash", "BAC", 18) {
+    constructor() public ERC20Detailed("BAC", "BAC", 18) {
     }
     
     /**

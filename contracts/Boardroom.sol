@@ -138,8 +138,6 @@ contract Boardroom is ReentrancyGuard, Ownable {
 
         emit RewardAdded(amount);
     }
-    
-
 
     /* ========== EVENTS ========== */
 
