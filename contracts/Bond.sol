@@ -16,8 +16,8 @@ contract Bond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @notice Constructs the Basis Bond ERC-20 contract. 
      * @param treasury_ The address of the treasury contract
      */
-    constructor(address bank_) public ERC20Detailed("BAB", "BAB", 18) {
-        basisBank = bank_;
+    constructor(address treasury_) public ERC20Detailed("BAB", "BAB", 18) {
+        treasury = treasury_;
     }
     
     /**
