@@ -38,9 +38,9 @@ contract Boardroom is ReentrancyGuard, Ownable {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(IERC20 _share, IERC20 _cash) public {
-        share = _share;
+    constructor(IERC20 _cash, IERC20 _share) public {
         cash = _cash;
+        share = _share;
 
         BoardSnapshot memory genesisSnapshot = BoardSnapshot(now, 0, 0); 
         boardHistory.push(genesisSnapshot);
