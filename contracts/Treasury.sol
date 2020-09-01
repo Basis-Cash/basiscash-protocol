@@ -59,11 +59,6 @@ contract Treasury is ReentrancyGuard, Ownable {
         lastAllocated = now;
     }
     
-    /* ========== FALLBACK ========== */
-    
-    function() external payable {
-        revert();
-    }
 
     // ========== EXTERNAL SETTERS ==========
 
