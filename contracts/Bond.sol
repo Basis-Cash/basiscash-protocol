@@ -10,11 +10,11 @@ contract Bond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeMath for uint256;
 
     // addresses for operators
-    address public basisBank;
+    address public treasury;
 
     /**
      * @notice Constructs the Basis Bond ERC-20 contract. 
-     * @param bank_ The address of the bank contract
+     * @param treasury_ The address of the treasury contract
      */
     constructor(address bank_) public ERC20Detailed("BAB", "BAB", 18) {
         basisBank = bank_;
@@ -50,24 +50,24 @@ contract Bond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     
     /**
      * @notice Transfer operators to new ones
-     * @param newBank_ The address of the bank contract
+     * @param newTreasury_ The address of the new Treasury contract
      */
-    function transferOperators(address newBank_) public onlyOwner {
-        _transferOperators(newBank_);
+    function transferOperators(address newTreasury_) public onlyOwner {
+        _transferOperators(newTreasury_);
     }
 
-    function _transferOperators(address newBank) internal {
+    function _transferOperators(address newTreasury) internal {
         require(
-            newBank != address(0),
-            "basis.bond: new operator is the zero address"
+            newTreasury != address(0),
+            "basis.bond: zero address given for new operator"
         );
-        basisBank = newBank;
+        treasury = newTreasury;
     }
     
     /** Operator functions **/
     
     modifier onlyOperator() {
-        require(basisBank == msg.sender, "basis.bond: caller is not the operator");
+        require(treasury == msg.sender, "basis.bond: caller is not the operator");
         _;
     }
     
