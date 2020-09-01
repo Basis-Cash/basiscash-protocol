@@ -14,7 +14,6 @@ contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
     uint256 public maxSupply = 1000000e18; // 1 million
     
     constructor() public ERC20Detailed("BAS", "BAS", 18) {
-
     }
     
     /**

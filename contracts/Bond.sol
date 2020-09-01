@@ -10,9 +10,6 @@ contract Bond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
     using Address for address;
     using SafeMath for uint256;
 
-    // addresses for operators
-    address public treasury;
-
     /**
      * @notice Constructs the Basis Bond ERC-20 contract. 
      */
