@@ -66,8 +66,8 @@ contract ExampleOracleSimple {
         }
     }
     
-    function getReserves(address token) external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestamp) {
-        return pair.getReserves();
-    }
+    // function getReserves(address token) external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestamp) {
+    //     return pair.getReserves();
+    // }
 }
 

@@ -40,41 +40,41 @@ pragma solidity ^0.5.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import '../../lib/math.sol';
+import '../lib/Math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import '../../lib/SafeMath.sol';
+import '../lib/SafeMath.sol';
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
-import '../../owner/Context.sol';
+import '../owner/Context.sol';
 
 // File: @openzeppelin/contracts/ownership/Ownable.sol
 
-import '../../owner/Ownable.sol';
+import '../owner/Ownable.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import '../../interfaces/IERC20.sol';
+import '../interfaces/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import '../../lib/Address.sol';
+import '../lib/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import '../../lib/SafeERC20.sol';
+import '../lib/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import '../../interfaces/IRewardDistributionRecipient.sol';
+import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract USDTWrapper {
+contract YFIWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdt = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    IERC20 public yfi = IERC20(0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e);
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -90,17 +90,17 @@ contract USDTWrapper {
     function stake(uint256 amount) public {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        usdt.safeTransferFrom(msg.sender, address(this), amount);
+        yfi.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        usdt.safeTransfer(msg.sender, amount);
+        yfi.safeTransfer(msg.sender, amount);
     }
 }
 
-contract BACUSDTPool is USDTWrapper, IRewardDistributionRecipient {
+contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
@@ -122,7 +122,7 @@ contract BACUSDTPool is USDTWrapper, IRewardDistributionRecipient {
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime,"BACUSDTPool: not start");
+        require(block.timestamp >= starttime,"BACYFIPool: not start");
         _;
     }
 
@@ -164,13 +164,13 @@ contract BACUSDTPool is USDTWrapper, IRewardDistributionRecipient {
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "BACUSDTPool: Cannot stake 0");
+        require(amount > 0, "BACYFIPool: Cannot stake 0");
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "BACUSDTPool: Cannot withdraw 0");
+        require(amount > 0, "BACYFIPool: Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }

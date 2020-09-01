@@ -40,37 +40,37 @@ pragma solidity ^0.5.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import '../../lib/math.sol';
+import '../lib/Math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import '../../lib/SafeMath.sol';
+import '../lib/SafeMath.sol';
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
-import '../../owner/Context.sol';
+import '../owner/Context.sol';
 
 // File: @openzeppelin/contracts/ownership/Ownable.sol
 
-import '../../owner/Ownable.sol';
+import '../owner/Ownable.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import '../../interfaces/IERC20.sol';
+import '../interfaces/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import '../../lib/Address.sol';
+import '../lib/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import '../../lib/SafeERC20.sol';
+import '../lib/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import '../../interfaces/IRewardDistributionRecipient.sol';
+import '../interfaces/IRewardDistributionRecipient.sol';
 
-import '../../token/LPTokenWrapper.sol';
+import '../token/LPTokenWrapper.sol';
 
 contract DAIBACLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient {
     IERC20 public basisShare;

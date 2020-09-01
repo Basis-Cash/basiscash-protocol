@@ -4,29 +4,26 @@ import './token/ERC20.sol';
 import './owner/Ownable.sol';
 import './guards/ReentrancyGuard.sol';
 
-contract BasisCash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract Bond is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
 
     // addresses for operators
     address public basisBank;
-    address public basisStabilizer;
 
     /**
-     * @notice Construct a new bank for basis assets
+     * @notice Constructs the Basis Bond ERC-20 contract. 
      * @param bank_ The address of the bank contract
-     * @param stablizer_ The address of the stabilizer contract
      */
-    constructor(address bank_, address stablizer_) public ERC20Detailed("basis basis.cash", "basis.cash", 18) {
+    constructor(address bank_) public ERC20Detailed("basis bond", "BAB", 18) {
         basisBank = bank_;
-        basisStabilizer = stablizer_;
     }
     
     /**
-     * @notice Burns basis cash from an account
+     * @notice Burns basis bonds from an account
      * @param from_ The address of an account to burn from
-     * @param amount_ The amount of basis cash to burn
+     * @param amount_ The amount of basis bonds to burn
      * @return whether the process has been done
      */
     function burn(address from_, uint256 amount_) public returns (bool) {
@@ -37,9 +34,9 @@ contract BasisCash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
     
     /**
-     * @notice Burns basis cash of an account from the operator 
+     * @notice Burns basis bonds of an account from the operator 
      * @param from_ The address of an account to burn from
-     * @param amount_ The amount of basis cash to burn
+     * @param amount_ The amount of basis bonds to burn
      * @return whether the process has been done
      */
     function burnFrom(address from_, uint256 amount_) public returns (bool) {
@@ -54,32 +51,30 @@ contract BasisCash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /**
      * @notice Transfer operators to new ones
      * @param newBank_ The address of the bank contract
-     * @param newStabilizer_ The address of the stabilizer contract
      */
-    function transferOperators(address newBank_, address newStabilizer_) public onlyOwner {
-        _transferOperators(newBank_, newStabilizer_);
+    function transferOperators(address newBank_) public onlyOwner {
+        _transferOperators(newBank_);
     }
 
-    function _transferOperators(address newBank, address newStabilizer) internal {
+    function _transferOperators(address newBank) internal {
         require(
-            newBank != address(0) && newStabilizer != address(0),
-            "basis.cash: new operator is the zero address"
+            newBank != address(0),
+            "basis.bond: new operator is the zero address"
         );
         basisBank = newBank;
-        basisStabilizer = newStabilizer;
     }
     
     /** Operator functions **/
     
     modifier onlyOperator() {
-        require(basisBank == msg.sender || basisStabilizer == msg.sender, "basis.cash: caller is not the operator");
+        require(basisBank == msg.sender, "basis.bond: caller is not the operator");
         _;
     }
     
     /**
-     * @notice Operator mints basis cash to a recipient
+     * @notice Operator mints basis bonds to a recipient
      * @param recipient_ The address of recipient
-     * @param amount_ The amount of basis cash to mint to 
+     * @param amount_ The amount of basis bonds to mint to 
      * @return whether the process has been done
      */
     function mint(address recipient_, uint256 amount_) public onlyOperator returns (bool) {
@@ -89,6 +84,4 @@ contract BasisCash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         
         return balanceAfter > balanceBefore;
     }
-    
-    
 }
