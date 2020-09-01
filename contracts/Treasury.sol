@@ -95,14 +95,6 @@ contract Treasury is ReentrancyGuard, Ownable {
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function abs_diff(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a > b) {
-            return a.sub(b);
-        } else {
-            return b.sub(a);
-        }
-    }
-
     function getCashPrice() internal returns (uint cashPrice) {
         IOracle(cashOracle).update();
         cashPrice = IOracle(cashOracle).consult(cash, 1);
@@ -117,8 +109,8 @@ contract Treasury is ReentrancyGuard, Ownable {
         // get input price from 1 multidai to basis cash
         uint256 cashPrice = getCashPrice();
         
-        // Cash can be swapped to bonds at ($1 - price of basis cash) * amount
-        uint256 bondPrice = abs_diff(cashPrice, 1);
+        // Cash can be swapped to bonds at (price of basis cash) * amount
+        uint256 bondPrice = cashPrice;
         
         // Burn basis cash
         (bool success) = IBasisAsset(cash).burnFrom(msg.sender, amount);
