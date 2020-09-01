@@ -2,10 +2,11 @@ pragma solidity ^0.5.0;
 
 import './token/ERC20.sol';
 import './owner/Ownable.sol';
+import './owner/Operator.sol';
 import './guards/ReentrancyGuard.sol';
 
 
-contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -13,7 +14,6 @@ contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     uint256 public maxSupply = 1000000e18; // 1 million
     
     constructor() public ERC20Detailed("BAS", "BAS", 18) {
-
     }
     
     /**
@@ -47,7 +47,7 @@ contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @param recipient_ The address of recipient
      * @param amount_ The amount of basis cash to mint to 
      */
-    function mint(address recipient_, uint256 amount_) public onlyOwner {
+    function mint(address recipient_, uint256 amount_) public onlyOperator {
         require(totalSupply() + amount_ <= maxSupply, "Share: minting amount exceeds max supply");
         _mint(recipient_, amount_);
     }

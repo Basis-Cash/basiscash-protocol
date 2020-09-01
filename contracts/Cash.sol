@@ -2,9 +2,10 @@ pragma solidity ^0.5.0;
 
 import './token/ERC20.sol';
 import './owner/Ownable.sol';
+import './owner/Operator.sol';
 import './guards/ReentrancyGuard.sol';
 
-contract Cash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract Cash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -47,7 +48,7 @@ contract Cash is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @param amount_ The amount of basis cash to mint to 
      * @return whether the process has been done
      */
-    function mint(address recipient_, uint256 amount_) public onlyOwner returns (bool) {
+    function mint(address recipient_, uint256 amount_) public onlyOperator returns (bool) {
         uint256 balanceBefore = balanceOf(recipient_);
         _mint(recipient_, amount_);
         uint256 balanceAfter = balanceOf(recipient_);
