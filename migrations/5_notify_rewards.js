@@ -35,13 +35,8 @@ module.exports = migration
 async function deployDistribution(deployer, network, accounts) {
   console.log(network)
   if (network != 'test') {
-    console.log(Cash.address)
-    await deployer.deploy(BAC_DAIPool, Cash.address)
-    await deployer.deploy(BAC_SUSDPool, Cash.address)
-    await deployer.deploy(BAC_USDCPool, Cash.address)
-    await deployer.deploy(BAC_USDTPool, Cash.address)
-    await deployer.deploy(BAC_YFIPool, Cash.address)
-
+    console.log('notifying')
+    console.log('basis cash')
     const dai_pool = new web3.eth.Contract(BAC_DAIPool.abi, BAC_DAIPool.address)
     const susd_pool = new web3.eth.Contract(
       BAC_SUSDPool.abi,
@@ -57,35 +52,25 @@ async function deployDistribution(deployer, network, accounts) {
     )
     const yfi_pool = new web3.eth.Contract(BAC_YFIPool.abi, BAC_YFIPool.address)
 
-    // Deploy oracle
-    if (network == 'mainnet') {
-      let uniswap_factory = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
-      let multidai = '0x6b175474e89094c44da98b954eedeac495271d0f'
-      await deployer.deploy(Oracle, uniswap_factory, Cash.address, multidai)
+    let fifty_thousand = web3.utils
+      .toBN(5 * 10 ** 4)
+      .mul(web3.utils.toBN(10 ** 18))
 
-      await deployer.deploy(MockOracle)
-
-      await deployer.deploy(Oracle, uniswap_factory, Share.address, multidai)
-    } else {
-      await deployer.deploy(MockOracle)
-    }
-
-    console.log('setting distributor')
     await Promise.all([
       dai_pool.methods
-        .setRewardDistribution(accounts[0])
+        .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
       susd_pool.methods
-        .setRewardDistribution(accounts[0])
+        .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
       usdc_pool.methods
-        .setRewardDistribution(accounts[0])
+        .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
       usdt_pool.methods
-        .setRewardDistribution(accounts[0])
+        .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
       yfi_pool.methods
-        .setRewardDistribution(accounts[0])
+        .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
     ])
   }

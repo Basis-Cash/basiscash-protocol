@@ -22,38 +22,13 @@ module.exports = migration
 // ============ Deploy Functions ============
 
 async function deployRewardDistribution(deployer, network, accounts) {
-  let dai_pool = new web3.eth.Contract(BAC_DAIPool.abi, BAC_DAIPool.address)
-  let susd_pool = new web3.eth.Contract(BAC_SUSDPool.abi, BAC_SUSDPool.address)
-  let usdc_pool = new web3.eth.Contract(BAC_USDCPool.abi, BAC_USDCPool.address)
-  let usdt_pool = new web3.eth.Contract(BAC_USDTPool.abi, BAC_USDTPool.address)
-  let yfi_pool = new web3.eth.Contract(BAC_YFIPool.abi, BAC_YFIPool.address)
-
-  // TODO: Set up token amount to send for each pool in the first day
-  let fifty_thousand = web3.utils
-    .toBN(5 * 10 ** 4)
-    .mul(web3.utils.toBN(10 ** 18))
-
-  console.log('transfering and notifying')
+  console.log('depositing')
   console.log('basis cash')
   let cash = new web3.eth.Contract(Cash.abi, Cash.address)
 
-  await Promise.all([
-    dai_pool.methods
-      .notifyRewardAmount(fifty_thousand.toString())
-      .send({ from: accounts[0] }),
-    susd_pool.methods
-      .notifyRewardAmount(fifty_thousand.toString())
-      .send({ from: accounts[0] }),
-    usdc_pool.methods
-      .notifyRewardAmount(fifty_thousand.toString())
-      .send({ from: accounts[0] }),
-    usdt_pool.methods
-      .notifyRewardAmount(fifty_thousand.toString())
-      .send({ from: accounts[0] }),
-    yfi_pool.methods
-      .notifyRewardAmount(fifty_thousand.toString())
-      .send({ from: accounts[0] }),
-  ])
+  let fifty_thousand = web3.utils
+    .toBN(5 * 10 ** 4)
+    .mul(web3.utils.toBN(10 ** 18))
 
   await Promise.all([
     cash.methods
