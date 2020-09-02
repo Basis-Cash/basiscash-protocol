@@ -9,6 +9,7 @@ const Share = artifacts.require('Share')
 // Rs
 // deployed second
 const Oracle = artifacts.require('Oracle')
+const UniswapV2Factory = artifacts.require('UniswapV2Factory')
 const MockOracle = artifacts.require('MockOracle')
 const Boardroom = artifacts.require('Boardroom')
 const Treasury = artifacts.require('Treasury')
@@ -27,13 +28,22 @@ async function deployMp(deployer, network) {
   // Deploy boardroom
   await deployer.deploy(Boardroom, Cash.address, Share.address)
 
-  // Deploy oracle
+  // Creat pairs and deploy oracle
   if (network == 'mainnet') {
     let uniswap_factory = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
     let multidai = '0x6b175474e89094c44da98b954eedeac495271d0f'
-    await deployer.deploy(Oracle, uniswap_factory, Cash.address, multidai)
+    uniswap = new web3.eth.Contract(UniswapV2Factory.abi, uniswap_factory)
+    // Create pair between bac and dai
+    const bac_dai_lpt = await uniswap.methods.createPair(Cash.address, multidai)
 
-    await deployer.deploy(MockOracle)
+    // Create pair between bac and bas
+    const bas_dai_lpt = await uniswap.methods.createPair(
+      Share.address,
+      multidai,
+    )
+
+    // Deploy oracle for the pair between bac and dai
+    await deployer.deploy(Oracle, uniswap_factory, Cash.address, multidai)
 
     await deployer.deploy(
       Treasury,
