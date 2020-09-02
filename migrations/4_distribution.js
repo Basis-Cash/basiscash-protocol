@@ -88,50 +88,23 @@ async function deployDistribution(deployer, network, accounts) {
         .setRewardDistribution(accounts[0])
         .send({ from: accounts[0], gas: 100000 }),
     ])
-
-    // TODO: Set up token amount to send for each pool in the first day
-    let fifty_thousand = web3.utils
-      .toBN(5 * 10 ** 4)
-      .mul(web3.utils.toBN(10 ** 18))
-
-    console.log('transfering and notifying')
-    console.log('basis cash')
-    let cash = new web3.eth.Contract(Cash.abi, Cash.address)
-
-    await Promise.all([
-      cash.methods
-        .transfer(BAC_DAIPool.address, fifty_thousand.toString())
-        .call(),
-      cash.methods
-        .transfer(BAC_SUSDPool.address, fifty_thousand.toString())
-        .call(),
-      cash.methods
-        .transfer(BAC_USDCPool.address, fifty_thousand.toString())
-        .call(),
-      cash.methods
-        .transfer(BAC_USDTPool.address, fifty_thousand.toString())
-        .call(),
-      cash.methods
-        .transfer(BAC_YFIPool.address, fifty_thousand.toString())
-        .call(),
-    ])
-
-    await Promise.all([
-      dai_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-      susd_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-      usdc_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-      usdt_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-      yfi_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-    ])
   }
+
+  await Promise.all([
+    dai_pool.methods
+      .notifyRewardAmount(fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+    susd_pool.methods
+      .notifyRewardAmount(fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+    usdc_pool.methods
+      .notifyRewardAmount(fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+    usdt_pool.methods
+      .notifyRewardAmount(fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+    yfi_pool.methods
+      .notifyRewardAmount(fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+  ])
 }
