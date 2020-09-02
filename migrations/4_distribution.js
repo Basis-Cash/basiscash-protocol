@@ -42,6 +42,19 @@ async function deployDistribution(deployer, network, accounts) {
     await deployer.deploy(BAC_USDTPool, Cash.address)
     await deployer.deploy(BAC_YFIPool, Cash.address)
 
+    // change argument on deployment
+    await deployer.deploy(
+      DAIBACLPToken_BASPool,
+      Share.address,
+      '0x0000000000000000000000000000000000000000',
+    )
+
+    await deployer.deploy(
+      DAIBASLPToken_BASPool,
+      Share.address,
+      '0x0000000000000000000000000000000000000000',
+    )
+
     const dai_pool = new web3.eth.Contract(BAC_DAIPool.abi, BAC_DAIPool.address)
     const susd_pool = new web3.eth.Contract(
       BAC_SUSDPool.abi,
@@ -56,6 +69,14 @@ async function deployDistribution(deployer, network, accounts) {
       BAC_USDTPool.address,
     )
     const yfi_pool = new web3.eth.Contract(BAC_YFIPool.abi, BAC_YFIPool.address)
+    const daibaclptoken_baspool = new web3.eth.Contract(
+      DAIBACLPToken_BASPool.abi,
+      DAIBACLPToken_BASPool.address,
+    )
+    const daibaslptoken_baspool = new web3.eth.Contract(
+      DAIBASLPToken_BASPool.abi,
+      DAIBASLPToken_BASPool.address,
+    )
 
     // Deploy oracle
     if (network == 'mainnet') {
@@ -85,6 +106,12 @@ async function deployDistribution(deployer, network, accounts) {
         .setRewardDistribution(accounts[0])
         .send({ from: accounts[0], gas: 100000 }),
       yfi_pool.methods
+        .setRewardDistribution(accounts[0])
+        .send({ from: accounts[0], gas: 100000 }),
+      daibaclptoken_baspool.methods
+        .setRewardDistribution(accounts[0])
+        .send({ from: accounts[0], gas: 100000 }),
+      daibaslptoken_baspool.methods
         .setRewardDistribution(accounts[0])
         .send({ from: accounts[0], gas: 100000 }),
     ])

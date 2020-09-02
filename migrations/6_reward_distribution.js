@@ -6,6 +6,8 @@ const BAC_SUSDPool = artifacts.require('BACSUSDPool')
 const BAC_USDCPool = artifacts.require('BACUSDCPool')
 const BAC_USDTPool = artifacts.require('BACUSDTPool')
 const BAC_YFIPool = artifacts.require('BACYFIPool')
+const DAIBACLPToken_BASPool = artifacts.require('DAIBACLPTokenSharePool')
+const DAIBASLPToken_BASPool = artifacts.require('DAIBASLPTokenSharePool')
 
 // ============ Main Migration ============
 
@@ -45,6 +47,12 @@ async function deployRewardDistribution(deployer, network, accounts) {
       .send({ from: accounts[0] }),
     cash.methods
       .mint(BAC_YFIPool.address, fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+    cash.methods
+      .mint(DAIBACLPToken_BASPool.address, fifty_thousand.toString())
+      .send({ from: accounts[0] }),
+    cash.methods
+      .mint(DAIBASLPToken_BASPool.address, fifty_thousand.toString())
       .send({ from: accounts[0] }),
   ])
 }

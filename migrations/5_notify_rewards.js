@@ -52,6 +52,15 @@ async function deployDistribution(deployer, network, accounts) {
     )
     const yfi_pool = new web3.eth.Contract(BAC_YFIPool.abi, BAC_YFIPool.address)
 
+    const daibaclptoken_baspool = new web3.eth.Contract(
+      DAIBACLPToken_BASPool.abi,
+      DAIBACLPToken_BASPool.address,
+    )
+    const daibaslptoken_baspool = new web3.eth.Contract(
+      DAIBASLPToken_BASPool.abi,
+      DAIBASLPToken_BASPool.address,
+    )
+
     let fifty_thousand = web3.utils
       .toBN(5 * 10 ** 4)
       .mul(web3.utils.toBN(10 ** 18))
@@ -70,6 +79,12 @@ async function deployDistribution(deployer, network, accounts) {
         .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
       yfi_pool.methods
+        .notifyRewardAmount(fifty_thousand.toString())
+        .send({ from: accounts[0], gas: 100000 }),
+      daibaclptoken_baspool.methods
+        .notifyRewardAmount(fifty_thousand.toString())
+        .send({ from: accounts[0], gas: 100000 }),
+      daibaslptoken_baspool.methods
         .notifyRewardAmount(fifty_thousand.toString())
         .send({ from: accounts[0], gas: 100000 }),
     ])
