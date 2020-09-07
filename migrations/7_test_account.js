@@ -9,7 +9,7 @@ const Share = artifacts.require('Share')
 const migration = async (deployer, network, accounts) => {
   await Promise.all([
     // deployTestContracts(deployer, network),
-    deployRewardDistribution(deployer, network, accounts),
+    setTestBalances(deployer, network, accounts),
     // deploySecondLayer(deployer, network)
   ])
 }
@@ -18,7 +18,7 @@ module.exports = migration
 
 // ============ Deploy Functions ============
 
-async function deployRewardDistribution(deployer, network, accounts) {
+async function setTestBalances(deployer, network, accounts) {
   if (network !== 'mainnet') {
     let cash = new web3.eth.Contract(Cash.abi, Cash.address)
     let bond = new web3.eth.Contract(Bond.abi, Bond.address)
