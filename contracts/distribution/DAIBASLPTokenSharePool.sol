@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 /**
  *Submitted for verification at Etherscan.io on 2020-07-17
-*/
+ */
 
 /*
    ____            __   __        __   _
@@ -40,39 +40,42 @@ pragma solidity ^0.5.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import '../lib/Math.sol';
+import "../lib/Math.sol";
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import '../lib/SafeMath.sol';
+import "../lib/SafeMath.sol";
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
-import '../owner/Context.sol';
+import "../owner/Context.sol";
 
 // File: @openzeppelin/contracts/ownership/Ownable.sol
 
-import '../owner/Ownable.sol';
+import "../owner/Ownable.sol";
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import '../interfaces/IERC20.sol';
+import "../interfaces/IERC20.sol";
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import '../lib/Address.sol';
+import "../lib/Address.sol";
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import '../lib/SafeERC20.sol';
+import "../lib/SafeERC20.sol";
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import '../interfaces/IRewardDistributionRecipient.sol';
+import "../interfaces/IRewardDistributionRecipient.sol";
 
-import '../token/LPTokenWrapper.sol';
+import "../token/LPTokenWrapper.sol";
 
-contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient {
+contract DAIBASLPTokenSharePool is
+    LPTokenWrapper,
+    IRewardDistributionRecipient
+{
     IERC20 public basisShare;
     uint256 public DURATION = 7 days;
 
@@ -83,6 +86,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => uint256) public deposits;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -90,12 +94,12 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(address basisShare_, address lptoken_) public {
-        basisShare  = IERC20(basisShare_);
+        basisShare = IERC20(basisShare_);
         lpt = IERC20(lptoken_);
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime,"not start");
+        require(block.timestamp >= starttime, "not start");
         _;
     }
 
@@ -137,12 +141,22 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, "DAIBASLPTokenSharePool: Cannot stake 0");
+        uint256 newDeposit = deposits[msg.sender] + amount;
+        require(
+            newDeposit <= 20000e18,
+            "DAIBASLPTokenSharePool: deposit amount exceeds maximum 20000"
+        );
+        deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public updateReward(msg.sender) checkStart {
+    function withdraw(uint256 amount)
+        public
+        updateReward(msg.sender)
+        checkStart
+    {
         require(amount > 0, "Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
@@ -168,21 +182,21 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
         updateReward(address(0))
     {
         if (block.timestamp > starttime) {
-          if (block.timestamp >= periodFinish) {
-              rewardRate = reward.div(DURATION);
-          } else {
-              uint256 remaining = periodFinish.sub(block.timestamp);
-              uint256 leftover = remaining.mul(rewardRate);
-              rewardRate = reward.add(leftover).div(DURATION);
-          }
-          lastUpdateTime = block.timestamp;
-          periodFinish = block.timestamp.add(DURATION);
-          emit RewardAdded(reward);
+            if (block.timestamp >= periodFinish) {
+                rewardRate = reward.div(DURATION);
+            } else {
+                uint256 remaining = periodFinish.sub(block.timestamp);
+                uint256 leftover = remaining.mul(rewardRate);
+                rewardRate = reward.add(leftover).div(DURATION);
+            }
+            lastUpdateTime = block.timestamp;
+            periodFinish = block.timestamp.add(DURATION);
+            emit RewardAdded(reward);
         } else {
-          rewardRate = reward.div(DURATION);
-          lastUpdateTime = starttime;
-          periodFinish = starttime.add(DURATION);
-          emit RewardAdded(reward);
+            rewardRate = reward.div(DURATION);
+            lastUpdateTime = starttime;
+            periodFinish = starttime.add(DURATION);
+            emit RewardAdded(reward);
         }
     }
 }

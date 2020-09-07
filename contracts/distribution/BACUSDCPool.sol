@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 /**
  *Submitted for verification at Etherscan.io on 2020-07-17
-*/
+ */
 
 /*
    ____            __   __        __   _
@@ -40,35 +40,35 @@ pragma solidity ^0.5.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import '../lib/Math.sol';
+import "../lib/Math.sol";
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import '../lib/SafeMath.sol';
+import "../lib/SafeMath.sol";
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
-import '../owner/Context.sol';
+import "../owner/Context.sol";
 
 // File: @openzeppelin/contracts/ownership/Ownable.sol
 
-import '../owner/Ownable.sol';
+import "../owner/Ownable.sol";
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import '../interfaces/IERC20.sol';
+import "../interfaces/IERC20.sol";
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import '../lib/Address.sol';
+import "../lib/Address.sol";
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import '../lib/SafeERC20.sol';
+import "../lib/SafeERC20.sol";
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import '../interfaces/IRewardDistributionRecipient.sol';
+import "../interfaces/IRewardDistributionRecipient.sol";
 
 contract USDCWrapper {
     using SafeMath for uint256;
@@ -111,6 +111,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => uint256) public deposits;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -118,11 +119,11 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(address basisCash_) public {
-        basisCash  = IERC20(basisCash_);
+        basisCash = IERC20(basisCash_);
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime,"BACUSDCPool: not start");
+        require(block.timestamp >= starttime, "BACUSDCPool: not start");
         _;
     }
 
@@ -165,11 +166,21 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public updateReward(msg.sender) checkStart {
         require(amount > 0, "BACUSDCPool: Cannot stake 0");
+        uint256 newDeposit = deposits[msg.sender] + amount;
+        require(
+            newDeposit <= 20000e18,
+            "BACUSDCPool: deposit amount exceeds maximum 20000"
+        );
+        deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public updateReward(msg.sender) checkStart {
+    function withdraw(uint256 amount)
+        public
+        updateReward(msg.sender)
+        checkStart
+    {
         require(amount > 0, "BACUSDCPool: Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
@@ -195,21 +206,21 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         updateReward(address(0))
     {
         if (block.timestamp > starttime) {
-          if (block.timestamp >= periodFinish) {
-              rewardRate = reward.div(DURATION);
-          } else {
-              uint256 remaining = periodFinish.sub(block.timestamp);
-              uint256 leftover = remaining.mul(rewardRate);
-              rewardRate = reward.add(leftover).div(DURATION);
-          }
-          lastUpdateTime = block.timestamp;
-          periodFinish = block.timestamp.add(DURATION);
-          emit RewardAdded(reward);
+            if (block.timestamp >= periodFinish) {
+                rewardRate = reward.div(DURATION);
+            } else {
+                uint256 remaining = periodFinish.sub(block.timestamp);
+                uint256 leftover = remaining.mul(rewardRate);
+                rewardRate = reward.add(leftover).div(DURATION);
+            }
+            lastUpdateTime = block.timestamp;
+            periodFinish = block.timestamp.add(DURATION);
+            emit RewardAdded(reward);
         } else {
-          rewardRate = reward.div(DURATION);
-          lastUpdateTime = starttime;
-          periodFinish = starttime.add(DURATION);
-          emit RewardAdded(reward);
+            rewardRate = reward.div(DURATION);
+            lastUpdateTime = starttime;
+            periodFinish = starttime.add(DURATION);
+            emit RewardAdded(reward);
         }
     }
 }
