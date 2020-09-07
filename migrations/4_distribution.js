@@ -48,15 +48,12 @@ async function deployDistribution(deployer, network, accounts) {
       await deployer.deploy(Oracle, uniswap_factory, Cash.address, multidai)
 
       const oracle = new web3.eth.Contract(Oracle.abi, Oracle.address)
-      console.log(oracle.methods)
       const dai_bac_lpt = await oracle.methods
         .pairFor(uniswap_factory, Cash.address, multidai)
         .call()
-      console.log(dai_bac_lpt)
       const dai_bas_lpt = await oracle.methods
         .pairFor(uniswap_factory, Share.address, multidai)
         .call()
-      console.log(dai_bas_lpt)
       // change argument on deployment
       await deployer.deploy(DAIBACLPToken_BASPool, Share.address, dai_bac_lpt)
 
@@ -72,7 +69,6 @@ async function deployDistribution(deployer, network, accounts) {
       MockOracle.abi,
       MockOracle.address,
     )
-    console.log(mock_oracle.methods)
     const dai_bac_lpt = await mock_oracle.methods
       .pairFor(uniswap_factory, Cash.address, multidai)
       .call()

@@ -1,13 +1,12 @@
 pragma solidity ^0.5.0;
 //pragma experimental ABIEncoderV2;
 
-import './interfaces/IBasisAsset.sol';
-import './interfaces/IERC20.sol';
-import './owner/Ownable.sol';
-import './lib/Safe112.sol';
-import './lib/SafeERC20.sol';
-import './guards/ReentrancyGuard.sol';
-
+import "./interfaces/IBasisAsset.sol";
+import "./interfaces/IERC20.sol";
+import "./owner/Ownable.sol";
+import "./lib/Safe112.sol";
+import "./lib/SafeERC20.sol";
+import "./guards/ReentrancyGuard.sol";
 
 contract Boardroom is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
@@ -23,18 +22,18 @@ contract Boardroom is ReentrancyGuard, Ownable {
     }
 
     struct BoardSnapshot {
-        uint256 timestamp; 
+        uint256 timestamp;
         uint256 rewardReceived;
         uint256 totalShares;
     }
-    
+
     /* ========== STATE VARIABLES ========== */
 
-    IERC20 private share; 
+    IERC20 private share;
     IERC20 private cash;
 
-    mapping (address => Boardseat) private directors;
-    BoardSnapshot[] private boardHistory; 
+    mapping(address => Boardseat) private directors;
+    BoardSnapshot[] private boardHistory;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -42,19 +41,24 @@ contract Boardroom is ReentrancyGuard, Ownable {
         cash = _cash;
         share = _share;
 
-        BoardSnapshot memory genesisSnapshot = BoardSnapshot(now, 0, 0); 
+        BoardSnapshot memory genesisSnapshot = BoardSnapshot(now, 0, 0);
         boardHistory.push(genesisSnapshot);
+    }
+
+    /* ========== Modifiers =============== */
+    modifier directorExists {
+        require(directors[msg.sender].shares > 0, "directorExists: The director does not exist");
+        _;
     }
 
     /* ========== VIEW FUNCTIONS ========== */
 
-    
+    function getBoardSeatBalance() public view returns (uint) {
+        return directors[msg.sender].shares;
+    }
 
-    /* ========== MODIFIERS ========== */
-
-    modifier directorExists {
-        require(directors[msg.sender].shares > 0, "directorExists: The director does not exist");
-        _;
+    function getAppointmentTime() public view returns (uint) {
+        return directors[msg.sender].appointmentTime;
     }
 
 
@@ -63,57 +67,71 @@ contract Boardroom is ReentrancyGuard, Ownable {
     function stake(uint256 amount) external nonReentrant {
         require(amount > 0, "Cannot stake 0");
 
-        // Claim all outstanding dividends before making state changes 
-        claimDividends();
+        // Claim all outstanding dividends before making state changes
+        if (directors[msg.sender].shares > 0) {
+            claimDividends();
+        }
 
         // Reset current snapshot
-        boardHistory[boardHistory.length - 1].totalShares = boardHistory[boardHistory.length - 1].totalShares.add(amount);
+        boardHistory[boardHistory.length - 1]
+            .totalShares = boardHistory[boardHistory.length - 1]
+            .totalShares
+            .add(amount);
 
         Boardseat memory director = directors[msg.sender];
         if (director.shares == 0) {
-            director.appointmentTime = now; 
-            director.shares = amount; 
+            director.appointmentTime = now;
+            director.shares = amount;
         } else {
-            director.shares = director.shares.add(amount); 
+            director.shares = director.shares.add(amount);
         }
-        directors[msg.sender] = director; 
+        directors[msg.sender] = director;
 
         share.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public nonReentrant {
+    function withdraw(uint256 amount) public nonReentrant directorExists {
         require(amount > 0, "Cannot withdraw 0");
 
-        Boardseat memory director = directors[msg.sender]; 
-        require(director.shares > amount, "Boardroom: withdraw request greater than staked amount");
+        Boardseat memory director = directors[msg.sender];
+        require(
+            director.shares > amount,
+            "Boardroom: withdraw request greater than staked amount"
+        );
 
-        // Claim all outstanding dividends before making state changes 
+        // Claim all outstanding dividends before making state changes
         claimDividends();
 
         // Reset current snapshot
-        boardHistory[boardHistory.length - 1].totalShares = boardHistory[boardHistory.length - 1].totalShares.sub(amount);
+        boardHistory[boardHistory.length - 1]
+            .totalShares = boardHistory[boardHistory.length - 1]
+            .totalShares
+            .sub(amount);
 
         director.shares = director.shares.sub(amount);
-        directors[msg.sender] = director; 
+        directors[msg.sender] = director;
         share.safeTransfer(msg.sender, amount);
-        emit Withdrawn(msg.sender, amount);    
+        emit Withdrawn(msg.sender, amount);
     }
 
     function exit() external {
         withdraw(directors[msg.sender].shares);
     }
 
-    function claimDividends() public directorExists { 
+    function claimDividends() public {
         uint256 totalRewards = 0;
-        for (uint256 i = boardHistory.length - 1; i >=0; i--) {
+        for (uint256 i = boardHistory.length - 1; i >= 0; i--) {
             BoardSnapshot memory snapshot = boardHistory[i];
 
             if (snapshot.timestamp < directors[msg.sender].appointmentTime) {
-                break; 
+                break;
             }
-            
-            uint256 snapshotRewards = snapshot.rewardReceived.mul(directors[msg.sender].shares).div(snapshot.totalShares);
+
+            uint256 snapshotRewards = snapshot
+                .rewardReceived
+                .mul(directors[msg.sender].shares)
+                .div(snapshot.totalShares);
             totalRewards = totalRewards.add(snapshotRewards);
         }
 
@@ -126,12 +144,15 @@ contract Boardroom is ReentrancyGuard, Ownable {
         directors[msg.sender].appointmentTime = now;
     }
 
-
     function allocateSeigniorage(uint256 amount) external {
         require(amount > 0, "Cannot allocate 0");
 
         // Create & add new snapshot
-        BoardSnapshot memory newSnapshot = BoardSnapshot(now, amount, boardHistory[boardHistory.length - 1].totalShares);
+        BoardSnapshot memory newSnapshot = BoardSnapshot(
+            now,
+            amount,
+            boardHistory[boardHistory.length - 1].totalShares
+        );
         boardHistory.push(newSnapshot);
 
         cash.safeTransferFrom(msg.sender, address(this), amount);
