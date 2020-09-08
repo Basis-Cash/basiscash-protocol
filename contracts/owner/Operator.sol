@@ -29,8 +29,8 @@ contract Operator is Context, Ownable {
         return _msgSender() == _operator;
     }
     
-    function transferOperator(address newTreasury_) public onlyOwner {
-        _transferOperator(newTreasury_);
+    function transferOperator(address newOperator_) public onlyOwner {
+        _transferOperator(newOperator_);
     }
 
     function _transferOperator(address newOperator_) internal {

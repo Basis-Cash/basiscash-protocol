@@ -98,7 +98,7 @@ contract Treasury is ReentrancyGuard, Ownable {
 
     function getCashPrice() internal returns (uint cashPrice) {
         IOracle(cashOracle).update();
-        cashPrice = IOracle(cashOracle).consult(cash, 1);
+        cashPrice = IOracle(cashOracle).consult(cash, 1e18);
     }
 
     /**
@@ -112,12 +112,19 @@ contract Treasury is ReentrancyGuard, Ownable {
         
         // Cash can be swapped to bonds at (price of basis cash) * amount
         uint256 bondPrice = cashPrice;
-        
-        // Burn basis cash
-        (bool success) = IBasisAsset(cash).burnFrom(msg.sender, amount);
+
+        // Check the operator of burning cash
+        (bool success) = IBasisAsset(cash).isOperator();
         require(
             success,
-            "Treasury: insufficient allowance; need to specify a higher amount of cash to burn."
+            "Treasury: this contract is not the operator of the basis cash contract"
+        );
+        
+        // Burn basis cash
+        (success) = IBasisAsset(cash).burnFrom(msg.sender, amount);
+        require(
+            success,
+            "Treasury: insufficient allowance; need to specify a lower amount of cash to burn."
         );
         
         // Mint basis bond
@@ -144,8 +151,15 @@ contract Treasury is ReentrancyGuard, Ownable {
             "Treasury: bond redemption failed; basis cash remains depegged."
         );
 
+        // Check the operator of burning bond
+        (bool success) = IBasisAsset(bond).isOperator();
+        require(
+            success,
+            "Treasury: this contract is not the operator of the basis cash contract"
+        );
+
         // Burn basis bonds
-        (bool success) = IBasisAsset(bond).burnFrom(msg.sender, amount);
+        (success) = IBasisAsset(bond).burnFrom(msg.sender, amount);
         require(
             success,
             "Treasury: insufficient allowance; need to specify a higher amount of bonds to burn."

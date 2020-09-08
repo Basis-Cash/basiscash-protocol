@@ -55,14 +55,21 @@ async function deployMp(deployer, network) {
       Boardroom.address,
     )
   } else {
-    await deployer.deploy(MockOracle)
+    await deployer.deploy(UniswapV2Factory, accounts[0])
+    await deployer.deploy(MockDai)
+    await deployer.deploy(
+      Oracle,
+      UniswapV2Factory.address,
+      Cash.address,
+      MockDai.address,
+    )
 
     await deployer.deploy(
       Treasury,
       Cash.address,
       Bond.address,
       Share.address,
-      MockOracle.address,
+      Oracle.address,
       Share.address,
       Boardroom.address,
     )

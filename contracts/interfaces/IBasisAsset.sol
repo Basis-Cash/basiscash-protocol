@@ -6,4 +6,6 @@ interface IBasisAsset {
     function burn(address from, uint256 amount) external returns (bool);
     
     function burnFrom(address from, uint256 amount) external returns (bool);
+
+    function isOperator() external returns (bool);
 }

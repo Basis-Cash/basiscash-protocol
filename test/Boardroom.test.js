@@ -1,6 +1,6 @@
 const Share = artifacts.require('Share')
 const Boardroom = artifacts.require('Boardroom')
-const doesNotWork = require('./utils')
+const helper = require('./utils')
 
 contract('Boardroom', function (accounts) {
   it('stake works', async () => {
@@ -68,7 +68,10 @@ contract('Boardroom', function (accounts) {
     const boardroomInstance = await Boardroom.deployed()
     const boardroom = boardroomInstance
     let zero = web3.utils.toBN(0)
-    doesNotWork(boardroom.withdraw(zero.toString()), 'Cannot withdraw 0.')
+    helper.doesNotWork(
+      boardroom.withdraw(zero.toString()),
+      'Cannot withdraw 0.',
+    )
   })
   it('withdraw over the staked amount does not work', async () => {
     // Get a reference to the deployed Basis Share and Boardroom contract, as a JS object.
@@ -77,7 +80,7 @@ contract('Boardroom', function (accounts) {
     let fifty_thousand = web3.utils
       .toBN(5 * 10 ** 4)
       .mul(web3.utils.toBN(10 ** 18))
-    doesNotWork(
+    helper.doesNotWork(
       boardroom.withdraw(fifty_thousand.toString()),
       'withdraw request greater than staked amount',
     )
@@ -87,7 +90,7 @@ contract('Boardroom', function (accounts) {
     const boardroomInstance = await Boardroom.deployed()
     const boardroom = boardroomInstance
     let zero = web3.utils.toBN(0)
-    doesNotWork(
+    helper.doesNotWork(
       boardroom.allocateSeigniorage(zero.toString()),
       'Cannot allocate 0',
     )
