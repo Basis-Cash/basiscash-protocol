@@ -179,7 +179,7 @@ contract ERC20Detailed is IERC20 {
     }
 }
 
-contract Cash is ERC20Detailed, CashERC20 {
+contract MockDai is ERC20Detailed, CashERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -187,7 +187,7 @@ contract Cash is ERC20Detailed, CashERC20 {
     /**
      * @notice Constructs the Basis Cash ERC-20 contract.
      */
-    constructor() public ERC20Detailed("BAC", "BAC", 18) {}
+    constructor() public ERC20Detailed("DAI", "DAI", 18) {}
 
     /**
      * @notice Burns basis cash from an account

@@ -5,6 +5,7 @@
 const Cash = artifacts.require('Cash')
 const Bond = artifacts.require('Bond')
 const Share = artifacts.require('Share')
+const MockDai = artifacts.require('MockDai')
 
 // Rs
 // deployed second
@@ -17,14 +18,14 @@ const Treasury = artifacts.require('Treasury')
 // ============ Main Migration ============
 
 const migration = async (deployer, network, accounts) => {
-  await Promise.all([deployMp(deployer, network)])
+  await Promise.all([deployMp(deployer, network, accounts)])
 }
 
 module.exports = migration
 
 // ============ Deploy Functions ============
 
-async function deployMp(deployer, network) {
+async function deployMp(deployer, network, accounts) {
   // Deploy boardroom
   await deployer.deploy(Boardroom, Cash.address, Share.address)
 
@@ -55,21 +56,29 @@ async function deployMp(deployer, network) {
       Boardroom.address,
     )
   } else {
+    /*
     await deployer.deploy(UniswapV2Factory, accounts[0])
     await deployer.deploy(MockDai)
+    uniswap = new web3.eth.Contract(
+      UniswapV2Factory.abi,
+      UniswapV2Factory.address,
+    )
+    //await uniswap.methods.createPair()
     await deployer.deploy(
       Oracle,
       UniswapV2Factory.address,
       Cash.address,
       MockDai.address,
     )
+    */
+    await deployer.deploy(MockOracle)
 
     await deployer.deploy(
       Treasury,
       Cash.address,
       Bond.address,
       Share.address,
-      Oracle.address,
+      MockOracle.address,
       Share.address,
       Boardroom.address,
     )
