@@ -44,7 +44,12 @@ async function deployMp(deployer, network, accounts) {
     )
 
     // Deploy oracle for the pair between bac and dai
-    await deployer.deploy(Oracle, uniswap_factory, Cash.address, multidai)
+    await deployer.deploy(
+      Oracle,
+      uniswap_factory,
+      Cash.address,
+      multidai.address,
+    )
 
     await deployer.deploy(
       Treasury,
@@ -56,22 +61,28 @@ async function deployMp(deployer, network, accounts) {
       Boardroom.address,
     )
   } else {
-    /*
     await deployer.deploy(UniswapV2Factory, accounts[0])
     await deployer.deploy(MockDai)
     uniswap = new web3.eth.Contract(
       UniswapV2Factory.abi,
       UniswapV2Factory.address,
     )
-    //await uniswap.methods.createPair()
+    const pairAddress = await uniswap.methods
+      .createPair(Cash.address, MockDai.address)
+      .call()
+    let fifty_thousand = web3.utils
+      .toBN(5 * 10 ** 4)
+      .mul(web3.utils.toBN(10 ** 18))
+    let thirty_thousand = web3.utils
+      .toBN(3 * 10 ** 4)
+      .mul(web3.utils.toBN(10 ** 18))
+
+    // set mockup oracle of basis price fifty thousand and dai in thirty_thousand
     await deployer.deploy(
-      Oracle,
-      UniswapV2Factory.address,
-      Cash.address,
-      MockDai.address,
+      MockOracle,
+      fifty_thousand.toString(),
+      thirty_thousand.toString(),
     )
-    */
-    await deployer.deploy(MockOracle)
 
     await deployer.deploy(
       Treasury,
