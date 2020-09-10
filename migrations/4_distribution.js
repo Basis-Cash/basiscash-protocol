@@ -2,6 +2,7 @@
 // deployed first
 const Cash = artifacts.require('Cash')
 const Share = artifacts.require('Share')
+const MockDai = artifacts.require('MockDai')
 
 // Oracle
 // deployed second
@@ -71,8 +72,10 @@ async function deployDistribution(deployer, network, accounts) {
       .mul(web3.utils.toBN(10 ** 18))
     await deployer.deploy(
       MockOracle,
-      fifty_thousand.toString(),
+      Cash.address,
+      MockDai.address,
       thirty_thousand.toString(),
+      fifty_thousand.toString(),
     )
 
     const mock_oracle = new web3.eth.Contract(

@@ -1,11 +1,13 @@
 const Bond = artifacts.require('Bond')
 const Cash = artifacts.require('Cash')
 const Treasury = artifacts.require('Treasury')
+const MockOracle = artifacts.require('MockOracle')
+const MockDai = artifacts.require('MockDai')
 const Oracle = artifacts.require('Oracle')
 const helper = require('./utils')
 
 contract('Treasury', function (accounts) {
-  it('buying bond with insufficient allowance does not work', async () => {
+  it('buying bond with insufficient balance does not work', async () => {
     // Get a reference to the deployed Treasury, Cash, and Bond contract, as a JS object.
     const treasuryInstance = await Treasury.deployed()
     const treasury = treasuryInstance
@@ -101,9 +103,6 @@ contract('Treasury', function (accounts) {
     const treasury = treasuryInstance
     const one_day = 24 * 3600
     helper.advanceTime(one_day)
-    await helper.doesNotWork(
-      treasury.allocateSeigniorage(),
-      'no seigniorage to be allocated',
-    )
+    await treasury.allocateSeigniorage()
   })
 })

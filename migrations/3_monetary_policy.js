@@ -77,11 +77,13 @@ async function deployMp(deployer, network, accounts) {
       .toBN(3 * 10 ** 4)
       .mul(web3.utils.toBN(10 ** 18))
 
-    // set mockup oracle of basis price fifty thousand and dai in thirty_thousand
+    // set mockup oracle of dai price fifty thousand and basis in thirty_thousand
     await deployer.deploy(
       MockOracle,
-      fifty_thousand.toString(),
+      Cash.address,
+      MockDai.address,
       thirty_thousand.toString(),
+      fifty_thousand.toString(),
     )
 
     await deployer.deploy(

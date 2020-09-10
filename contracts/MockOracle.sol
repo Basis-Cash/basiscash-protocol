@@ -12,9 +12,11 @@ contract MockOracle {
     FixedPoint.uq112x112 public price0Average;
     FixedPoint.uq112x112 public price1Average;
 
-    constructor(uint256 price0, uint256 price1) public {
-        price0Average = FixedPoint.uq112x112(uint224(price0));
-        price1Average = FixedPoint.uq112x112(uint224(price1));
+    constructor(address token0_, address token1_, uint256 price0_, uint256 price1_) public {
+        token0 = token0_;
+        token1 = token1_;
+        price0Average = FixedPoint.uq112x112(uint224(price0_));
+        price1Average = FixedPoint.uq112x112(uint224(price1_));
     }
 
     function update() external {}
