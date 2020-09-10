@@ -189,7 +189,7 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         uint256 cashSupply = IERC20(cash).totalSupply();
-        uint256 seigniorage = cashSupply.mul(cashPrice.sub(1));
+        uint256 seigniorage = cashSupply.mul(cashPrice.sub(1e18));
         uint256 treasuryBalance = IERC20(cash).balanceOf(address(this));
             
         // If the treasury is sufficiently capitalized, pay dividends to shareholders 
