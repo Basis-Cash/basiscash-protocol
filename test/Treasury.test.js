@@ -100,6 +100,13 @@ contract('Treasury', function (accounts) {
   it('allocating seigniorage works when cashPrice hits the ceiling', async () => {
     // Get a reference to the deployed Trasury and Bond contract, as a JS object.
     const treasuryInstance = await Treasury.deployed()
+    const mockOracleInstance = await MockOracle.deployed()
+    const mockOracle = mockOracleInstance
+    let one = web3.utils.toBN(1).mul(web3.utils.toBN(10 ** 18))
+    const basisPrice = await mockOracle.consult(Cash.address, one)
+    const mockDaiPrice = await mockOracle.consult(MockDai.address, one)
+
+    console.log(basisPrice.toString(), mockDaiPrice.toString())
     const treasury = treasuryInstance
     const one_day = 24 * 3600
     helper.advanceTime(one_day)

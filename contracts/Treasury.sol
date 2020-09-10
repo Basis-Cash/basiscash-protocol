@@ -6,6 +6,8 @@ import './interfaces/IOracle.sol';
 import './interfaces/IBoardroom.sol';
 
 import './owner/Ownable.sol';
+import "./lib/Babylonian.sol";
+import "./lib/FixedPoint.sol";
 import './lib/Safe112.sol';
 import './lib/SafeERC20.sol';
 import './guards/ReentrancyGuard.sol';
@@ -17,6 +19,7 @@ import './guards/ReentrancyGuard.sol';
  * @author Summer Smith & Rick Sanchez 
  */
 contract Treasury is ReentrancyGuard, Ownable {
+    using FixedPoint for *;
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -31,7 +34,8 @@ contract Treasury is ReentrancyGuard, Ownable {
     address private multidai;
     address private boardroom;
 
-    uint256 private cashPriceCeiling;
+    uint256 cashPriceCeiling;
+    uint256 cashPriceOne;
     uint256 private bondDepletionFloor;
     uint256 private lastAllocated;
 
@@ -51,8 +55,9 @@ contract Treasury is ReentrancyGuard, Ownable {
         multidai = _multidai;
         boardroom = _boardroom;
 
-        uint one = 1e18;
-        cashPriceCeiling = one.add(one.div(100).mul(5));
+        uint256 one = 1e18;
+        cashPriceCeiling = FixedPoint.uq112x112(uint224(one.add(one.div(100).mul(5)))).mul(one).decode144();
+        cashPriceOne = FixedPoint.uq112x112(uint224(one)).mul(one).decode144();
         
         // Set the depletion threshold of the treasury to 1000 basis cash
         bondDepletionFloor = 1000e18;
@@ -189,7 +194,7 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         uint256 cashSupply = IERC20(cash).totalSupply();
-        uint256 seigniorage = cashSupply.mul(cashPrice.sub(1e18));
+        uint256 seigniorage = cashSupply.mul(cashPrice.sub(cashPriceOne));
         uint256 treasuryBalance = IERC20(cash).balanceOf(address(this));
             
         // If the treasury is sufficiently capitalized, pay dividends to shareholders 

@@ -70,20 +70,16 @@ async function deployMp(deployer, network, accounts) {
     const pairAddress = await uniswap.methods
       .createPair(Cash.address, MockDai.address)
       .call()
-    let fifty_thousand = web3.utils
-      .toBN(5 * 10 ** 4)
-      .mul(web3.utils.toBN(10 ** 18))
-    let thirty_thousand = web3.utils
-      .toBN(3 * 10 ** 4)
-      .mul(web3.utils.toBN(10 ** 18))
+    let two = web3.utils.toBN(2).mul(web3.utils.toBN(10 ** 18))
+    let one = web3.utils.toBN(1).mul(web3.utils.toBN(10 ** 18))
 
     // set mockup oracle of dai price fifty thousand and basis in thirty_thousand
     await deployer.deploy(
       MockOracle,
       Cash.address,
       MockDai.address,
-      thirty_thousand.toString(),
-      fifty_thousand.toString(),
+      two.toString(),
+      one.toString(),
     )
 
     await deployer.deploy(
