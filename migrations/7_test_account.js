@@ -20,24 +20,18 @@ module.exports = migration
 
 async function setTestBalances(deployer, network, accounts) {
   if (network !== 'mainnet') {
-    let cash = new web3.eth.Contract(Cash.abi, Cash.address)
-    let bond = new web3.eth.Contract(Bond.abi, Bond.address)
-    let share = new web3.eth.Contract(Share.abi, Share.address)
+    const cash = await Cash.deployed();
+    const bond = await Bond.deployed();
+    const share = await Share.deployed();
 
-    let fifty_thousand = web3.utils
+    const fifty_thousand = web3.utils
       .toBN(5 * 10 ** 4)
       .mul(web3.utils.toBN(10 ** 18))
 
     await Promise.all([
-      cash.methods
-        .mint(accounts[0], fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-      bond.methods
-        .mint(accounts[0], fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-      share.methods
-        .mint(accounts[0], fifty_thousand.toString())
-        .send({ from: accounts[0] }),
-    ])
+      cash.mint(accounts[0], fifty_thousand.toString(), { from: accounts[0] }),
+      bond.mint(accounts[0], fifty_thousand.toString(), { from: accounts[0] }),
+      share.mint(accounts[0], fifty_thousand.toString(), { from: accounts[0] }),
+    ]);
   }
 }
