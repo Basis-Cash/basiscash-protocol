@@ -139,7 +139,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
             newDeposit <= 20000e18,
-            "DAIBACLPTokenSharePool: deposit amount exceeds maximum 20000"
+            "DAIBASLPTokenSharePool: deposit amount exceeds maximum 20000"
         );
         deposits[msg.sender] = newDeposit;
         super.stake(amount);
