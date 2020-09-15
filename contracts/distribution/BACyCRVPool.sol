@@ -70,11 +70,11 @@ import "../lib/SafeERC20.sol";
 
 import "../interfaces/IRewardDistributionRecipient.sol";
 
-contract YFIWrapper {
+contract yCRVWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public yfi = IERC20(0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e);
+    IERC20 public ycrv = IERC20(0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8);
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -90,17 +90,17 @@ contract YFIWrapper {
     function stake(uint256 amount) public {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        yfi.safeTransferFrom(msg.sender, address(this), amount);
+        ycrv.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        yfi.safeTransfer(msg.sender, amount);
+        ycrv.safeTransfer(msg.sender, amount);
     }
 }
 
-contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
+contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
@@ -123,7 +123,7 @@ contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, "BACYFIPool: not start");
+        require(block.timestamp >= starttime, "BACyCRVPool: not start");
         _;
     }
 
@@ -165,11 +165,11 @@ contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "BACYFIPool: Cannot stake 0");
+        require(amount > 0, "BACyCRVPool: Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
             newDeposit <= 20000e18,
-            "BACYFIPool: deposit amount exceeds maximum 20000"
+            "BACyCRVPool: deposit amount exceeds maximum 20000"
         );
         deposits[msg.sender] = newDeposit;
         super.stake(amount);
@@ -181,7 +181,7 @@ contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "BACYFIPool: Cannot withdraw 0");
+        require(amount > 0, "BACyCRVPool: Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }

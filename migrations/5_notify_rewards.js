@@ -14,7 +14,7 @@ const BAC_DAIPool = artifacts.require('BACDAIPool')
 const BAC_SUSDPool = artifacts.require('BACSUSDPool')
 const BAC_USDCPool = artifacts.require('BACUSDCPool')
 const BAC_USDTPool = artifacts.require('BACUSDTPool')
-const BAC_YFIPool = artifacts.require('BACYFIPool')
+const BAC_yCRVPool = artifacts.require('BACyCRVPool')
 const DAIBACLPToken_BASPool = artifacts.require('DAIBACLPTokenSharePool')
 const DAIBASLPToken_BASPool = artifacts.require('DAIBASLPTokenSharePool')
 
@@ -50,7 +50,7 @@ async function deployDistribution(deployer, network, accounts) {
       BAC_USDTPool.abi,
       BAC_USDTPool.address,
     )
-    const yfi_pool = new web3.eth.Contract(BAC_YFIPool.abi, BAC_YFIPool.address)
+    const yfi_pool = new web3.eth.Contract(BAC_yCRVPool.abi, BAC_yCRVPool.address)
 
     const daibaclptoken_baspool = new web3.eth.Contract(
       DAIBACLPToken_BASPool.abi,

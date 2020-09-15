@@ -8,7 +8,7 @@ const poolNames = [
   'BACSUSDPool',
   'BACUSDCPool',
   'BACUSDTPool',
-  'BACYFIPool',
+  'BACyCRVPool',
 ];
 const pools = poolNames.map(name => artifacts.require(name));
 
