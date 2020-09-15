@@ -84,6 +84,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => uint256) public deposits;
 
 
     event RewardAdded(uint256 reward);
@@ -135,6 +136,12 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public updateReward(msg.sender) checkhalve checkStart {
         require(amount > 0, "Cannot stake 0");
+        uint256 newDeposit = deposits[msg.sender] + amount;
+        require(
+            newDeposit <= 20000e18,
+            "DAIBACLPTokenSharePool: deposit amount exceeds maximum 20000"
+        );
+        deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
