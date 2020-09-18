@@ -73,7 +73,7 @@ contract Oracle {
     function consult(address token, uint256 amountIn)
         external
         view
-        returns (uint256 amountOut)
+        returns (uint144 amountOut)
     {
         if (token == token0) {
             amountOut = price0Average.mul(amountIn).decode144();
