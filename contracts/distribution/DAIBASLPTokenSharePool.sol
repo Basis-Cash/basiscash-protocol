@@ -72,14 +72,12 @@ import "../interfaces/IRewardDistributionRecipient.sol";
 
 import "../token/LPTokenWrapper.sol";
 
-contract DAIBASLPTokenSharePool is
-    LPTokenWrapper,
-    IRewardDistributionRecipient
-{
+contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient {
     IERC20 public basisShare;
-    uint256 public DURATION = 7 days;
+    uint256 public constant DURATION = 3 days;
 
-    uint256 public starttime = 1597795200;
+    uint256 public initreward = 375 * 10**3 * 10**18; // 375,000 Shares
+    uint256 public starttime = 1597172400 + 24 hours; // starttime TBD
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
@@ -88,19 +86,15 @@ contract DAIBASLPTokenSharePool is
     mapping(address => uint256) public rewards;
     mapping(address => uint256) public deposits;
 
+
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-
+    
     constructor(address basisShare_, address lptoken_) public {
         basisShare = IERC20(basisShare_);
         lpt = IERC20(lptoken_);
-    }
-
-    modifier checkStart() {
-        require(block.timestamp >= starttime, "not start");
-        _;
     }
 
     modifier updateReward(address account) {
@@ -140,8 +134,8 @@ contract DAIBASLPTokenSharePool is
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkStart {
-        require(amount > 0, "DAIBASLPTokenSharePool: Cannot stake 0");
+    function stake(uint256 amount) public updateReward(msg.sender) checkhalve checkStart {
+        require(amount > 0, "Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
             newDeposit <= 20000e18,
@@ -152,11 +146,7 @@ contract DAIBASLPTokenSharePool is
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount)
-        public
-        updateReward(msg.sender)
-        checkStart
-    {
+    function withdraw(uint256 amount) public updateReward(msg.sender) checkStart {
         require(amount > 0, "Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
@@ -176,27 +166,47 @@ contract DAIBASLPTokenSharePool is
         }
     }
 
+    modifier checkhalve() {
+        if (block.timestamp >= periodFinish) {
+            initreward = initreward.mul(50).div(100);
+            basisShare.mint(address(this), initreward);
+
+            rewardRate = initreward.div(DURATION);
+            periodFinish = block.timestamp.add(DURATION);
+            emit RewardAdded(initreward);
+        }
+        _;
+    }
+
+    modifier checkStart(){
+        require(block.timestamp >= starttime,"not start");
+        _;
+    }
+
+
     function notifyRewardAmount(uint256 reward)
         external
         onlyRewardDistribution
         updateReward(address(0))
     {
         if (block.timestamp > starttime) {
-            if (block.timestamp >= periodFinish) {
-                rewardRate = reward.div(DURATION);
-            } else {
-                uint256 remaining = periodFinish.sub(block.timestamp);
-                uint256 leftover = remaining.mul(rewardRate);
-                rewardRate = reward.add(leftover).div(DURATION);
-            }
-            lastUpdateTime = block.timestamp;
-            periodFinish = block.timestamp.add(DURATION);
-            emit RewardAdded(reward);
+          if (block.timestamp >= periodFinish) {
+              rewardRate = reward.div(DURATION);
+          } else {
+              uint256 remaining = periodFinish.sub(block.timestamp);
+              uint256 leftover = remaining.mul(rewardRate);
+              rewardRate = reward.add(leftover).div(DURATION);
+          }
+          lastUpdateTime = block.timestamp;
+          periodFinish = block.timestamp.add(DURATION);
+          emit RewardAdded(reward);
         } else {
-            rewardRate = reward.div(DURATION);
-            lastUpdateTime = starttime;
-            periodFinish = starttime.add(DURATION);
-            emit RewardAdded(reward);
+          require(basisShare.balanceOf(address(this)) == 0, "already initialized");
+          basisShare.mint(address(this), initreward);
+          rewardRate = initreward.div(DURATION);
+          lastUpdateTime = starttime;
+          periodFinish = starttime.add(DURATION);
+          emit RewardAdded(reward);
         }
     }
 }

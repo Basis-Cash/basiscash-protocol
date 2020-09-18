@@ -1,3 +1,5 @@
+const knownContracts = require('./known-contracts');
+
 // ============ Contracts ============
 
 // Token
@@ -17,38 +19,34 @@ const Treasury = artifacts.require('Treasury')
 
 // ============ Main Migration ============
 
-const migration = async (deployer, network, accounts) => {
-  await Promise.all([deployMp(deployer, network, accounts)])
-}
-
-module.exports = migration
-
-// ============ Deploy Functions ============
-
-async function deployMp(deployer, network, accounts) {
+async function migration(deployer, network, accounts) {
   // Deploy boardroom
   await deployer.deploy(Boardroom, Cash.address, Share.address)
 
-  // Creat pairs and deploy oracle
-  if (network == 'mainnet') {
-    let uniswap_factory = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
-    let multidai = '0x6b175474e89094c44da98b954eedeac495271d0f'
-    uniswap = new web3.eth.Contract(UniswapV2Factory.abi, uniswap_factory)
-    // Create pair between bac and dai
-    const bac_dai_lpt = await uniswap.methods.createPair(Cash.address, multidai)
+  if (network === 'mainnet' || network === 'ropsten') {
+    const uniswapFactoryAddr = knownContracts.UniswapV2Factory[network]; // equal on all networks
+    const multidai = knownContracts.DAI[network];
+    const uniswap = await UniswapV2Factory.at(uniswapFactoryAddr);
 
-    // Create pair between bac and bas
-    const bas_dai_lpt = await uniswap.methods.createPair(
-      Share.address,
-      multidai,
-    )
+    // 1. create pair between bac-dai, bas-dai
+    try {
+      await uniswap.createPair(Cash.address, multidai)
+      await uniswap.createPair(Share.address, multidai);
 
-    // Deploy oracle for the pair between bac and dai
+    } catch (err) {
+      console.log("Warning: Failed to create pair on Uniswap. (maybe you've been already created it!)");
+      console.log(`- ${err.stack}`)
+    }
+
+    // TODO: if you don't provide liquidity to BAC-DAI and BAS-DAI pair after step 1 and before step 2,
+    //  creating Oracle will fail with NO_RESERVES error.
+
+    // 2. Deploy oracle for the pair between bac and dai
     await deployer.deploy(
       Oracle,
-      uniswap_factory,
+      uniswapFactoryAddr,
       Cash.address,
-      multidai.address,
+      multidai,
     )
 
     await deployer.deploy(
@@ -102,3 +100,5 @@ async function deployMp(deployer, network, accounts) {
   let shareContract = new web3.eth.Contract(Share.abi, Share.address)
   await shareContract.methods.transferOperator(Treasury.address).call()
 }
+
+module.exports = migration;

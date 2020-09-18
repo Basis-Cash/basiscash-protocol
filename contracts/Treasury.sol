@@ -139,7 +139,7 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         // Mint basis bond
-        (success) = IBasisAsset(bond).mint(msg.sender, bondPrice.mul(amount));
+        (success) = IBasisAsset(bond).mint(msg.sender, amount.div(bondPrice));
         require(
             success,
             "Treasury: this contract is not the operator of the basis bonds contract"

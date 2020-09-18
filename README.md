@@ -18,7 +18,7 @@ Basis is an algorithmic stablecoin protocol where the money supply is dynamicall
 
 Read the [Basis Whitepaper](http://basis.io/basis_whitepaper_en.pdf) for more details into the protocol. 
 
-Basis was shut down in 2019, due to regulatory concerns its Bond and Share tokens have security characteristics. The project team opted for compliance, and shut down operations, returned money to investors and discontinued development of the project. 
+Basis was shut down in 2018, due to regulatory concerns its Bond and Share tokens have security characteristics. The project team opted for compliance, and shut down operations, returned money to investors and discontinued development of the project. 
 
 ## The Basis Cash Protocol
 
@@ -27,7 +27,6 @@ Basis Cash differs from the original Basis Project in several meaningful ways:
 1. **Rationally simplified** - several core mechanisms of the Basis protocol has been simplified, especially around bond issuance and seigniorage distribution. We've thought deeply about the tradeoffs for these changes, and believe they allow significant gains in UX and contract simplicity, while preserving the intended behavior of the original monetary policy design. 
 2. **Censorship resistant** - we launch this project anonymously, protected by the guise of characters from the popular SciFi series Rick and Morty. We believe this will allow the project to avoid the censorship of regulators that scuttled the original Basis Protocol, but will also allow Basis Cash to avoid founder glorification & single points of failure that have plagued so many other projects. 
 3. **Fairly distributed** - both Basis Shares and Basis Cash has zero premine and no investors - community members can earn the initial supply of both assets by helping to contribute to bootstrap liquidity & adoption of Basis Cash. 
-4. **Stakeholder governed** - we've forked Compound governance contracts such that the protocol is governed by the set of Basis Shares stakeholders. This is a meaningful milestone over the original protocol, which did not put forward a blueprint for decentralized governance. 
 
 ### A Three-token System
 
@@ -35,12 +34,12 @@ There exists three types of assets in the Basis Cash system.
 
 - **Basis Cash ($BAC)**: a stablecoin, which the protocol aims to keep value-pegged to 1 US Dollar. 
 - **Basis Bonds ($BAB)**: IOUs issued by the system to buy back Basis Cash when price($BAC) < $1. Bonds are sold at a meaningful discount to price($BAC), and redeemed at $1 when price($BAC) normalizes to $1. 
-- **Basis Shares ($BAS)**: receives surplus seigniorage (seigniorage left remaining after all the bonds have been redeemed) and exercises governance rights over the Basis Cash DAO. 
+- **Basis Shares ($BAS)**: receives surplus seigniorage (seigniorage left remaining after all the bonds have been redeemed).
 
 ### Stability Mechanism
 
-- **Contraction**: When the price($BAC) < ($1 - epsilon), users can trade in $BAC for $BAB at the BABBAC exchange rate of 1 - price($BAC). This allows bonds to be always sold at a discount to cash during a contraction.
-- **Expansion**: When the price($BAC) > ($1 + epsilon), users can trade in $BAB for $BAC at the BABBAC exchange rate of 1 - this allows bonds to be redeemed always at a premium to the purchase price. 
+- **Contraction**: When the price($BAC) < ($1 - epsilon), users can trade in $BAC for $BAB at the BABBAC exchange rate of price($BAC). This allows bonds to be always sold at a discount to cash during a contraction.
+- **Expansion**: When the price($BAC) > ($1 + epsilon), users can trade in 1 $BAB for 1 $BAC. This allows bonds to be redeemed always at a premium to the purchase price. 
 - **Seigniorage Allocation**: If there are no more bonds to be redeemed, (i.e. bond Supply is negligibly small), more $BAC is minted totalSupply($BAC) * (price($BAC) - 1), and placed in a pool for $BAS holders to claim pro-rata in a 24 hour period. 
 
 Read the official [Basis Cash Documentation](docs.basis.cash) for more details.
