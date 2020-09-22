@@ -61,31 +61,29 @@ async function deployDistribution(deployer, network, accounts) {
       DAIBASLPToken_BASPool.address,
     )
 
-    let fifty_thousand = web3.utils
-      .toBN(5 * 10 ** 4)
-      .mul(web3.utils.toBN(10 ** 18))
+
 
     await Promise.all([
       dai_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (2 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
       susd_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (2 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
       usdc_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (2 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
       usdt_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (2 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
       yfi_pool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (2 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
       daibaclptoken_baspool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (25 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
       daibaslptoken_baspool.methods
-        .notifyRewardAmount(fifty_thousand.toString())
+        .notifyRewardAmount("0x" + (75 * Math.pow(10, 22)).toString(16))
         .send({ from: accounts[0], gas: 100000 }),
     ])
   }

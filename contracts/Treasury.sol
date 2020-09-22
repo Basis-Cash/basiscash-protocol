@@ -100,7 +100,7 @@ contract Treasury is ReentrancyGuard, Ownable {
 
     modifier allocationTimeRipe {
         require(
-            now.sub(lastAllocated) >= 1 days,
+            now.sub(lastAllocated) >= 3 minutes,
             "allocationTimeRipe: a day has not passed yet"
         );
         _;

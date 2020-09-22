@@ -74,7 +74,7 @@ contract yCRVWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public ycrv = IERC20(0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8);
+    IERC20 public ycrv = IERC20(0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e);
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -104,7 +104,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
-    uint256 public starttime = 1597795200;
+    uint256 public starttime = 1600676050;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;

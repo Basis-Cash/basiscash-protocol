@@ -14,6 +14,9 @@ contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
     uint256 public maxSupply = 1000000e18; // 1 million
     
     constructor() public ERC20Detailed("BAS", "BAS", 18) {
+        // Mints 1 Basis Share to contract creator for initial Uniswap oracle deployment.
+        // Will be burned after oracle deployment
+        _mint(msg.sender, 1 * 10**18);
     }
     
     /**

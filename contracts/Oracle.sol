@@ -13,7 +13,7 @@ import "./lib/UniswapV2OracleLibrary.sol";
 contract Oracle {
     using FixedPoint for *;
 
-    uint256 public constant PERIOD = 24 hours;
+    uint256 public constant PERIOD = 3 minutes;
 
     IUniswapV2Pair pair;
     address public token0;
@@ -41,7 +41,7 @@ contract Oracle {
         uint112 reserve0;
         uint112 reserve1;
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
-        require(reserve0 != 0 && reserve1 != 0, "Oracle: NO_RESERVES"); // ensure that there's liquidity in the pair
+        //require(reserve0 != 0 && reserve1 != 0, "Oracle: NO_RESERVES"); // ensure that there's liquidity in the pair
     }
 
     function update() external {

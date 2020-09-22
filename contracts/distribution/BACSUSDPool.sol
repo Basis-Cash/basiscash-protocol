@@ -74,7 +74,7 @@ contract SUSDWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public susd = IERC20(0x57Ab1E02fEE23774580C119740129eAC7081e9D3);
+    IERC20 public SUSD = IERC20(0x57Ab1E02fEE23774580C119740129eAC7081e9D3);
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -90,13 +90,13 @@ contract SUSDWrapper {
     function stake(uint256 amount) public {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        susd.safeTransferFrom(msg.sender, address(this), amount);
+        SUSD.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        susd.safeTransfer(msg.sender, amount);
+        SUSD.safeTransfer(msg.sender, amount);
     }
 }
 
@@ -104,7 +104,7 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
-    uint256 public starttime = 1597795200;
+    uint256 public starttime = 1600676050;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;

@@ -74,7 +74,7 @@ contract USDTWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdt = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    IERC20 public usdt = IERC20(0x516de3a7A567d81737e3a46ec4FF9cFD1fcb0136);
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -104,7 +104,7 @@ contract BACUSDTPool is USDTWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
-    uint256 public starttime = 1597795200;
+    uint256 public starttime = 1600676050;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;

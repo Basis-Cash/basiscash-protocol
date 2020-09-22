@@ -25,6 +25,7 @@ async function migration(deployer, network, accounts) {
 
   if (network === 'mainnet' || network === 'ropsten') {
     const uniswapFactoryAddr = knownContracts.UniswapV2Factory[network]; // equal on all networks
+    const uniswapRouterAddr = knownContracts.UniswapV2Router02[network]; // equal on all networks
     const multidai = knownContracts.DAI[network];
     const uniswap = await UniswapV2Factory.at(uniswapFactoryAddr);
 
@@ -38,10 +39,50 @@ async function migration(deployer, network, accounts) {
       console.log(`- ${err.stack}`)
     }
 
-    // TODO: if you don't provide liquidity to BAC-DAI and BAS-DAI pair after step 1 and before step 2,
+    // 2. provide liquidity to BAC-DAI and BAS-DAI pair
+    // if you don't provide liquidity to BAC-DAI and BAS-DAI pair after step 1 and before step 3,
     //  creating Oracle will fail with NO_RESERVES error.
 
-    // 2. Deploy oracle for the pair between bac and dai
+    let cashContract = new web3.eth.Contract(Cash.abi, Cash.address)
+    let shareContract = new web3.eth.Contract(Share.abi, Share.address)
+    let uniswapRouterContract = new web3.eth.Contract(JSON.parse(knownContracts.UniswapV2Router02ABI[network]), uniswapRouterAddr)
+    let multidaiContract = new web3.eth.Contract(JSON.parse(knownContracts.DAIABI[network]), multidai)
+
+    const stdDecimals = Math.pow(10, 18);
+    const uintDecimals = "0x" + stdDecimals.toString(16);
+
+    try {
+        await cashContract.methods.approve(accounts[0], uintDecimals).call();
+        await shareContract.methods.approve(accounts[0], uintDecimals).call();
+        await multidaiContract.methods.approve(accounts[0], "0x" + (2 * Math.pow(10, 18)).toString(16)).call();
+        // WARNING: msg.sender must hold enough DAI to add liquidity to BAC-DAI & BAS-DAI pools
+        // otherwise transaction will revert
+        await uniswapRouterContract.methods.addLiquidity(
+          Cash.address,
+          multidai,
+          uintDecimals,
+          uintDecimals,
+          "0x" + (5 * Math.pow(10, 17)).toString(16),
+          "0x" + (5 * Math.pow(10, 17)).toString(16),
+          accounts[0],
+          "0x" + (Date.now() + 10**5).toString(16)
+        ).call();
+        await uniswapRouterContract.methods.addLiquidity(
+          Share.address,
+          multidai,
+          uintDecimals,
+          uintDecimals,
+          "0x" + (5 * Math.pow(10, 17)).toString(16),
+          "0x" + (5 * Math.pow(10, 17)).toString(16),
+          accounts[0],
+          "0x" + (Date.now() + 10**5).toString(16)
+        ).call();
+    } catch (err) {
+      console.log("Warning: Failed to add liquidity on Uniswap.");
+      console.log(`- ${err.stack}`)
+    }
+    
+    // 3. Deploy oracle for the pair between bac and dai
     await deployer.deploy(
       Oracle,
       uniswapFactoryAddr,
@@ -58,7 +99,7 @@ async function migration(deployer, network, accounts) {
       multidai,
       Boardroom.address,
     )
-  } else {
+  } /*else {
     await deployer.deploy(UniswapV2Factory, accounts[0])
     await deployer.deploy(MockDai)
     uniswap = new web3.eth.Contract(
@@ -89,14 +130,14 @@ async function migration(deployer, network, accounts) {
       Share.address,
       Boardroom.address,
     )
-  }
+  }*/
 
   let cashContract = new web3.eth.Contract(Cash.abi, Cash.address)
   await cashContract.methods.transferOperator(Treasury.address).call()
 
   let bondContract = new web3.eth.Contract(Bond.abi, Bond.address)
   await bondContract.methods.transferOperator(Treasury.address).call()
-
+  
   let shareContract = new web3.eth.Contract(Share.abi, Share.address)
   await shareContract.methods.transferOperator(Treasury.address).call()
 }

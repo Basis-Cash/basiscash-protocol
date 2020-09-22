@@ -74,7 +74,7 @@ contract DAIWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IERC20 public dai = IERC20(0xc2118d4d90b274016cB7a54c03EF52E6c537D957);
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -104,7 +104,7 @@ contract BACDAIPool is DAIWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
-    uint256 public starttime = 1597795200;
+    uint256 public starttime = 1600676050;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;

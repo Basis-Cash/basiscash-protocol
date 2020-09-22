@@ -19,7 +19,7 @@ module.exports = migration
 // ============ Deploy Functions ============
 
 async function setTestBalances(deployer, network, accounts) {
-  if (network !== 'mainnet') {
+  if (network == 'mainnet') {
     const cash = await Cash.deployed();
     const bond = await Bond.deployed();
     const share = await Share.deployed();
