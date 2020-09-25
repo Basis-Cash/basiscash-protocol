@@ -77,7 +77,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     uint256 public constant DURATION = 3 days;
 
     uint256 public initreward = 375 * 10**3 * 10**18; // 375,000 Shares
-    uint256 public starttime = 1600676050; // starttime TBD
+    uint256 public starttime = 1600831965; // starttime TBD
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
@@ -169,7 +169,6 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     modifier checkhalve() {
         if (block.timestamp >= periodFinish) {
             initreward = initreward.mul(50).div(100);
-            basisShare.mint(address(this), initreward);
 
             rewardRate = initreward.div(DURATION);
             periodFinish = block.timestamp.add(DURATION);
@@ -201,8 +200,6 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
           periodFinish = block.timestamp.add(DURATION);
           emit RewardAdded(reward);
         } else {
-          require(basisShare.balanceOf(address(this)) == 0, "already initialized");
-          basisShare.mint(address(this), initreward);
           rewardRate = initreward.div(DURATION);
           lastUpdateTime = starttime;
           periodFinish = starttime.add(DURATION);

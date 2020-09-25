@@ -10,8 +10,6 @@ contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
-
-    uint256 public maxSupply = 1000000e18; // 1 million
     
     constructor() public ERC20Detailed("BAS", "BAS", 18) {
         // Mints 1 Basis Share to contract creator for initial Uniswap oracle deployment.
@@ -51,7 +49,6 @@ contract Share is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Operator {
      * @param amount_ The amount of basis cash to mint to 
      */
     function mint(address recipient_, uint256 amount_) public onlyOperator returns (bool) {
-        require(totalSupply() + amount_ <= maxSupply, "Share: minting amount exceeds max supply");
         uint256 balanceBefore = balanceOf(recipient_);
         _mint(recipient_, amount_);
         uint256 balanceAfter = balanceOf(recipient_);

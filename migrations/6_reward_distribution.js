@@ -1,4 +1,4 @@
-// Pools
+/*// Pools
 // deployed first
 const Cash = artifacts.require('Cash')
 const Share = artifacts.require('Share')
@@ -54,3 +54,4 @@ async function deployRewardDistribution(deployer, network, accounts) {
       .send({ from: accounts[0] }),
   ])
 }
+*/
