@@ -125,9 +125,8 @@ contract Treasury is ReentrancyGuard, Ownable {
         uint256 bondPrice = cashPrice;
 
         // Check the operator of burning cash
-        bool success = (IBasisAsset(cash).operator() == address(this));
         require(
-            success,
+            IBasisAsset(cash).operator() == address(this),
             "Treasury: this contract is not the operator of the basis cash contract"
         );
 
@@ -162,10 +161,9 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         // Check the operator of burning bond
-        bool success = (IBasisAsset(bond).operator() == address(this));
         require(
-            success,
-            "Treasury: this contract is not the operator of the basis cash contract"
+            IBasisAsset(bond).operator() == address(this),
+            "Treasury: this contract is not the operator of the basis bond contract"
         );
 
         // Burn basis bonds
