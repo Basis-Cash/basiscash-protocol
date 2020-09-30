@@ -9,5 +9,5 @@ interface IBasisAsset {
 
     function isOperator() external returns (bool);
     
-    function operator() public view returns (address);
+    function operator() external returns (address);
 }
