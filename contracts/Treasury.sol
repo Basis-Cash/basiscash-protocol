@@ -124,12 +124,6 @@ contract Treasury is ReentrancyGuard, Ownable {
         // Cash can be swapped to bonds at (price of basis cash) * amount
         uint256 bondPrice = cashPrice;
 
-        // Check the operator of burning cash
-        require(
-            IBasisAsset(cash).operator() == address(this),
-            "Treasury: this contract is not the operator of the basis cash contract"
-        );
-
         // Burn basis cash
         (success) = IBasisAsset(cash).burnFrom(msg.sender, amount);
         require(
@@ -138,7 +132,7 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         // Mint basis bond
-        (success) = IBasisAsset(bond).mint(msg.sender, amount.div(bondPrice));
+        bool success = IBasisAsset(bond).mint(msg.sender, amount.div(bondPrice));
         require(
             success,
             "Treasury: this contract is not the operator of the basis bonds contract"
@@ -160,14 +154,8 @@ contract Treasury is ReentrancyGuard, Ownable {
             "Treasury: bond redemption failed; basis cash remains depegged."
         );
 
-        // Check the operator of burning bond
-        require(
-            IBasisAsset(bond).operator() == address(this),
-            "Treasury: this contract is not the operator of the basis bond contract"
-        );
-
         // Burn basis bonds
-        (success) = IBasisAsset(bond).burnFrom(msg.sender, amount);
+        bool success = IBasisAsset(bond).burnFrom(msg.sender, amount);
         require(
             success,
             "Treasury: insufficient allowance; need to specify a higher amount of bonds to burn."
