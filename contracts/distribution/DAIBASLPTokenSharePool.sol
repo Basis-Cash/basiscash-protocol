@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 /**
  *Submitted for verification at Etherscan.io on 2020-07-17
  */
@@ -134,7 +134,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkhalve checkStart {
+    function stake(uint256 amount) public updateReward(msg.sender) checkhalve checkStart override {
         require(amount > 0, "Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
@@ -146,7 +146,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public updateReward(msg.sender) checkStart {
+    function withdraw(uint256 amount) public updateReward(msg.sender) checkStart override {
         require(amount > 0, "Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
@@ -169,7 +169,6 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     modifier checkhalve() {
         if (block.timestamp >= periodFinish) {
             initreward = initreward.mul(50).div(100);
-            basisShare.mint(address(this), initreward);
 
             rewardRate = initreward.div(DURATION);
             periodFinish = block.timestamp.add(DURATION);
@@ -188,6 +187,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
         external
         onlyRewardDistribution
         updateReward(address(0))
+        override
     {
         if (block.timestamp > starttime) {
           if (block.timestamp >= periodFinish) {
@@ -201,8 +201,6 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
           periodFinish = block.timestamp.add(DURATION);
           emit RewardAdded(reward);
         } else {
-          require(basisShare.balanceOf(address(this)) == 0, "already initialized");
-          basisShare.mint(address(this), initreward);
           rewardRate = initreward.div(DURATION);
           lastUpdateTime = starttime;
           periodFinish = starttime.add(DURATION);

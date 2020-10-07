@@ -1,11 +1,11 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import '../owner/Ownable.sol';
 
 contract IRewardDistributionRecipient is Ownable {
     address public rewardDistribution;
 
-    function notifyRewardAmount(uint256 reward) external;
+    function notifyRewardAmount(uint256 reward) external virtual;
 
     modifier onlyRewardDistribution() {
         require(_msgSender() == rewardDistribution, "Caller is not reward distribution");
@@ -15,6 +15,7 @@ contract IRewardDistributionRecipient is Ownable {
     function setRewardDistribution(address _rewardDistribution)
         external
         onlyOwner
+        virtual
     {
         rewardDistribution = _rewardDistribution;
     }

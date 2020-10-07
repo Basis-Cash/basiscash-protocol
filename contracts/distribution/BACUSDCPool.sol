@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 /**
  *Submitted for verification at Etherscan.io on 2020-07-17
  */
@@ -87,13 +87,13 @@ contract USDCWrapper {
         return _balances[account];
     }
 
-    function stake(uint256 amount) public {
+    function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         usdc.safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         usdc.safeTransfer(msg.sender, amount);
@@ -164,7 +164,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkStart {
+    function stake(uint256 amount) public updateReward(msg.sender) checkStart override {
         require(amount > 0, "BACUSDCPool: Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
@@ -180,6 +180,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         public
         updateReward(msg.sender)
         checkStart
+        override
     {
         require(amount > 0, "BACUSDCPool: Cannot withdraw 0");
         super.withdraw(amount);
@@ -204,6 +205,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         external
         onlyRewardDistribution
         updateReward(address(0))
+        override
     {
         if (block.timestamp > starttime) {
             if (block.timestamp >= periodFinish) {

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import "./lib/Babylonian.sol";
 import "./lib/FixedPoint.sol";

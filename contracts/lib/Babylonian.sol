@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 library Babylonian {
     function sqrt(uint y) internal pure returns (uint z) {

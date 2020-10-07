@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 /**
  *Submitted for verification at Etherscan.io on 2020-07-17
  */
@@ -79,21 +79,21 @@ contract yCRVWrapper {
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view virtual returns (uint256) {
         return _totalSupply;
     }
 
-    function balanceOf(address account) public view returns (uint256) {
+    function balanceOf(address account) public view virtual returns (uint256) {
         return _balances[account];
     }
 
-    function stake(uint256 amount) public {
+    function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         ycrv.safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         ycrv.safeTransfer(msg.sender, amount);
@@ -180,6 +180,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
         public
         updateReward(msg.sender)
         checkStart
+        override
     {
         require(amount > 0, "BACyCRVPool: Cannot withdraw 0");
         super.withdraw(amount);
@@ -204,6 +205,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
         external
         onlyRewardDistribution
         updateReward(address(0))
+        override
     {
         if (block.timestamp > starttime) {
             if (block.timestamp >= periodFinish) {

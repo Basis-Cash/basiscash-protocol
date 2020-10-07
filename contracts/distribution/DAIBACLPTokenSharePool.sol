@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 /**
  *Submitted for verification at Etherscan.io on 2020-07-17
  */
@@ -143,7 +143,7 @@ contract DAIBACLPTokenSharePool is
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkStart {
+    function stake(uint256 amount) public updateReward(msg.sender) checkStart override {
         require(amount > 0, "DAIBACLPTokenSharePool: Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
@@ -159,6 +159,7 @@ contract DAIBACLPTokenSharePool is
         public
         updateReward(msg.sender)
         checkStart
+        override
     {
         require(amount > 0, "DAIBACLPTokenSharePool: Cannot withdraw 0");
         super.withdraw(amount);
@@ -183,6 +184,7 @@ contract DAIBACLPTokenSharePool is
         external
         onlyRewardDistribution
         updateReward(address(0))
+        override
     {
         if (block.timestamp > starttime) {
             if (block.timestamp >= periodFinish) {

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import '../lib/SafeERC20.sol';
 import '../lib/SafeMath.sol';
@@ -20,13 +20,13 @@ contract LPTokenWrapper {
         return _balances[account];
     }
 
-    function stake(uint256 amount) public {
+    function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         lpt.safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         lpt.safeTransfer(msg.sender, amount);
