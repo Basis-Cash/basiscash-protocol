@@ -12,7 +12,7 @@ const MockDai = artifacts.require('MockDai')
 // Rs
 // deployed second
 const Oracle = artifacts.require('Oracle')
-const UniswapV2Factory = artifacts.require('UniswapV2Factory')
+const IUniswapV2Factory = artifacts.require('IUniswapV2Factory')
 const MockOracle = artifacts.require('MockOracle')
 const Boardroom = artifacts.require('Boardroom')
 const Treasury = artifacts.require('Treasury')
@@ -26,7 +26,7 @@ async function migration(deployer, network, accounts) {
   if (network === 'mainnet' || network === 'ropsten') {
     const uniswapFactoryAddr = knownContracts.UniswapV2Factory[network]; // equal on all networks
     const multidai = knownContracts.DAI[network];
-    const uniswap = await UniswapV2Factory.at(uniswapFactoryAddr);
+    const uniswap = await IUniswapV2Factory.at(uniswapFactoryAddr);
 
     // 1. create pair between bac-dai, bas-dai
     try {
@@ -58,7 +58,7 @@ async function migration(deployer, network, accounts) {
       multidai,
       Boardroom.address,
     )
-  } else {
+  } /*else {
     await deployer.deploy(UniswapV2Factory, accounts[0])
     await deployer.deploy(MockDai)
     uniswap = new web3.eth.Contract(
@@ -89,7 +89,7 @@ async function migration(deployer, network, accounts) {
       Share.address,
       Boardroom.address,
     )
-  }
+  }*/
 
   let cashContract = new web3.eth.Contract(Cash.abi, Cash.address)
   await cashContract.methods.transferOperator(Treasury.address).call()
