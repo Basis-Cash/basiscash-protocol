@@ -1,16 +1,16 @@
 pragma solidity ^0.6.0;
 
 import "./interfaces/IBasisAsset.sol";
-import "./interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IOracle.sol";
 import "./interfaces/IBoardroom.sol";
 
-import "./owner/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/Babylonian.sol";
 import "./lib/FixedPoint.sol";
 import "./lib/Safe112.sol";
-import "./lib/SafeERC20.sol";
-import "./guards/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title Basis Cash Treasury contract

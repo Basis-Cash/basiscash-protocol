@@ -2,7 +2,7 @@ pragma solidity ^0.6.0;
 
 import "./lib/Babylonian.sol";
 import "./lib/FixedPoint.sol";
-import "./lib/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract MockOracle {
     using FixedPoint for *;
@@ -22,10 +22,10 @@ contract MockOracle {
     function update() external {}
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
-    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
+    function sortTokens(address tokenA, address tokenB) internal pure returns (address tokenFirst, address tokenSecond) {
         require(tokenA != tokenB, 'UniswapV2Library: IDENTICAL_ADDRESSES');
-        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'UniswapV2Library: ZERO_ADDRESS');
+        (tokenFirst, tokenSecond) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        require(tokenFirst != address(0), 'UniswapV2Library: ZERO_ADDRESS');
     }
 
     // calculates the CREATE2 address for a pair without making any external calls
@@ -34,14 +34,14 @@ contract MockOracle {
         address tokenA,
         address tokenB
     ) external pure returns (address pair) {
-        (address token0, address token1) = sortTokens(tokenA, tokenB);
+        (address tokenFirst, address tokenSecond) = sortTokens(tokenA, tokenB);
         pair = address(
             uint256(
                 keccak256(
                     abi.encodePacked(
                         hex"ff",
                         factory,
-                        keccak256(abi.encodePacked(token0, token1)),
+                        keccak256(abi.encodePacked(tokenFirst, tokenSecond)),
                         hex"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f" // init code hash
                     )
                 )

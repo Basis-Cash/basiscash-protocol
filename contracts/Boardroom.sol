@@ -1,12 +1,13 @@
 pragma solidity ^0.6.0;
 //pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "./interfaces/IBasisAsset.sol";
-import "./interfaces/IERC20.sol";
-import "./owner/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./lib/Safe112.sol";
-import "./lib/SafeERC20.sol";
-import "./guards/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract Boardroom is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;

@@ -4,7 +4,7 @@ import "./interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IUniswapV2Factory.sol";
 import "./lib/Babylonian.sol";
 import "./lib/FixedPoint.sol";
-import "./lib/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./lib/UniswapV2Library.sol";
 import "./lib/UniswapV2OracleLibrary.sol";
 

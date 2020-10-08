@@ -40,31 +40,23 @@ pragma solidity ^0.6.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import "../lib/Math.sol";
+import "@openzeppelin/contracts/math/Math.sol";
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import "../lib/SafeMath.sol";
-
-// File: @openzeppelin/contracts/GSN/Context.sol
-
-import "../owner/Context.sol";
-
-// File: @openzeppelin/contracts/ownership/Ownable.sol
-
-import "../owner/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import "../interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import "../lib/Address.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import "../lib/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // File: contracts/IRewardDistributionRecipient.sol
 
@@ -164,7 +156,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkStart {
+    function stake(uint256 amount) public updateReward(msg.sender) checkStart override {
         require(amount > 0, "BACyCRVPool: Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
