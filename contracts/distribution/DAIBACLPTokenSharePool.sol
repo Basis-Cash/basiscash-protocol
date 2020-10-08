@@ -71,7 +71,7 @@ contract DAIBACLPTokenSharePool is
     IERC20 public basisShare;
     uint256 public DURATION = 365 days;
 
-    uint256 public starttime = 1597795200;
+    uint256 public starttime = 1600831965;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;

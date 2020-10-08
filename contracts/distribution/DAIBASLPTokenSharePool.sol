@@ -69,7 +69,7 @@ contract DAIBASLPTokenSharePool is LPTokenWrapper, IRewardDistributionRecipient 
     uint256 public constant DURATION = 3 days;
 
     uint256 public initreward = 375 * 10**3 * 10**18; // 375,000 Shares
-    uint256 public starttime = 1597172400 + 24 hours; // starttime TBD
+    uint256 public starttime = 1600831965; // starttime TBD
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
