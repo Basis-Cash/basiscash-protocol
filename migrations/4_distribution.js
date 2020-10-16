@@ -1,25 +1,33 @@
+const knownContracts = require('./known-contracts');
+
 // Tokens
 // deployed first
-const Cash = artifacts.require('Cash')
+const Cash = artifacts.require('Cash');
+const MockDai = artifacts.require('MockDai');
 
-// ============ Reward Disribution Pools ============
-const poolNames = [
-  'BACDAIPool',
-  'BACSUSDPool',
-  'BACUSDCPool',
-  'BACUSDTPool',
-  'BACyCRVPool',
+// ============ Reward Distribution Pools ============
+const pools = [
+  { contract: artifacts.require('BACDAIPool'), token: 'DAI' },
+  { contract: artifacts.require('BACSUSDPool'), token: 'SUSD' },
+  { contract: artifacts.require('BACUSDCPool'), token: 'USDC' },
+  { contract: artifacts.require('BACUSDTPool'), token: 'USDT' },
+  { contract: artifacts.require('BACyCRVPool'), token: 'yCRV' },
 ];
-const pools = poolNames.map(name => artifacts.require(name));
 
 // ============ Main Migration ============
 module.exports = async (deployer, network, accounts) => {
-  await Promise.all(
-    pools.map(contract => deployer.deploy(contract, Cash.address))
-  );
+  for (const { contract, token } of pools) {
+    const tokenAddress = knownContracts[token][network] || MockDai.address;
+    if (!tokenAddress) {
+      // network is mainnet, so MockDai is not available
+      throw new Error(`Address of ${token} is not registered on migrations/known-contracts.js!`);
+    }
+    console.log(`Deploying distribution pool of token ${tokenAddress}`);
+    await deployer.deploy(contract, Cash.address, tokenAddress);
+  }
   console.log(`Setting distributor to ${accounts[0]}`);
   await Promise.all(
-    pools.map(contract => contract
+    pools.map(({ contract }) => contract
       .deployed()
       .then(pool => pool.setRewardDistribution(accounts[0]))
     ),

@@ -66,7 +66,7 @@ contract SUSDWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public susd = IERC20(0x57Ab1E02fEE23774580C119740129eAC7081e9D3);
+    IERC20 public SUSD;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -110,8 +110,9 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisCash_) public {
+    constructor(address basisCash_, address susd_) public {
         basisCash = IERC20(basisCash_);
+        SUSD = IERC20(susd_);
     }
 
     modifier checkStart() {

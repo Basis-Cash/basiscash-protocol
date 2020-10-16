@@ -66,7 +66,7 @@ contract yCRVWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public ycrv = IERC20(0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8);
+    IERC20 public ycrv;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -110,8 +110,9 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisCash_) public {
+    constructor(address basisCash_, address ycrv_) public {
         basisCash = IERC20(basisCash_);
+        ycrv = IERC20(ycrv_);
     }
 
     modifier checkStart() {

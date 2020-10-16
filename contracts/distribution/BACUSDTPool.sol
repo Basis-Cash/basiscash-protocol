@@ -66,7 +66,7 @@ contract USDTWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdt = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    IERC20 public usdt;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -110,8 +110,9 @@ contract BACUSDTPool is USDTWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisCash_) public {
+    constructor(address basisCash_, address usdt_) public {
         basisCash = IERC20(basisCash_);
+        usdt = IERC20(usdt_);
     }
 
     modifier checkStart() {

@@ -66,7 +66,7 @@ contract DAIWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IERC20 public dai;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -110,8 +110,9 @@ contract BACDAIPool is DAIWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisCash_) public {
+    constructor(address basisCash_, address dai_) public {
         basisCash = IERC20(basisCash_);
+        dai = IERC20(dai_);
     }
 
     modifier checkStart() {
