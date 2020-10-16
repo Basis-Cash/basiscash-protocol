@@ -109,8 +109,15 @@ contract Treasury is ReentrancyGuard, Ownable {
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function getCashPrice() internal returns (uint256 cashPrice) {
-        IOracle(cashOracle).update();
-        cashPrice = IOracle(cashOracle).consult(cash, 1e18);
+        try IOracle(cashOracle).update() {
+        } catch {
+            revert("Treasury: failed to update cash oracle");
+        }
+        try IOracle(cashOracle).consult(cash, 1e18) returns (uint256 price) {
+            return price;
+        } catch {
+            revert("Treasury: failed to consult cash price from the oracle");
+        }
     }
 
     /**
