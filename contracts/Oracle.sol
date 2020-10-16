@@ -44,6 +44,7 @@ contract Oracle {
         require(reserve0 != 0 && reserve1 != 0, "Oracle: NO_RESERVES"); // ensure that there's liquidity in the pair
     }
 
+    /** @dev Updates 1-day EMA price from Uniswap.  */
     function update() external {
         (
             uint256 price0Cumulative,
@@ -52,8 +53,10 @@ contract Oracle {
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
-        // ensure that at least one full period has passed since the last update
-        require(timeElapsed >= PERIOD, "Oracle: PERIOD_NOT_ELAPSED");
+        if (timeElapsed < PERIOD) {
+            // doesn't need to be updated, since a minimum period is not elapsed yet
+            return;
+        }
 
         // overflow is desired, casting never truncates
         // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
@@ -67,6 +70,8 @@ contract Oracle {
         price0CumulativeLast = price0Cumulative;
         price1CumulativeLast = price1Cumulative;
         blockTimestampLast = blockTimestamp;
+
+        emit Updated(price0Cumulative, price1Cumulative);
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
@@ -90,4 +95,6 @@ contract Oracle {
     ) external pure returns (address lpt) {
         return UniswapV2Library.pairFor(factory, tokenA, tokenB);
     }
+
+    event Updated(uint256 price0CumulativeLast, uint256 price1CumulativeLast);
 }
