@@ -125,25 +125,13 @@ contract Treasury is ReentrancyGuard, Ownable {
         uint256 bondPrice = cashPrice;
 
         // Check the operator of burning cash
-        bool success = IBasisAsset(cash).isOperator();
         require(
-            success,
+            IBasisAsset(cash).operator() == address(this),
             "Treasury: this contract is not the operator of the basis cash contract"
         );
 
-        // Burn basis cash
-        (success) = IBasisAsset(cash).burnFrom(msg.sender, amount);
-        require(
-            success,
-            "Treasury: insufficient allowance; need to specify a lower amount of cash to burn."
-        );
-
-        // Mint basis bond
-        (success) = IBasisAsset(bond).mint(msg.sender, amount.div(bondPrice));
-        require(
-            success,
-            "Treasury: this contract is not the operator of the basis bonds contract"
-        );
+        IBasisAsset(cash).burnFrom(msg.sender, amount);
+        IBasisAsset(bond).mint(msg.sender, amount.div(bondPrice));
 
         emit BoughtBonds(msg.sender, amount);
     }
@@ -162,25 +150,14 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         // Check the operator of burning bond
-        bool success = IBasisAsset(bond).isOperator();
         require(
-            success,
-            "Treasury: this contract is not the operator of the basis cash contract"
+            IBasisAsset(bond).operator() == address(this),
+            "Treasury: this contract is not the operator of the basis bond contract"
         );
 
         // Burn basis bonds
-        (success) = IBasisAsset(bond).burnFrom(msg.sender, amount);
-        require(
-            success,
-            "Treasury: insufficient allowance; need to specify a higher amount of bonds to burn."
-        );
-
-        // Mint basis cash
-        (success) = IBasisAsset(cash).mint(msg.sender, amount);
-        require(
-            success,
-            "Treasury: this contract is not the operator of the basis cash contract"
-        );
+        IBasisAsset(bond).burnFrom(msg.sender, amount);
+        IBasisAsset(cash).mint(msg.sender, amount);
 
         emit RedeemedBonds(msg.sender, amount);
     }
