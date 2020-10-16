@@ -24,5 +24,20 @@ async function deployToken(deployer, network, accounts) {
 
   if (network !== 'mainnet') {
     await deployer.deploy(MockDai);
+
+    // mint test balance
+    const cash = await Cash.deployed();
+    const bond = await Bond.deployed();
+    const share = await Share.deployed();
+
+    const fifty_thousand = web3.utils
+      .toBN(5 * 10 ** 4)
+      .mul(web3.utils.toBN(10 ** 18))
+
+    await Promise.all([
+      cash.mint(accounts[0], fifty_thousand.toString(), { from: accounts[0] }),
+      bond.mint(accounts[0], fifty_thousand.toString(), { from: accounts[0] }),
+      share.mint(accounts[0], fifty_thousand.toString(), { from: accounts[0] }),
+    ]);
   }
 }
