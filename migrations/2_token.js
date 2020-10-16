@@ -5,6 +5,7 @@
 const Cash = artifacts.require('Cash')
 const Bond = artifacts.require('Bond')
 const Share = artifacts.require('Share')
+const MockDai = artifacts.require('MockDai');
 
 // ============ Main Migration ============
 
@@ -17,7 +18,11 @@ module.exports = migration
 // ============ Deploy Functions ============
 
 async function deployToken(deployer, network, accounts) {
-  await deployer.deploy(Cash)
-  await deployer.deploy(Bond)
-  await deployer.deploy(Share)
+  await deployer.deploy(Cash);
+  await deployer.deploy(Bond);
+  await deployer.deploy(Share);
+
+  if (network !== 'mainnet') {
+    await deployer.deploy(MockDai);
+  }
 }

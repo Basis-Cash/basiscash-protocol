@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
 
-import "./lib/Babylonian.sol";
-import "./lib/FixedPoint.sol";
+import "../lib/Babylonian.sol";
+import "../lib/FixedPoint.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract MockOracle {
