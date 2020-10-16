@@ -38,4 +38,12 @@ contract Cash is ERC20Burnable, Operator {
 
         return balanceAfter > balanceBefore;
     }
+
+    function burn(uint256 amount) public onlyOperator {
+        super.burn(amount);
+    }
+
+    function burnFrom(address account, uint256 amount) public onlyOperator {
+        super.burnFrom(account, amount);
+    }
 }
