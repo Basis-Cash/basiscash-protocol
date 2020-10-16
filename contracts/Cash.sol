@@ -13,13 +13,13 @@ contract Cash is ERC20Burnable, Operator {
         _mint(msg.sender, 1 * 10**18);
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
-        super._beforeTokenTransfer(from, to, amount);
-        require(
-            to != operator(),
-            "basis.cash: operator as a recipient is not allowed"
-        );
-    }
+//    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
+//        super._beforeTokenTransfer(from, to, amount);
+//        require(
+//            to != operator(),
+//            "basis.cash: operator as a recipient is not allowed"
+//        );
+//    }
 
     /**
      * @notice Operator mints basis cash to a recipient
