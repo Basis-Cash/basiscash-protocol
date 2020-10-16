@@ -11,12 +11,21 @@
     "deploy:ropsten": "truffle migrate --network ropsten"
   },
   "devDependencies": {
+    "@ethersproject/address": "^5.0.0-beta",
+    "@ethersproject/contracts": "^5.0.0-beta",
+    "@ethersproject/networks": "^5.0.0-beta",
+    "@ethersproject/providers": "^5.0.0-beta",
+    "@ethersproject/solidity": "^5.0.0-beta",
+    "@truffle/contract": "^4.2.25",
     "@truffle/hdwallet-provider": "^1.1.0",
+    "@uniswap/sdk": "^3.0.3",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "ganache-cli": "^6.10.2",
     "solc": "^0.7.1",
-    "truffle": "^5.1.43"
+    "truffle": "5.1.49"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "3.2.0"
+    "@openzeppelin/contracts": "3.2.0",
+    "@uniswap/v2-core": "^1.0.1"
   }
 }
