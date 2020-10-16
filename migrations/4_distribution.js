@@ -22,7 +22,6 @@ module.exports = async (deployer, network, accounts) => {
       // network is mainnet, so MockDai is not available
       throw new Error(`Address of ${token} is not registered on migrations/known-contracts.js!`);
     }
-    console.log(`Deploying distribution pool of token ${tokenAddress}`);
     await deployer.deploy(contract, Cash.address, tokenAddress);
   }
   console.log(`Setting distributor to ${accounts[0]}`);

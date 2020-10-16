@@ -65,10 +65,8 @@ async function migration(deployer, network, accounts) {
     share.address, dai.address, unit, unit, unit, unit, accounts[0],  deadline(),
   );
 
-  console.log('\nPrices after providing liquidity');
-  console.log('=================================');
-  await checkPairPrice('BAC', cash.address, dai.address, uniswap, UniswapV2Pair);
-  await checkPairPrice('BAS', share.address, dai.address, uniswap, UniswapV2Pair);
+  console.log(`DAI-BAC pair address: ${await uniswap.getPair(dai.address, cash.address)}`);
+  console.log(`DAI-BAS pair address: ${await uniswap.getPair(dai.address, share.address)}`);
 
   // Deploy boardroom
   await deployer.deploy(Boardroom, cash.address, share.address);
@@ -90,11 +88,6 @@ async function migration(deployer, network, accounts) {
     dai.address,
     Boardroom.address,
   );
-}
-
-async function checkPairPrice(tokenSymbol, tokenAddr, daiAddr, uniswap, UniswapV2Pair) {
-  const pair = await UniswapV2Pair.at(await uniswap.getPair(tokenAddr, daiAddr));
-  console.log(`${tokenSymbol} Price: ${await pair.price0CumulativeLast()} ${await pair.price1CumulativeLast()}`);
 }
 
 async function approveIfNot(token, owner, spender, amount) {
