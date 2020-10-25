@@ -120,7 +120,7 @@ contract Boardroom is ReentrancyGuard, Ownable {
         withdraw(directors[msg.sender].shares);
     }
 
-    function claimDividends() public {
+    function getCashEarnings() public view returns (uint256) {
         uint256 totalRewards = 0;
         for (uint256 i = boardHistory.length - 1; i >= 0; i--) {
             BoardSnapshot memory snapshot = boardHistory[i];
@@ -135,7 +135,11 @@ contract Boardroom is ReentrancyGuard, Ownable {
                 .div(snapshot.totalShares);
             totalRewards = totalRewards.add(snapshotRewards);
         }
+        return totalRewards;
+    }
 
+    function claimDividends() public {
+        uint256 totalRewards = getCashEarnings();
         if (totalRewards > 0) {
             cash.safeTransfer(msg.sender, totalRewards);
             emit RewardPaid(msg.sender, totalRewards);
