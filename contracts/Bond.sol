@@ -24,11 +24,11 @@ contract Bond is ERC20Burnable, Ownable, Operator {
         return balanceAfter > balanceBefore;
     }
 
-    function burn(uint256 amount) public onlyOperator {
+    function burn(uint256 amount) public onlyOperator override {
         super.burn(amount);
     }
 
-    function burnFrom(address account, uint256 amount) public onlyOperator {
+    function burnFrom(address account, uint256 amount) public onlyOperator override {
         super.burnFrom(account, amount);
     }
 }
