@@ -13,6 +13,8 @@ contract InitialCashDistributor {
 
     uint256 public lastDistributedAt;
     uint256 public currentDistributionCount;
+    uint256 private contractCreatedAt;
+
 
     IERC20 public cash;
     IRewardDistributionRecipient[] public pools;
@@ -32,13 +34,13 @@ contract InitialCashDistributor {
         pools = _pools;
         totalInitialBalance = _totalInitialBalance;
         rewardInterval = _rewardInterval;
-
-        // first reward must be distributed with contract creation
-        lastDistributedAt = block.timestamp - rewardInterval;
-        performDailyDistribution();
+        contractCreatedAt = block.timestamp;
     }
 
     function performDailyDistribution() public {
+        if (lastDistributedAt == 0) {
+            lastDistributedAt = Math.min(contractCreatedAt, block.timestamp - rewardInterval);
+        }
         uint256 timeElapsed = block.timestamp - lastDistributedAt;
         if (timeElapsed < rewardInterval) {
             revert("InitialCashDistributor: a reward interval is not elapsed since last distribution");
@@ -48,15 +50,16 @@ contract InitialCashDistributor {
             revert("InitialCashDistributor: distribution is already finished");
         }
 
-        // for back-filling previous period if there are missed call over the interval
-        for (uint n = 0; n < timeElapsed.div(rewardInterval); n++) {
+        // for back-filling (catching up) previous period if there are missed call over the interval
+        uint256 numPeriod = Math.min(timeElapsed.div(rewardInterval), TOTAL_TIMES);
+        for (uint n = 0; n < numPeriod; n++) {
             for (uint i = 0; i < pools.length; i++) {
                 uint256 amount = totalInitialBalance
                     .div(TOTAL_TIMES)
                     .div(pools.length);
 
                 cash.transfer(address(pools[i]), amount);
-                pools[i].notifyRewardAmount(amount.mul(currentDistributionCount));
+                pools[i].notifyRewardAmount(amount);
 
                 emit Distributed(address(pools[i]), amount);
             }

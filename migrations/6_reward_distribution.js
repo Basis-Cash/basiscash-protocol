@@ -12,6 +12,7 @@ const DAIBASLPToken_BASPool = artifacts.require('DAIBASLPTokenSharePool')
 
 async function migration(deployer, network, accounts) {
   const unit = web3.utils.toBN(10 ** 18);
+  const initialCashAmount = unit.muln(INITIAL_BAC_FOR_POOLS).toString();
 
   const cash = await Cash.deployed();
   const period = network === 'mainnet'
@@ -22,7 +23,7 @@ async function migration(deployer, network, accounts) {
     InitialCashDistributor,
     cash.address,
     bacPools.map(({ contract }) => contract.address),
-    unit.muln(INITIAL_BAC_FOR_POOLS).toString(),
+    initialCashAmount,
     period,
   );
   const distributor = await InitialCashDistributor.deployed();
@@ -35,7 +36,7 @@ async function migration(deployer, network, accounts) {
     ),
   );
 
-  await cash.mint(distributor.address, unit.muln(INITIAL_BAC_FOR_POOLS).toString());
+  await cash.mint(distributor.address, initialCashAmount);
   console.log(`Deposited ${INITIAL_BAC_FOR_POOLS} BAC to InitialCashDistributor.`);
 
   if (network !== 'mainnet') {
@@ -45,7 +46,7 @@ async function migration(deployer, network, accounts) {
     await distributor.performDailyDistribution();
   } else {
     console.log('NOTES ON MAINNET LAUNCH:')
-    console.log(`  You need to call performDailyDistribution() once a day for distribution to BAC pools.`);
+    console.log(`  performDailyDistribution() should be called at most once a day for distribution to BAC pools.`);
   }
   console.log('=================================');
 
