@@ -97,7 +97,7 @@ contract Boardroom is ReentrancyGuard, Ownable {
 
         Boardseat memory director = directors[msg.sender];
         require(
-            director.shares > amount,
+            director.shares >= amount,
             "Boardroom: withdraw request greater than staked amount"
         );
 
