@@ -138,7 +138,7 @@ contract Treasury is ReentrancyGuard, Ownable {
         );
 
         IBasisAsset(cash).burnFrom(msg.sender, amount);
-        IBasisAsset(bond).mint(msg.sender, amount.div(bondPrice));
+        IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
 
         emit BoughtBonds(msg.sender, amount);
     }
