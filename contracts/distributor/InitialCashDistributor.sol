@@ -5,7 +5,7 @@ import "../distribution/BACSUSDPool.sol";
 import "../distribution/BACUSDCPool.sol";
 import "../distribution/BACUSDTPool.sol";
 import "../distribution/BACyCRVPool.sol";
-import '../interfaces/IDistributor.sol';
+import "../interfaces/IDistributor.sol";
 
 contract InitialCashDistributor is IDistributor {
     using SafeMath for uint256;
@@ -39,11 +39,16 @@ contract InitialCashDistributor is IDistributor {
 
     function performDailyDistribution() public override {
         if (lastDistributedAt == 0) {
-            lastDistributedAt = Math.min(contractCreatedAt, block.timestamp - rewardInterval);
+            lastDistributedAt = Math.min(
+                contractCreatedAt,
+                block.timestamp - rewardInterval
+            );
         }
         uint256 timeElapsed = block.timestamp - lastDistributedAt;
         if (timeElapsed < rewardInterval) {
-            revert("InitialCashDistributor: a reward interval is not elapsed since last distribution");
+            revert(
+                "InitialCashDistributor: a reward interval is not elapsed since last distribution"
+            );
         }
 
         if (currentDistributionCount >= TOTAL_TIMES) {
@@ -51,12 +56,15 @@ contract InitialCashDistributor is IDistributor {
         }
 
         // for back-filling (catching up) previous period if there are missed call over the interval
-        uint256 numPeriod = Math.min(timeElapsed.div(rewardInterval), TOTAL_TIMES);
-        for (uint n = 0; n < numPeriod; n++) {
-            for (uint i = 0; i < pools.length; i++) {
-                uint256 amount = totalInitialBalance
-                    .div(TOTAL_TIMES)
-                    .div(pools.length);
+        uint256 numPeriod = Math.min(
+            timeElapsed.div(rewardInterval),
+            TOTAL_TIMES
+        );
+        for (uint256 n = 0; n < numPeriod; n++) {
+            for (uint256 i = 0; i < pools.length; i++) {
+                uint256 amount = totalInitialBalance.div(TOTAL_TIMES).div(
+                    pools.length
+                );
 
                 cash.transfer(address(pools[i]), amount);
                 pools[i].notifyRewardAmount(amount);
