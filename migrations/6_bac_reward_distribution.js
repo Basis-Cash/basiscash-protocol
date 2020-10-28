@@ -3,14 +3,11 @@ const { bacPools, INITIAL_BAC_FOR_POOLS } = require('./pools');
 // Pools
 // deployed first
 const Cash = artifacts.require('Cash')
-const Share = artifacts.require('Share')
 const InitialCashDistributor = artifacts.require('InitialCashDistributor');
-const DAIBACLPToken_BASPool = artifacts.require('DAIBACLPTokenSharePool')
-const DAIBASLPToken_BASPool = artifacts.require('DAIBASLPTokenSharePool')
 
 // ============ Main Migration ============
 
-async function migration(deployer, network, accounts) {
+module.exports = async (deployer, network, accounts) => {
   const unit = web3.utils.toBN(10 ** 18);
   const initialCashAmount = unit.muln(INITIAL_BAC_FOR_POOLS).toString();
 
@@ -49,21 +46,4 @@ async function migration(deployer, network, accounts) {
     console.log(`  performDailyDistribution() should be called at most once a day for distribution to BAC pools.`);
   }
   console.log('=================================');
-
-  console.log('Distributing initial Basis Share');
-  const share = await Share.deployed();
-  await Promise.all([
-    share.mint(DAIBACLPToken_BASPool.address, unit.muln(750000).toString()),
-    share.mint(DAIBASLPToken_BASPool.address, unit.muln(250000).toString()),
-  ]);
-
-  const daibaclptoken_baspool = await DAIBACLPToken_BASPool.deployed();
-  const daibaslptoken_baspool = await DAIBASLPToken_BASPool.deployed();
-
-  await Promise.all([
-    daibaclptoken_baspool.notifyRewardAmount(unit.muln(750000).toString()),
-    daibaslptoken_baspool.notifyRewardAmount(unit.muln(250000).toString()),
-  ]);
 }
-
-module.exports = migration;
