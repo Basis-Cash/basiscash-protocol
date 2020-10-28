@@ -1,9 +1,10 @@
 pragma solidity ^0.6.0;
 
-import './distribution/DAIBACLPTokenSharePool.sol';
-import './distribution/DAIBASLPTokenSharePool.sol';
+import '../distribution/DAIBACLPTokenSharePool.sol';
+import '../distribution/DAIBASLPTokenSharePool.sol';
+import '../interfaces/IDistributor.sol';
 
-contract InitialShareDistributor {
+contract InitialShareDistributor is IDistributor {
   using SafeMath for uint256;
 
   // ================== events
@@ -89,7 +90,7 @@ contract InitialShareDistributor {
   /**
    * @notice this function should be called at least once a day
    */
-  function performDailyDistribution() public {
+  function performDailyDistribution() public override {
     if (lastDistributedAt == 0) {
       lastDistributedAt = Math.min(contractCreatedAt, block.timestamp - rewardInterval);
     }

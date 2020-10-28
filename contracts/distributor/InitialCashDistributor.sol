@@ -1,12 +1,13 @@
 pragma solidity ^0.6.0;
 
-import "./distribution/BACDAIPool.sol";
-import "./distribution/BACSUSDPool.sol";
-import "./distribution/BACUSDCPool.sol";
-import "./distribution/BACUSDTPool.sol";
-import "./distribution/BACyCRVPool.sol";
+import "../distribution/BACDAIPool.sol";
+import "../distribution/BACSUSDPool.sol";
+import "../distribution/BACUSDCPool.sol";
+import "../distribution/BACUSDTPool.sol";
+import "../distribution/BACyCRVPool.sol";
+import '../interfaces/IDistributor.sol';
 
-contract InitialCashDistributor {
+contract InitialCashDistributor is IDistributor {
     using SafeMath for uint256;
 
     uint256 public constant TOTAL_TIMES = 5;
@@ -14,7 +15,6 @@ contract InitialCashDistributor {
     uint256 public lastDistributedAt;
     uint256 public currentDistributionCount;
     uint256 private contractCreatedAt;
-
 
     IERC20 public cash;
     IRewardDistributionRecipient[] public pools;
@@ -37,7 +37,7 @@ contract InitialCashDistributor {
         contractCreatedAt = block.timestamp;
     }
 
-    function performDailyDistribution() public {
+    function performDailyDistribution() public override {
         if (lastDistributedAt == 0) {
             lastDistributedAt = Math.min(contractCreatedAt, block.timestamp - rewardInterval);
         }
