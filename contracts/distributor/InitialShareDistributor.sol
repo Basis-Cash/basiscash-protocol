@@ -27,8 +27,9 @@ contract InitialShareDistributor is IDistributor {
 
   // ================== parameters
   uint256 public rewardInterval;
-  uint256 public initialBalanceForDAIBAC;
-  uint256 public initialBalanceForDAIBAS;
+  uint256 public totalBalanceForDAIBAC;
+  uint256 public totalBalanceForDAIBAS;
+  uint256 public startingAmountForDAIBAS;
   uint256 public deflationRateForDAIBAS;
   uint256 public deflationIntervalForDAIBAS;
 
@@ -39,8 +40,9 @@ contract InitialShareDistributor is IDistributor {
     IERC20 _share,
     IRewardDistributionRecipient _poolDAIBAC,
     IRewardDistributionRecipient _poolDAIBAS,
-    uint256 _initialBalanceForDAIBAC,
-    uint256 _initialBalanceForDAIBAS,
+    uint256 _totalBalanceForDAIBAC,
+    uint256 _totalBalanceForDAIBAS,
+    uint256 _startingAmountForDAIBAS,
     uint256 _deflationRateForDAIBAS,
     uint256 _deflationIntervalForDAIBAS,
     uint256 _rewardInterval
@@ -50,8 +52,9 @@ contract InitialShareDistributor is IDistributor {
     share = _share;
     poolDAIBAC = _poolDAIBAC;
     poolDAIBAS = _poolDAIBAS;
-    initialBalanceForDAIBAC = _initialBalanceForDAIBAC;
-    initialBalanceForDAIBAS = _initialBalanceForDAIBAS;
+    totalBalanceForDAIBAC = _totalBalanceForDAIBAC;
+    totalBalanceForDAIBAS = _totalBalanceForDAIBAS;
+    startingAmountForDAIBAS = _startingAmountForDAIBAS;
     deflationRateForDAIBAS = _deflationRateForDAIBAS;
     deflationIntervalForDAIBAS = _deflationIntervalForDAIBAS;
     rewardInterval = _rewardInterval;
@@ -62,7 +65,7 @@ contract InitialShareDistributor is IDistributor {
    * @notice distribution amount = balance / 365
    */
   function distributeToDAIBACPool() private {
-    uint256 amount = initialBalanceForDAIBAC.div(DAIBAC_TOTAL_TIMES);
+    uint256 amount = totalBalanceForDAIBAC.div(DAIBAC_TOTAL_TIMES);
     share.transfer(address(poolDAIBAC), amount);
     poolDAIBAC.notifyRewardAmount(amount);
 
@@ -77,7 +80,7 @@ contract InitialShareDistributor is IDistributor {
     uint256 level = currentDistributionCount
                       .div(deflationIntervalForDAIBAS); // auto-floored level
     // balance * deflationRate^level / 100^level
-    uint256 amount = initialBalanceForDAIBAS
+    uint256 amount = startingAmountForDAIBAS
                       .mul(deflationRateForDAIBAS ** level)
                       .div(100 ** level);
 
