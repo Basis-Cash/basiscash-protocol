@@ -14,10 +14,9 @@ contract Share is ERC20Burnable, Operator {
     /**
      * @notice Operator mints basis cash to a recipient
      * @param recipient_ The address of recipient
-     * @param amount_ The amount of basis cash to mint to 
+     * @param amount_ The amount of basis cash to mint to
      */
     function mint(address recipient_, uint256 amount_) public onlyOperator returns (bool) {
-        require(totalSupply() + amount_ <= maxSupply, "Share: minting amount exceeds max supply");
         uint256 balanceBefore = balanceOf(recipient_);
         _mint(recipient_, amount_);
         uint256 balanceAfter = balanceOf(recipient_);
