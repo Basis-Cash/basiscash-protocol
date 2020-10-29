@@ -1,19 +1,19 @@
 
 const Distributor = artifacts.require('Distributor');
 const InitialCashDistributor = artifacts.require('InitialCashDistributor');
-const InitialShareDistributor = artifacts.require('InitialShareDistributor');
+const InitialDAIBACDistributor = artifacts.require('InitialDAIBACDistributor');
+const InitialDAIBASDistributor = artifacts.require('InitialDAIBASDistributor');
 
 module.exports = async (deployer, network, accounts) => {
-  const initialCashDistributor = await InitialCashDistributor.deployed();
-  const initialShareDistributor = await InitialShareDistributor.deployed();
-
-  await deployer.deploy(
-    Distributor,
+  const distributors = await Promise.all(
     [
-      initialCashDistributor,
-      initialShareDistributor,
-    ]
+      InitialCashDistributor,
+      InitialDAIBACDistributor,
+      InitialDAIBASDistributor,
+    ].map(distributor => distributor.deployed())
   );
+
+  await deployer.deploy(Distributor, distributors);
   const distributor = await Distributor.deployed();
 
   console.log(`Distributor manager contract is ${distributor.address}`)

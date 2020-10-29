@@ -9,7 +9,8 @@ const {
 // Pools
 // deployed first
 const Share = artifacts.require('Share');
-const InitialShareDistributor = artifacts.require('InitialShareDistributor');
+const InitialDAIBACDistributor = artifacts.require('InitialDAIBACDistributor');
+const InitialDAIBASDistributor = artifacts.require('InitialDAIBASDistributor');
 
 // ============ Main Migration ============
 
@@ -29,31 +30,40 @@ async function migration(deployer, network, accounts) {
     interval: network === 'mainnet' ? 30 : 1,
   }
 
+  // Deploy DAIBAC Distributor
   await deployer.deploy(
-    InitialShareDistributor,
+    InitialDAIBACDistributor,
     share.address,
     lpPoolDAIBAC.contract.address,
-    lpPoolDAIBAS.contract.address,
     totalBalanceForDAIBAC,
+    period,
+  );
+  const daibacDistributor = await InitialDAIBACDistributor.deployed();
+
+  console.log(`Setting distributor to InitialDAIBACDistributor (${daibacDistributor.address})`);
+  await lpPoolDAIBAC.deployed().then(pool => pool.setRewardDistribution(daibacDistributor.address));
+
+  await share.mint(daibacDistributor.address, INITIAL_BAS_FOR_DAI_BAC);
+  console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAC} BAS to InitialDAIBACDistributor.`);
+
+  // Deploy DAIBAS Distributor
+  await deployer.deploy(
+    InitialDAIBASDistributor,
+    share.address,
+    lpPoolDAIBAS.contract.address,
     totalBalanceForDAIBAS,
     startingAmountForDAIBAS,
     deflation.rate,
     deflation.interval,
     period,
   );
-  const distributor = await InitialShareDistributor.deployed();
+  const daibasDistributor = await InitialDAIBASDistributor.deployed();
 
-  console.log(`Setting distributor to InitialShareDistributor (${distributor.address})`);
-  await Promise.all(
-    [lpPoolDAIBAC, lpPoolDAIBAS].map(({ contract }) => contract
-      .deployed()
-      .then(pool => pool.setRewardDistribution(distributor.address))
-    ),
-  );
+  console.log(`Setting distributor to InitialDAIBASDistributor (${daibasDistributor.address})`);
+  await lpPoolDAIBAS.deployed().then(pool => pool.setRewardDistribution(daibasDistributor.address));
 
-  await share.mint(distributor.address, INITIAL_BAS_FOR_DAI_BAC);
-  await share.mint(distributor.address, INITIAL_BAS_FOR_DAI_BAS);
-  console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAC + INITIAL_BAS_FOR_DAI_BAS} BAS to InitialShareDistributor.`);
+  await share.mint(daibasDistributor.address, INITIAL_BAS_FOR_DAI_BAS);
+  console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAS} BAS to InitialDAIBASDistributor.`);
 
   if (network !== 'mainnet') {
     // unit period is set as a second on testnet,
