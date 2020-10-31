@@ -17,6 +17,7 @@
     "@ethersproject/networks": "^5.0.0-beta",
     "@ethersproject/providers": "^5.0.0-beta",
     "@ethersproject/solidity": "^5.0.0-beta",
+    "@truffle/artifactor": "^4.0.84",
     "@truffle/contract": "^4.2.25",
     "@truffle/hdwallet-provider": "^1.1.0",
     "@uniswap/sdk": "^3.0.3",

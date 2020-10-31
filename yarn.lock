@@ -361,6 +361,17 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
+"@truffle/artifactor@^4.0.84":
+  version "4.0.84"
+  resolved "https://registry.yarnpkg.com/@truffle/artifactor/-/artifactor-4.0.84.tgz#ef233d23f4e6231c0152ccc181a812998e715ecd"
+  integrity sha512-Y+oQTnBeB1IiyqHZfxa1R9Ug7L/eTg/kbG+9/LZahDcGxb6mnBrbxBlL+4ZOTLOQOVdrcx75W3BsTzS6KcmSOw==
+  dependencies:
+    "@truffle/contract-schema" "^3.3.1"
+    fs-extra "^8.1.0"
+    lodash.assign "^4.2.0"
+    lodash.merge "^4.6.2"
+    source-map-support "^0.5.19"
+
 "@truffle/blockchain-utils@^0.0.25":
   version "0.0.25"
   resolved "https://registry.yarnpkg.com/@truffle/blockchain-utils/-/blockchain-utils-0.0.25.tgz#f4b320890113d282f25f1a1ecd65b94a8b763ac1"
@@ -390,6 +401,15 @@
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/@truffle/contract-schema/-/contract-schema-3.3.0.tgz#3cf6bcc18fe34cc21e35889b40e9afc1647f3c3c"
   integrity sha512-HjD2tByID6KvR1jfy4z+oXKZ0pQVWrBDynGL7T3mNqApzbYXNWlwk2oEBIGgugWH17B1WxVu5CC00Lq67jFQIw==
+  dependencies:
+    ajv "^6.10.0"
+    crypto-js "^3.1.9-1"
+    debug "^4.1.0"
+
+"@truffle/contract-schema@^3.3.1":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@truffle/contract-schema/-/contract-schema-3.3.1.tgz#66385613d54d76df68a7a2c431fa9d352145a74b"
+  integrity sha512-xGBiYiCCW8hKuD/G8xb9w0WUuhdJDmQuz18A2Ens3Y8MO+jWA+Zw7xxZjCtiXAu9440Fj2V/BCXWcV6RxGKgBQ==
   dependencies:
     ajv "^6.10.0"
     crypto-js "^3.1.9-1"
@@ -2448,6 +2468,15 @@ fs-extra@^4.0.2:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
+fs-extra@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.1.0.tgz#49d43c45a88cd9677668cb7be1b46efdb8d2e1c0"
+  integrity sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g==
+  dependencies:
+    graceful-fs "^4.2.0"
+    jsonfile "^4.0.0"
+    universalify "^0.1.0"
+
 fs-minipass@^1.2.5:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/fs-minipass/-/fs-minipass-1.2.7.tgz#ccff8570841e7fe4265693da88936c55aed7f7c7"
@@ -2589,7 +2618,7 @@ got@^7.1.0:
     url-parse-lax "^1.0.0"
     url-to-options "^1.0.1"
 
-graceful-fs@^4.1.10, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.1.9:
+graceful-fs@^4.1.10, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.1.9, graceful-fs@^4.2.0:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.4.tgz#2256bde14d3632958c465ebc96dc467ca07a29fb"
   integrity sha512-WjKPNJF79dtJAVniUlGGWHYGz2jWxT6VhN/4m1NdkbZ2nOsEF+cI1Edgql5zCRhs/VsQYRvrXctxktVXZUkixw==
@@ -3209,6 +3238,11 @@ locate-path@^6.0.0:
   integrity sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==
   dependencies:
     p-locate "^5.0.0"
+
+lodash.assign@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/lodash.assign/-/lodash.assign-4.2.0.tgz#0d99f3ccd7a6d261d19bdaeb9245005d285808e7"
+  integrity sha1-DZnzzNem0mHRm9rrkkUAXShYCOc=
 
 lodash.clonedeep@^4.5.0:
   version "4.5.0"
