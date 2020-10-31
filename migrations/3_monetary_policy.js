@@ -25,9 +25,9 @@ async function migration(deployer, network, accounts) {
   if (network === 'development') {
     console.log('Deploying uniswap on development network.');
     await deployer.deploy(UniswapV2Factory, accounts[0]);
-    await deployer.deploy(UniswapV2Router02, accounts[0], accounts[0]);
-
     uniswap = await UniswapV2Factory.deployed();
+
+    await deployer.deploy(UniswapV2Router02, uniswap.address, accounts[0]);
     uniswapRouter = await UniswapV2Router02.deployed();
 
   } else {
