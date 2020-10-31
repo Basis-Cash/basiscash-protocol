@@ -11,16 +11,10 @@ const Oracle = artifacts.require('Oracle')
 const Boardroom = artifacts.require('Boardroom')
 const Treasury = artifacts.require('Treasury')
 
-const UniswapV2Factory = contract(require('@uniswap/v2-core/build/UniswapV2Factory.json'));
-const UniswapV2Router02 = contract(require('@uniswap/v2-periphery/build/UniswapV2Router02.json'));
-const UniswapV2Pair = contract(require('@uniswap/v2-core/build/UniswapV2Pair.json'));
+const UniswapV2Factory = artifacts.require('UniswapV2Factory');
+const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
 
 async function migration(deployer, network, accounts) {
-  [UniswapV2Factory, UniswapV2Router02, UniswapV2Pair].forEach(contract => {
-    contract.setProvider(web3._provider);
-    contract.defaults({ from: accounts[0] });
-  });
-
   let uniswap, uniswapRouter;
   if (network === 'development') {
     console.log('Deploying uniswap on development network.');
@@ -29,7 +23,6 @@ async function migration(deployer, network, accounts) {
 
     await deployer.deploy(UniswapV2Router02, uniswap.address, accounts[0]);
     uniswapRouter = await UniswapV2Router02.deployed();
-
   } else {
     uniswap = await UniswapV2Factory.at(knownContracts.UniswapV2Factory[network]);
     uniswapRouter = await UniswapV2Router02.at(knownContracts.UniswapV2Router02[network]);
