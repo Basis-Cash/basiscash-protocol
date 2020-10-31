@@ -16,8 +16,8 @@ const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
 
 async function migration(deployer, network, accounts) {
   let uniswap, uniswapRouter;
-  if (network === 'development') {
-    console.log('Deploying uniswap on development network.');
+  if (['dev'].includes(network)) {
+    console.log('Deploying uniswap on dev network.');
     await deployer.deploy(UniswapV2Factory, accounts[0]);
     uniswap = await UniswapV2Factory.deployed();
 

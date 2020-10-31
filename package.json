@@ -6,8 +6,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "ganache-cli -i 5777",
-    "console:dev": "truffle console --network development",
-    "deploy:dev": "truffle migrate --reset --network development",
+    "test": "truffle test --network test",
+    "console:dev": "truffle console --network dev",
+    "deploy:dev": "truffle migrate --reset --network dev",
     "deploy:ropsten": "truffle migrate --network ropsten",
     "deploy:rinkeby": "truffle migrate --network rinkeby"
   },
