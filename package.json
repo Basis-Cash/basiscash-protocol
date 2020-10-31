@@ -8,7 +8,8 @@
     "dev": "ganache-cli -i 5777",
     "console:dev": "truffle console --network development",
     "deploy:dev": "truffle migrate --reset --network development",
-    "deploy:ropsten": "truffle migrate --network ropsten"
+    "deploy:ropsten": "truffle migrate --network ropsten",
+    "deploy:rinkeby": "truffle migrate --network rinkeby"
   },
   "devDependencies": {
     "@ethersproject/address": "^5.0.0-beta",
