@@ -41,9 +41,9 @@ async function migration(deployer, network, accounts) {
   const daibacDistributor = await InitialDAIBACDistributor.deployed();
 
   console.log(`Setting distributor to InitialDAIBACDistributor (${daibacDistributor.address})`);
-  await lpPoolDAIBAC.deployed().then(pool => pool.setRewardDistribution(daibacDistributor.address));
+  await lpPoolDAIBAC.contract.deployed().then(pool => pool.setRewardDistribution(daibacDistributor.address));
 
-  await share.mint(daibacDistributor.address, INITIAL_BAS_FOR_DAI_BAC);
+  await share.mint(daibacDistributor.address, totalBalanceForDAIBAC);
   console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAC} BAS to InitialDAIBACDistributor.`);
 
   // Deploy DAIBAS Distributor
@@ -60,19 +60,22 @@ async function migration(deployer, network, accounts) {
   const daibasDistributor = await InitialDAIBASDistributor.deployed();
 
   console.log(`Setting distributor to InitialDAIBASDistributor (${daibasDistributor.address})`);
-  await lpPoolDAIBAS.deployed().then(pool => pool.setRewardDistribution(daibasDistributor.address));
+  await lpPoolDAIBAS.contract.deployed().then(pool => pool.setRewardDistribution(daibasDistributor.address));
 
-  await share.mint(daibasDistributor.address, INITIAL_BAS_FOR_DAI_BAS);
+  await share.mint(daibasDistributor.address, totalBalanceForDAIBAS);
   console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAS} BAS to InitialDAIBASDistributor.`);
 
   if (network !== 'mainnet') {
     // unit period is set as a second on testnet,
     // so calling performDailyDistribution() will distribute entire balance instantly
-    console.log('Distributing initial Basis Cash instantly for test...');
-    await distributor.performDailyDistribution();
+    console.log('Distributing initial Basis Share instantly for test...');
+    await Promise.all([
+      daibacDistributor.performDailyDistribution(),
+      daibasDistributor.performDailyDistribution(),
+    ]);
   } else {
     console.log('NOTES ON MAINNET LAUNCH:')
-    console.log(`  performDailyDistribution() should be called at most once a day for distribution to BAC pools.`);
+    console.log(`  performDailyDistribution() should be called at most once a day for distribution to BAS pools.`);
   }
   console.log('=================================');
 }
