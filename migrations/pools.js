@@ -7,15 +7,17 @@ const STARTING_AMOUNT_FOR_DAI_BAS = 6520;
 const POOL_START_DATE = Date.parse('2020-10-10T00:00:00Z');
 
 const bacPools = [
-  { contract: artifacts.require('BACDAIPool'), token: 'DAI' },
-  { contract: artifacts.require('BACSUSDPool'), token: 'SUSD' },
-  { contract: artifacts.require('BACUSDCPool'), token: 'USDC' },
-  { contract: artifacts.require('BACUSDTPool'), token: 'USDT' },
-  { contract: artifacts.require('BACyCRVPool'), token: 'yCRV' },
+  { contractName: 'BACDAIPool', token: 'DAI' },
+  { contractName: 'BACSUSDPool', token: 'SUSD' },
+  { contractName: 'BACUSDCPool', token: 'USDC' },
+  { contractName: 'BACUSDTPool', token: 'USDT' },
+  { contractName: 'BACyCRVPool', token: 'yCRV' },
 ];
 
-const lpPoolDAIBAC = { contract: artifacts.require('DAIBACLPTokenSharePool'), token: 'DAI_BAC-LPv2' };
-const lpPoolDAIBAS = { contract: artifacts.require('DAIBASLPTokenSharePool'), token: 'DAI_BAS-LPv2' };
+const basPools = {
+  DAIBAC: { contractName: 'DAIBACLPTokenSharePool', token: 'DAI_BAC-LPv2' },
+  DAIBAS: { contractName: 'DAIBASLPTokenSharePool', token: 'DAI_BAS-LPv2' },
+}
 
 module.exports = {
   INITIAL_BAC_FOR_POOLS,
@@ -23,6 +25,5 @@ module.exports = {
   INITIAL_BAS_FOR_DAI_BAS,
   STARTING_AMOUNT_FOR_DAI_BAS,
   bacPools,
-  lpPoolDAIBAC,
-  lpPoolDAIBAS,
+  basPools,
 };

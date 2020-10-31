@@ -1,6 +1,5 @@
 const {
-  lpPoolDAIBAC,
-  lpPoolDAIBAS,
+  basPools,
   INITIAL_BAS_FOR_DAI_BAC,
   INITIAL_BAS_FOR_DAI_BAS,
   STARTING_AMOUNT_FOR_DAI_BAS,
@@ -30,27 +29,29 @@ async function migration(deployer, network, accounts) {
     interval: network === 'mainnet' ? 30 : 1,
   }
 
+  const lpPoolDAIBAC = artifacts.require(basPools.DAIBAC.contractName);
   // Deploy DAIBAC Distributor
   await deployer.deploy(
     InitialDAIBACDistributor,
     share.address,
-    lpPoolDAIBAC.contract.address,
+    lpPoolDAIBAC.address,
     totalBalanceForDAIBAC,
     period,
   );
   const daibacDistributor = await InitialDAIBACDistributor.deployed();
 
   console.log(`Setting distributor to InitialDAIBACDistributor (${daibacDistributor.address})`);
-  await lpPoolDAIBAC.contract.deployed().then(pool => pool.setRewardDistribution(daibacDistributor.address));
+  await lpPoolDAIBAC.deployed().then(pool => pool.setRewardDistribution(daibacDistributor.address));
 
   await share.mint(daibacDistributor.address, totalBalanceForDAIBAC);
   console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAC} BAS to InitialDAIBACDistributor.`);
 
+  const lpPoolDAIBAS = artifacts.require(basPools.DAIBAS.contractName);
   // Deploy DAIBAS Distributor
   await deployer.deploy(
     InitialDAIBASDistributor,
     share.address,
-    lpPoolDAIBAS.contract.address,
+    lpPoolDAIBAS.address,
     totalBalanceForDAIBAS,
     startingAmountForDAIBAS,
     deflation.rate,
@@ -60,7 +61,7 @@ async function migration(deployer, network, accounts) {
   const daibasDistributor = await InitialDAIBASDistributor.deployed();
 
   console.log(`Setting distributor to InitialDAIBASDistributor (${daibasDistributor.address})`);
-  await lpPoolDAIBAS.contract.deployed().then(pool => pool.setRewardDistribution(daibasDistributor.address));
+  await lpPoolDAIBAS.deployed().then(pool => pool.setRewardDistribution(daibasDistributor.address));
 
   await share.mint(daibasDistributor.address, totalBalanceForDAIBAS);
   console.log(`Deposited ${INITIAL_BAS_FOR_DAI_BAS} BAS to InitialDAIBASDistributor.`);

@@ -16,10 +16,12 @@ module.exports = async (deployer, network, accounts) => {
     ? 86400  // distributed throughout 5 days on mainnet
     : 1;     // fast-rewind on testnet
 
+  const pools = bacPools.map(({contractName}) => artifacts.require(contractName));
+
   await deployer.deploy(
     InitialCashDistributor,
     cash.address,
-    bacPools.map(({ contract }) => contract.address),
+    pools.map(p => p.address),
     initialCashAmount,
     period,
   );
@@ -27,9 +29,9 @@ module.exports = async (deployer, network, accounts) => {
 
   console.log(`Setting distributor to InitialCashDistributor (${distributor.address})`);
   await Promise.all(
-    bacPools.map(({ contract }) => contract
+    pools.map(pool => pool
       .deployed()
-      .then(pool => pool.setRewardDistribution(distributor.address))
+      .then(p => p.setRewardDistribution(distributor.address))
     ),
   );
 
