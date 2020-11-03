@@ -1,7 +1,7 @@
 // https://docs.basis.cash/mechanisms/yield-farming
 const INITIAL_BAC_FOR_POOLS = 50000;
-const INITIAL_BAS_FOR_DAI_BAC = 250000;
-const INITIAL_BAS_FOR_DAI_BAS = 750000;
+const INITIAL_BAS_FOR_DAI_BAC = 750000;
+const INITIAL_BAS_FOR_DAI_BAS = 250000;
 
 const POOL_START_DATE = Date.parse('2020-10-10T00:00:00Z');
 
