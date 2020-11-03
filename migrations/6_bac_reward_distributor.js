@@ -23,7 +23,6 @@ module.exports = async (deployer, network, accounts) => {
     cash.address,
     pools.map(p => p.address),
     initialCashAmount,
-    period,
   );
   const distributor = await InitialCashDistributor.deployed();
 
@@ -38,14 +37,5 @@ module.exports = async (deployer, network, accounts) => {
   await cash.mint(distributor.address, initialCashAmount);
   console.log(`Deposited ${INITIAL_BAC_FOR_POOLS} BAC to InitialCashDistributor.`);
 
-  if (network !== 'mainnet') {
-    // unit period is set as a second on testnet,
-    // so calling performDailyDistribution() will distribute entire balance instantly
-    console.log('Distributing initial Basis Cash instantly for test...');
-    await distributor.performDailyDistribution();
-  } else {
-    console.log('NOTES ON MAINNET LAUNCH:')
-    console.log(`  performDailyDistribution() should be called at most once a day for distribution to BAC pools.`);
-  }
-  console.log('=================================');
+  await distributor.distribute();
 }

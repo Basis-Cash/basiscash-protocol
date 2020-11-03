@@ -1,15 +1,13 @@
 
 const Distributor = artifacts.require('Distributor');
 const InitialCashDistributor = artifacts.require('InitialCashDistributor');
-const InitialDAIBACDistributor = artifacts.require('InitialDAIBACDistributor');
-const InitialDAIBASDistributor = artifacts.require('InitialDAIBASDistributor');
+const InitialShareDistributor = artifacts.require('InitialShareDistributor');
 
 module.exports = async (deployer, network, accounts) => {
   const distributors = await Promise.all(
     [
       InitialCashDistributor,
-      InitialDAIBACDistributor,
-      InitialDAIBASDistributor,
+      InitialShareDistributor,
     ].map(distributor => distributor.deployed())
   );
 

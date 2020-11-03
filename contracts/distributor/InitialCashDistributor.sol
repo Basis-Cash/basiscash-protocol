@@ -10,76 +10,41 @@ import "../interfaces/IDistributor.sol";
 contract InitialCashDistributor is IDistributor {
     using SafeMath for uint256;
 
-    uint256 public constant TOTAL_TIMES = 5;
+    event Distributed(address pool, uint256 cashAmount);
 
-    uint256 public lastDistributedAt;
-    uint256 public currentDistributionCount;
-    uint256 private contractCreatedAt;
+    bool public once = true;
 
     IERC20 public cash;
     IRewardDistributionRecipient[] public pools;
-    uint256 public rewardInterval;
     uint256 public totalInitialBalance;
 
     constructor(
         IERC20 _cash,
         IRewardDistributionRecipient[] memory _pools,
-        uint256 _totalInitialBalance,
-        uint256 _rewardInterval
+        uint256 _totalInitialBalance
     ) public {
-        require(_rewardInterval != 0, "reward interval shouldn't be 0");
         require(_pools.length != 0, "a list of BAC pools are required");
 
         cash = _cash;
         pools = _pools;
         totalInitialBalance = _totalInitialBalance;
-        rewardInterval = _rewardInterval;
-        contractCreatedAt = block.timestamp;
     }
 
-    function performDailyDistribution() public override {
-        if (lastDistributedAt == 0) {
-            lastDistributedAt = Math.min(
-                contractCreatedAt,
-                block.timestamp - rewardInterval
-            );
-        }
-        uint256 timeElapsed = block.timestamp - lastDistributedAt;
-        if (timeElapsed < rewardInterval) {
-            revert(
-                "InitialCashDistributor: a reward interval is not elapsed since last distribution"
-            );
-        }
-
-        if (currentDistributionCount >= TOTAL_TIMES) {
-            revert("InitialCashDistributor: distribution is already finished");
-        }
-
-        // for back-filling (catching up) previous period if there are missed call over the interval
-        uint256 numPeriod = Math.min(
-            timeElapsed.div(rewardInterval),
-            TOTAL_TIMES
+    function distribute() public override {
+        require(
+            once,
+            "InitialCashDistributor: you cannot run this function twice"
         );
-        for (uint256 n = 0; n < numPeriod; n++) {
-            for (uint256 i = 0; i < pools.length; i++) {
-                uint256 amount = totalInitialBalance.div(TOTAL_TIMES).div(
-                    pools.length
-                );
 
-                cash.transfer(address(pools[i]), amount);
-                pools[i].notifyRewardAmount(amount);
+        for (uint256 i = 0; i < pools.length; i++) {
+            uint256 amount = totalInitialBalance.div(pools.length);
 
-                emit Distributed(address(pools[i]), amount);
-            }
-            currentDistributionCount++;
+            cash.transfer(address(pools[i]), amount);
+            pools[i].notifyRewardAmount(amount);
+
+            emit Distributed(address(pools[i]), amount);
         }
 
-        lastDistributedAt = block.timestamp;
-        if (currentDistributionCount >= TOTAL_TIMES) {
-            emit DistributionFinished();
-        }
+        once = false;
     }
-
-    event Distributed(address pool, uint256 cashAmount);
-    event DistributionFinished();
 }

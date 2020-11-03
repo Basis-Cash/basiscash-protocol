@@ -69,9 +69,10 @@ contract DAIBACLPTokenSharePool is
     IRewardDistributionRecipient
 {
     IERC20 public basisShare;
-    uint256 public DURATION = 365 days;
+    uint256 public constant DURATION = 30 days;
 
-    uint256 public starttime = 1600831965;
+    uint256 public initreward = 195600 * 10**18; // 195,600 Shares
+    uint256 public starttime = 1600831965; // starttime TBD
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
@@ -88,14 +89,6 @@ contract DAIBACLPTokenSharePool is
     constructor(address basisShare_, address lptoken_) public {
         basisShare = IERC20(basisShare_);
         lpt = IERC20(lptoken_);
-    }
-
-    modifier checkStart() {
-        require(
-            block.timestamp >= starttime,
-            "DAIBACLPTokenSharePool: not start"
-        );
-        _;
     }
 
     modifier updateReward(address account) {
@@ -135,8 +128,14 @@ contract DAIBACLPTokenSharePool is
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkStart override {
-        require(amount > 0, "DAIBACLPTokenSharePool: Cannot stake 0");
+    function stake(uint256 amount)
+        public
+        override
+        updateReward(msg.sender)
+        checkhalve
+        checkStart
+    {
+        require(amount > 0, "Cannot stake 0");
         uint256 newDeposit = deposits[msg.sender] + amount;
         require(
             newDeposit <= 20000e18,
@@ -149,11 +148,12 @@ contract DAIBACLPTokenSharePool is
 
     function withdraw(uint256 amount)
         public
-        updateReward(msg.sender)
-        checkStart
         override
+        updateReward(msg.sender)
+        checkhalve
+        checkStart
     {
-        require(amount > 0, "DAIBACLPTokenSharePool: Cannot withdraw 0");
+        require(amount > 0, "Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -163,7 +163,7 @@ contract DAIBACLPTokenSharePool is
         getReward();
     }
 
-    function getReward() public updateReward(msg.sender) checkStart {
+    function getReward() public updateReward(msg.sender) checkhalve checkStart {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -172,11 +172,27 @@ contract DAIBACLPTokenSharePool is
         }
     }
 
+    modifier checkhalve() {
+        if (block.timestamp >= periodFinish) {
+            initreward = initreward.mul(75).div(100);
+
+            rewardRate = initreward.div(DURATION);
+            periodFinish = block.timestamp.add(DURATION);
+            emit RewardAdded(initreward);
+        }
+        _;
+    }
+
+    modifier checkStart() {
+        require(block.timestamp >= starttime, "not start");
+        _;
+    }
+
     function notifyRewardAmount(uint256 reward)
         external
+        override
         onlyRewardDistribution
         updateReward(address(0))
-        override
     {
         if (block.timestamp > starttime) {
             if (block.timestamp >= periodFinish) {
@@ -190,7 +206,7 @@ contract DAIBACLPTokenSharePool is
             periodFinish = block.timestamp.add(DURATION);
             emit RewardAdded(reward);
         } else {
-            rewardRate = reward.div(DURATION);
+            rewardRate = initreward.div(DURATION);
             lastUpdateTime = starttime;
             periodFinish = starttime.add(DURATION);
             emit RewardAdded(reward);
