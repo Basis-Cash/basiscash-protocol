@@ -136,7 +136,7 @@ contract DAIBACLPTokenSharePool is
         checkStart
     {
         require(amount > 0, "Cannot stake 0");
-        uint256 newDeposit = deposits[msg.sender] + amount;
+        uint256 newDeposit = deposits[msg.sender].add(amount);
         require(
             newDeposit <= 20000e18,
             "DAIBACLPTokenSharePool: deposit amount exceeds maximum 20000"
@@ -154,6 +154,7 @@ contract DAIBACLPTokenSharePool is
         checkStart
     {
         require(amount > 0, "Cannot withdraw 0");
+        deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }

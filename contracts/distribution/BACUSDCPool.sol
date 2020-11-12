@@ -157,9 +157,14 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) checkStart override {
+    function stake(uint256 amount)
+        public
+        override
+        updateReward(msg.sender)
+        checkStart
+    {
         require(amount > 0, "BACUSDCPool: Cannot stake 0");
-        uint256 newDeposit = deposits[msg.sender] + amount;
+        uint256 newDeposit = deposits[msg.sender].add(amount);
         require(
             newDeposit <= 20000e18,
             "BACUSDCPool: deposit amount exceeds maximum 20000"
@@ -171,11 +176,12 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
 
     function withdraw(uint256 amount)
         public
+        override
         updateReward(msg.sender)
         checkStart
-        override
     {
         require(amount > 0, "BACUSDCPool: Cannot withdraw 0");
+        deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -196,9 +202,9 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
 
     function notifyRewardAmount(uint256 reward)
         external
+        override
         onlyRewardDistribution
         updateReward(address(0))
-        override
     {
         if (block.timestamp > starttime) {
             if (block.timestamp >= periodFinish) {
