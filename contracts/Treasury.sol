@@ -33,6 +33,7 @@ contract Treasury is ReentrancyGuard, Ownable {
     address private multidai;
     address private boardroom;
 
+    uint256 startTime = 1605163708; // TBD
     uint256 cashPriceCeiling;
     uint256 cashPriceOne;
     uint256 private bondDepletionFloor;
@@ -109,8 +110,7 @@ contract Treasury is ReentrancyGuard, Ownable {
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function getCashPrice() internal returns (uint256 cashPrice) {
-        try IOracle(cashOracle).update() {
-        } catch {
+        try IOracle(cashOracle).update()  {} catch {
             revert("Treasury: failed to update cash oracle");
         }
         try IOracle(cashOracle).consult(cash, 1e18) returns (uint256 price) {
@@ -173,6 +173,8 @@ contract Treasury is ReentrancyGuard, Ownable {
      * @notice Expansionary monetary policy. Called at most once a day.
      */
     function allocateSeigniorage() external allocationTimeRipe {
+        require(block.timestamp > startTime, "Treasury: not started yet");
+
         // get input price from 1 multidai to basis cash
         uint256 cashPrice = getCashPrice();
 
