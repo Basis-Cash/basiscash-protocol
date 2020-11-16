@@ -173,7 +173,7 @@ contract Treasury is ReentrancyGuard, Ownable {
      * @notice Expansionary monetary policy. Called at most once a day.
      */
     function allocateSeigniorage() external allocationTimeRipe {
-        require(block.timestamp > startTime, "Treasury: not started yet");
+        require(block.timestamp >= startTime, "Treasury: not started yet");
 
         // get input price from 1 multidai to basis cash
         uint256 cashPrice = getCashPrice();
