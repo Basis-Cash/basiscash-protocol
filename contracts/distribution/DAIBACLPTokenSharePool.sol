@@ -79,7 +79,6 @@ contract DAIBACLPTokenSharePool is
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
-    mapping(address => uint256) public deposits;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -136,12 +135,6 @@ contract DAIBACLPTokenSharePool is
         checkStart
     {
         require(amount > 0, "Cannot stake 0");
-        uint256 newDeposit = deposits[msg.sender].add(amount);
-        require(
-            newDeposit <= 20000e18,
-            "DAIBACLPTokenSharePool: deposit amount exceeds maximum 20000"
-        );
-        deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -154,7 +147,6 @@ contract DAIBACLPTokenSharePool is
         checkStart
     {
         require(amount > 0, "Cannot withdraw 0");
-        deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
