@@ -25,12 +25,4 @@ module.exports = async (deployer, network, accounts) => {
 
   await deployer.deploy(DAIBACLPToken_BASPool, Share.address, dai_bac_lpt);
   await deployer.deploy(DAIBASLPToken_BASPool, Share.address, dai_bas_lpt);
-
-  console.log(`Setting distributor to ${accounts[0]}`);
-  await Promise.all(
-    [
-      await DAIBACLPToken_BASPool.deployed(),
-      await DAIBASLPToken_BASPool.deployed(),
-    ].map(pool => pool.setRewardDistribution(accounts[0])),
-  );
 };
