@@ -5,7 +5,7 @@
   "repository": "https://github.com/Basis-Cash/basiscash-protocol",
   "license": "MIT",
   "scripts": {
-    "node": "hardhat node",
+    "dev": "hardhat node",
     "test": "hardhat test",
     "console:dev": "truffle console --network dev",
     "deploy:dev": "truffle migrate --reset --network dev",
