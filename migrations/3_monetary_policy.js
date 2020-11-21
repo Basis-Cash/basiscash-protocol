@@ -76,9 +76,7 @@ async function migration(deployer, network, accounts) {
     Treasury,
     cash.address,
     Bond.address,
-    share.address,
     Oracle.address,
-    dai.address,
     Boardroom.address,
   );
 }
