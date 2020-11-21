@@ -1,15 +1,14 @@
 pragma solidity ^0.6.0;
 //pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import "./interfaces/IBasisAsset.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./lib/Safe112.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import './lib/Safe112.sol';
+import './utils/ContractGuard.sol';
+import './interfaces/IBasisAsset.sol';
 
-contract Boardroom is ReentrancyGuard, Ownable {
+contract Boardroom is ContractGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -30,8 +29,8 @@ contract Boardroom is ReentrancyGuard, Ownable {
 
     /* ========== STATE VARIABLES ========== */
 
-    IERC20 private share;
     IERC20 private cash;
+    IERC20 private share;
 
     mapping(address => Boardseat) private directors;
     BoardSnapshot[] private boardHistory;
@@ -48,121 +47,120 @@ contract Boardroom is ReentrancyGuard, Ownable {
 
     /* ========== Modifiers =============== */
     modifier directorExists {
-        require(directors[msg.sender].shares > 0, "directorExists: The director does not exist");
+        require(directors[msg.sender].shares > 0, 'Boardroom: The director does not exist');
         _;
     }
 
     /* ========== VIEW FUNCTIONS ========== */
 
-    function getBoardSeatBalance() public view returns (uint) {
-        return directors[msg.sender].shares;
+    function totalShare() public view returns (uint256) {
+        return boardHistory[boardHistory.length.sub(1)].totalShares;
     }
 
-    function getAppointmentTime() public view returns (uint) {
-        return directors[msg.sender].appointmentTime;
+    function getShareOf(address director) public view returns (uint256) {
+        return directors[director].shares;
     }
 
+    function getAppointmentTimeOf(address director) public view returns (uint256) {
+        return directors[director].appointmentTime;
+    }
+
+    function getCashEarnings() public view returns (uint256) {
+        uint256 totalRewards = 0;
+        if (getShareOf(msg.sender) <= 0) {
+            return totalRewards;
+        }
+
+        for (uint256 i = boardHistory.length.sub(1); i >= 0; i = i.sub(1)) {
+            BoardSnapshot memory snapshot = boardHistory[i];
+
+            if (snapshot.timestamp < getAppointmentTimeOf(msg.sender)) {
+                break;
+            }
+
+            uint256 snapshotRewards = snapshot.rewardReceived.mul(getShareOf(msg.sender)).div(
+                snapshot.totalShares
+            );
+            totalRewards = totalRewards.add(snapshotRewards);
+
+            if (i == 0) {
+                break;
+            }
+        }
+        return totalRewards;
+    }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function stake(uint256 amount) external nonReentrant {
-        require(amount > 0, "Cannot stake 0");
+    function claimDividends() public onlyOneBlock {
+        uint256 totalRewards = getCashEarnings();
+        directors[msg.sender].appointmentTime = now;
+
+        if (totalRewards > 0) {
+            cash.safeTransfer(msg.sender, totalRewards);
+            emit RewardPaid(msg.sender, totalRewards);
+        }
+    }
+
+    function stake(uint256 amount) external {
+        require(amount > 0, 'Boardroom: Cannot stake 0');
 
         // Claim all outstanding dividends before making state changes
-        if (directors[msg.sender].shares > 0) {
-            claimDividends();
-        }
+        claimDividends();
 
-        // Reset current snapshot
-        boardHistory[boardHistory.length - 1]
-            .totalShares = boardHistory[boardHistory.length - 1]
-            .totalShares
-            .add(amount);
-
+        // Update director's boardseat
         Boardseat memory director = directors[msg.sender];
         if (director.shares == 0) {
             director.appointmentTime = now;
-            director.shares = amount;
-        } else {
-            director.shares = director.shares.add(amount);
         }
+        director.shares = director.shares.add(amount);
         directors[msg.sender] = director;
+
+        // Update latest snapshot
+        uint256 snapshotIndex = boardHistory.length.sub(1);
+        boardHistory[snapshotIndex].totalShares = totalShare().add(amount);
 
         share.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public nonReentrant directorExists {
-        require(amount > 0, "Cannot withdraw 0");
-
-        Boardseat memory director = directors[msg.sender];
-        require(
-            director.shares >= amount,
-            "Boardroom: withdraw request greater than staked amount"
-        );
+    function withdraw(uint256 amount) public directorExists {
+        require(amount > 0, 'Boardroom: Cannot withdraw 0');
 
         // Claim all outstanding dividends before making state changes
         claimDividends();
 
-        // Reset current snapshot
-        boardHistory[boardHistory.length - 1]
-            .totalShares = boardHistory[boardHistory.length - 1]
-            .totalShares
-            .sub(amount);
+        // Update director's boardseat
+        uint256 directorShare = getShareOf(msg.sender);
+        require(directorShare >= amount, 'Boardroom: withdraw request greater than staked amount');
+        directors[msg.sender].shares = directorShare.sub(amount);
 
-        director.shares = director.shares.sub(amount);
-        directors[msg.sender] = director;
+        // Update latest snapshot
+        uint256 snapshotIndex = boardHistory.length.sub(1);
+        boardHistory[snapshotIndex].totalShares = totalShare().sub(amount);
+
         share.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
 
     function exit() external {
-        withdraw(directors[msg.sender].shares);
+        withdraw(getShareOf(msg.sender));
     }
 
-    function getCashEarnings() public view returns (uint256) {
-        uint256 totalRewards = 0;
-        for (uint256 i = boardHistory.length - 1; i >= 0; i--) {
-            BoardSnapshot memory snapshot = boardHistory[i];
-
-            if (snapshot.timestamp < directors[msg.sender].appointmentTime) {
-                break;
-            }
-
-            uint256 snapshotRewards = snapshot
-                .rewardReceived
-                .mul(directors[msg.sender].shares)
-                .div(snapshot.totalShares);
-            totalRewards = totalRewards.add(snapshotRewards);
-        }
-        return totalRewards;
-    }
-
-    function claimDividends() public {
-        uint256 totalRewards = getCashEarnings();
-        if (totalRewards > 0) {
-            cash.safeTransfer(msg.sender, totalRewards);
-            emit RewardPaid(msg.sender, totalRewards);
-        }
-
-        // reset appointment time
-        directors[msg.sender].appointmentTime = now;
-    }
-
-    function allocateSeigniorage(uint256 amount) external {
-        require(amount > 0, "Cannot allocate 0");
+    function allocateSeigniorage(uint256 amount) external onlyOneBlock {
+        require(amount > 0, 'Boardroom: Cannot allocate 0');
 
         // Create & add new snapshot
-        BoardSnapshot memory newSnapshot = BoardSnapshot(
-            now,
-            amount,
-            boardHistory[boardHistory.length - 1].totalShares
-        );
+        BoardSnapshot memory newSnapshot = BoardSnapshot({
+            timestamp: now,
+            rewardReceived: amount,
+            totalShares: totalShare()
+        });
         boardHistory.push(newSnapshot);
 
         cash.safeTransferFrom(msg.sender, address(this), amount);
 
-        emit RewardAdded(amount);
+        emit RewardAdded(msg.sender, amount);
     }
 
     /* ========== EVENTS ========== */
@@ -170,5 +168,5 @@ contract Boardroom is ReentrancyGuard, Ownable {
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-    event RewardAdded(uint256 reward);
+    event RewardAdded(address indexed user, uint256 reward);
 }
