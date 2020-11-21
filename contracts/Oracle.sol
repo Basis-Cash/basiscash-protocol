@@ -1,19 +1,20 @@
 pragma solidity ^0.6.0;
 
-import "./interfaces/IUniswapV2Pair.sol";
-import "./interfaces/IUniswapV2Factory.sol";
-import "./lib/Babylonian.sol";
-import "./lib/FixedPoint.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./lib/UniswapV2Library.sol";
-import "./lib/UniswapV2OracleLibrary.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
+
+import './lib/Babylonian.sol';
+import './lib/FixedPoint.sol';
+import './lib/UniswapV2Library.sol';
+import './lib/UniswapV2OracleLibrary.sol';
+import './interfaces/IUniswapV2Pair.sol';
+import './interfaces/IUniswapV2Factory.sol';
 
 // fixed window oracle that recomputes the average price for the entire period once every period
 // note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
 contract Oracle {
     using FixedPoint for *;
 
-    uint256 public constant PERIOD = 24 hours;
+    uint256 public constant PERIOD = 10 minutes;
 
     IUniswapV2Pair pair;
     address public token0;
@@ -30,9 +31,7 @@ contract Oracle {
         address tokenA,
         address tokenB
     ) public {
-        IUniswapV2Pair _pair = IUniswapV2Pair(
-            UniswapV2Library.pairFor(factory, tokenA, tokenB)
-        );
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
         pair = _pair;
         token0 = _pair.token0();
         token1 = _pair.token1();
@@ -41,7 +40,7 @@ contract Oracle {
         uint112 reserve0;
         uint112 reserve1;
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
-        require(reserve0 != 0 && reserve1 != 0, "Oracle: NO_RESERVES"); // ensure that there's liquidity in the pair
+        require(reserve0 != 0 && reserve1 != 0, 'Oracle: NO_RESERVES'); // ensure that there's liquidity in the pair
     }
 
     /** @dev Updates 1-day EMA price from Uniswap.  */
@@ -75,15 +74,11 @@ contract Oracle {
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function consult(address token, uint256 amountIn)
-        external
-        view
-        returns (uint144 amountOut)
-    {
+    function consult(address token, uint256 amountIn) external view returns (uint144 amountOut) {
         if (token == token0) {
             amountOut = price0Average.mul(amountIn).decode144();
         } else {
-            require(token == token1, "Oracle: INVALID_TOKEN");
+            require(token == token1, 'Oracle: INVALID_TOKEN');
             amountOut = price1Average.mul(amountIn).decode144();
         }
     }
