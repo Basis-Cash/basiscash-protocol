@@ -111,9 +111,9 @@ describe('Boardroom', () => {
 
       await expect(boardroom.connect(operator).allocateSeigniorage(SEIGNIORAGE_AMOUNT))
         .to.emit(boardroom, 'RewardAdded')
-        .withArgs(SEIGNIORAGE_AMOUNT);
+        .withArgs(operator.address, SEIGNIORAGE_AMOUNT);
 
-      expect(await boardroom.connect(whale).getCashEarnings()).to.eq(SEIGNIORAGE_AMOUNT);
+      expect(await boardroom.getCashEarningsOf(whale.address)).to.eq(SEIGNIORAGE_AMOUNT);
     });
 
     it('should fail when user tries to allocate with zero amount', async () => {
