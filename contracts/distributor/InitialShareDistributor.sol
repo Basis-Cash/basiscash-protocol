@@ -1,10 +1,10 @@
 pragma solidity ^0.6.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import "../interfaces/IDistributor.sol";
-import "../interfaces/IRewardDistributionRecipient.sol";
+import '../interfaces/IDistributor.sol';
+import '../interfaces/IRewardDistributionRecipient.sol';
 
 contract InitialShareDistributor is IDistributor {
     using SafeMath for uint256;
@@ -36,7 +36,7 @@ contract InitialShareDistributor is IDistributor {
     function distribute() public override {
         require(
             once,
-            "InitialShareDistributor: you cannot run this function twice"
+            'InitialShareDistributor: you cannot run this function twice'
         );
 
         share.transfer(address(daibacLPPool), daibacInitialBalance);

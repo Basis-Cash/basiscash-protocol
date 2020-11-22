@@ -31,7 +31,9 @@ contract Oracle {
         address tokenA,
         address tokenB
     ) public {
-        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
+        IUniswapV2Pair _pair = IUniswapV2Pair(
+            UniswapV2Library.pairFor(factory, tokenA, tokenB)
+        );
         pair = _pair;
         token0 = _pair.token0();
         token1 = _pair.token1();
@@ -74,7 +76,11 @@ contract Oracle {
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function consult(address token, uint256 amountIn) external view returns (uint144 amountOut) {
+    function consult(address token, uint256 amountIn)
+        external
+        view
+        returns (uint144 amountOut)
+    {
         if (token == token0) {
             amountOut = price0Average.mul(amountIn).decode144();
         } else {

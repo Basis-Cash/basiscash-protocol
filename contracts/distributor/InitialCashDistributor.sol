@@ -1,11 +1,11 @@
 pragma solidity ^0.6.0;
 
-import "../distribution/BACDAIPool.sol";
-import "../distribution/BACSUSDPool.sol";
-import "../distribution/BACUSDCPool.sol";
-import "../distribution/BACUSDTPool.sol";
-import "../distribution/BACyCRVPool.sol";
-import "../interfaces/IDistributor.sol";
+import '../distribution/BACDAIPool.sol';
+import '../distribution/BACSUSDPool.sol';
+import '../distribution/BACUSDCPool.sol';
+import '../distribution/BACUSDTPool.sol';
+import '../distribution/BACyCRVPool.sol';
+import '../interfaces/IDistributor.sol';
 
 contract InitialCashDistributor is IDistributor {
     using SafeMath for uint256;
@@ -23,7 +23,7 @@ contract InitialCashDistributor is IDistributor {
         IRewardDistributionRecipient[] memory _pools,
         uint256 _totalInitialBalance
     ) public {
-        require(_pools.length != 0, "a list of BAC pools are required");
+        require(_pools.length != 0, 'a list of BAC pools are required');
 
         cash = _cash;
         pools = _pools;
@@ -33,7 +33,7 @@ contract InitialCashDistributor is IDistributor {
     function distribute() public override {
         require(
             once,
-            "InitialCashDistributor: you cannot run this function twice"
+            'InitialCashDistributor: you cannot run this function twice'
         );
 
         for (uint256 i = 0; i < pools.length; i++) {

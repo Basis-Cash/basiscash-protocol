@@ -40,29 +40,29 @@ pragma solidity ^0.6.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import "@openzeppelin/contracts/math/Math.sol";
+import '@openzeppelin/contracts/math/Math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import "@openzeppelin/contracts/utils/Address.sol";
+import '@openzeppelin/contracts/utils/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import "../interfaces/IRewardDistributionRecipient.sol";
+import '../interfaces/IRewardDistributionRecipient.sol';
 
-import "../token/LPTokenWrapper.sol";
+import '../token/LPTokenWrapper.sol';
 
 contract DAIBASLPTokenSharePool is
     LPTokenWrapper,
@@ -92,7 +92,7 @@ contract DAIBASLPTokenSharePool is
     modifier checkStart() {
         require(
             block.timestamp >= starttime,
-            "DAIBASLPTokenSharePool: not start"
+            'DAIBASLPTokenSharePool: not start'
         );
         _;
     }
@@ -140,7 +140,7 @@ contract DAIBASLPTokenSharePool is
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "DAIBASLPTokenSharePool: Cannot stake 0");
+        require(amount > 0, 'DAIBASLPTokenSharePool: Cannot stake 0');
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -151,7 +151,7 @@ contract DAIBASLPTokenSharePool is
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "DAIBASLPTokenSharePool: Cannot withdraw 0");
+        require(amount > 0, 'DAIBASLPTokenSharePool: Cannot withdraw 0');
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }

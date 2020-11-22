@@ -4,7 +4,10 @@ contract ContractGuard {
     mapping(uint256 => mapping(address => bool)) private _status;
 
     modifier onlyOneBlock() {
-        require(!_status[block.number][msg.sender], 'ContractGuard: one block, one function');
+        require(
+            !_status[block.number][msg.sender],
+            'ContractGuard: one block, one function'
+        );
 
         _;
 

@@ -1,25 +1,25 @@
 pragma solidity ^0.6.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
-import "./owner/Operator.sol";
+import '@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol';
+import './owner/Operator.sol';
 
 contract Cash is ERC20Burnable, Operator {
     /**
      * @notice Constructs the Basis Cash ERC-20 contract.
      */
-    constructor() public ERC20("BAC", "BAC") {
+    constructor() public ERC20('BAC', 'BAC') {
         // Mints 1 Basis Cash to contract creator for initial Uniswap oracle deployment.
         // Will be burned after oracle deployment
         _mint(msg.sender, 1 * 10**18);
     }
 
-//    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
-//        super._beforeTokenTransfer(from, to, amount);
-//        require(
-//            to != operator(),
-//            "basis.cash: operator as a recipient is not allowed"
-//        );
-//    }
+    //    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
+    //        super._beforeTokenTransfer(from, to, amount);
+    //        require(
+    //            to != operator(),
+    //            "basis.cash: operator as a recipient is not allowed"
+    //        );
+    //    }
 
     /**
      * @notice Operator mints basis cash to a recipient
@@ -39,11 +39,15 @@ contract Cash is ERC20Burnable, Operator {
         return balanceAfter > balanceBefore;
     }
 
-    function burn(uint256 amount) public onlyOperator override {
+    function burn(uint256 amount) public override onlyOperator {
         super.burn(amount);
     }
 
-    function burnFrom(address account, uint256 amount) public onlyOperator override {
+    function burnFrom(address account, uint256 amount)
+        public
+        override
+        onlyOperator
+    {
         super.burnFrom(account, amount);
     }
 }

@@ -40,29 +40,29 @@ pragma solidity ^0.6.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import "@openzeppelin/contracts/math/Math.sol";
+import '@openzeppelin/contracts/math/Math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import "@openzeppelin/contracts/utils/Address.sol";
+import '@openzeppelin/contracts/utils/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import "../interfaces/IRewardDistributionRecipient.sol";
+import '../interfaces/IRewardDistributionRecipient.sol';
 
-import "../token/LPTokenWrapper.sol";
+import '../token/LPTokenWrapper.sol';
 
 contract DAIBACLPTokenSharePool is
     LPTokenWrapper,
@@ -134,7 +134,7 @@ contract DAIBACLPTokenSharePool is
         checkhalve
         checkStart
     {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, 'Cannot stake 0');
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -146,7 +146,7 @@ contract DAIBACLPTokenSharePool is
         checkhalve
         checkStart
     {
-        require(amount > 0, "Cannot withdraw 0");
+        require(amount > 0, 'Cannot withdraw 0');
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -177,7 +177,7 @@ contract DAIBACLPTokenSharePool is
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, "not start");
+        require(block.timestamp >= starttime, 'not start');
         _;
     }
 

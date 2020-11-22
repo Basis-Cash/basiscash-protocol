@@ -39,8 +39,14 @@ describe('Treasury', () => {
   let Oracle: ContractFactory;
 
   // uniswap
-  let Factory = new ContractFactory(UniswapV2Factory.abi, UniswapV2Factory.bytecode);
-  let Router = new ContractFactory(UniswapV2Router.abi, UniswapV2Router.bytecode);
+  let Factory = new ContractFactory(
+    UniswapV2Factory.abi,
+    UniswapV2Factory.bytecode
+  );
+  let Router = new ContractFactory(
+    UniswapV2Router.abi,
+    UniswapV2Router.bytecode
+  );
 
   before('fetch contract factories', async () => {
     Bond = await ethers.getContractFactory('Bond');
@@ -57,7 +63,10 @@ describe('Treasury', () => {
 
   before('deploy uniswap', async () => {
     factory = await Factory.connect(operator).deploy(operator.address);
-    router = await Router.connect(operator).deploy(factory.address, operator.address);
+    router = await Router.connect(operator).deploy(
+      factory.address,
+      operator.address
+    );
   });
 
   let dai: Contract;
@@ -92,8 +101,15 @@ describe('Treasury', () => {
         (await latestBlocktime(provider)) + 1800
       );
 
-    oracle = await Oracle.connect(operator).deploy(factory.address, cash.address, dai.address);
-    boardroom = await Boardroom.connect(operator).deploy(cash.address, share.address);
+    oracle = await Oracle.connect(operator).deploy(
+      factory.address,
+      cash.address,
+      dai.address
+    );
+    boardroom = await Boardroom.connect(operator).deploy(
+      cash.address,
+      share.address
+    );
     treasury = await Treasury.connect(operator).deploy(
       cash.address,
       bond.address,
@@ -126,7 +142,10 @@ describe('Treasury', () => {
           ant.address,
           (await latestBlocktime(provider)) + 1800
         );
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
 
       await oracle.update();
       const cashPrice = await oracle.consult(cash.address, ETH);
@@ -156,9 +175,15 @@ describe('Treasury', () => {
           ant.address,
           (await latestBlocktime(provider)) + 1800
         );
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
       await treasury.allocateSeigniorage();
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
 
       await oracle.update();
       const cashPrice = await oracle.consult(cash.address, ETH);
@@ -171,7 +196,9 @@ describe('Treasury', () => {
         .to.emit(treasury, 'BoardroomFunded')
         .withArgs(blocktime, expectedSeigniorage);
 
-      expect(await cash.balanceOf(boardroom.address)).to.eq(expectedSeigniorage);
+      expect(await cash.balanceOf(boardroom.address)).to.eq(
+        expectedSeigniorage
+      );
     });
 
     it('should fail if treasury is not the operator of cash contract', async () => {
@@ -192,7 +219,10 @@ describe('Treasury', () => {
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
 
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
 
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: there is no seigniorage to be allocated'
@@ -205,7 +235,9 @@ describe('Treasury', () => {
     const swapAmount = ETH.div(4);
 
     beforeEach('distribute tokens', async () => {
-      await cash.connect(operator).mint(ant.address, swapAmount.add(purchaseAmount));
+      await cash
+        .connect(operator)
+        .mint(ant.address, swapAmount.add(purchaseAmount));
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
     });
@@ -221,7 +253,9 @@ describe('Treasury', () => {
         .withArgs(ant.address, antBalance);
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(antBalance.mul(ETH).div(price));
+      expect(await bond.balanceOf(ant.address)).to.eq(
+        antBalance.mul(ETH).div(price)
+      );
     });
 
     it('should work correctly when cash price is below $1', async () => {
@@ -245,7 +279,9 @@ describe('Treasury', () => {
       await treasury.connect(ant).buyBonds(antBalance);
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(antBalance.mul(ETH).div(price));
+      expect(await bond.balanceOf(ant.address)).to.eq(
+        antBalance.mul(ETH).div(price)
+      );
     });
 
     it('should work correctly when cash price is above $1', async () => {
@@ -270,7 +306,9 @@ describe('Treasury', () => {
       await treasury.connect(ant).buyBonds(antBalance);
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(antBalance.mul(ETH).div(price));
+      expect(await bond.balanceOf(ant.address)).to.eq(
+        antBalance.mul(ETH).div(price)
+      );
     });
 
     it('should fail when user tries to purchase bonds with zero amount', async () => {
@@ -304,9 +342,14 @@ describe('Treasury', () => {
           ant.address,
           (await latestBlocktime(provider)) + 1800
         );
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
       await treasury.connect(operator).allocateSeigniorage();
-      await cash.connect(ant).transfer(treasury.address, await cash.balanceOf(ant.address));
+      await cash
+        .connect(ant)
+        .transfer(treasury.address, await cash.balanceOf(ant.address));
 
       const redeemAmount = await cash.balanceOf(treasury.address);
 
@@ -330,7 +373,10 @@ describe('Treasury', () => {
           ant.address,
           (await latestBlocktime(provider)) + 1800
         );
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
       await treasury.connect(operator).allocateSeigniorage();
       await cash.connect(operator).transfer(treasury.address, ETH);
 
@@ -354,7 +400,9 @@ describe('Treasury', () => {
     });
 
     it('should fail when cash price is below $1+ε', async () => {
-      await expect(treasury.connect(ant).redeemBonds(ZERO.add(1))).to.revertedWith(
+      await expect(
+        treasury.connect(ant).redeemBonds(ZERO.add(1))
+      ).to.revertedWith(
         'Treasury: bond redemption failed; basis cash remains depegged.'
       );
     });
@@ -369,13 +417,16 @@ describe('Treasury', () => {
           ant.address,
           (await latestBlocktime(provider)) + 1800
         );
-      await advanceTimeAndBlock(provider, Number(await treasury.allocationDelay()));
+      await advanceTimeAndBlock(
+        provider,
+        Number(await treasury.allocationDelay())
+      );
       await treasury.connect(operator).allocateSeigniorage();
 
       const treasuryBalance = await cash.balanceOf(treasury.address);
-      await expect(treasury.connect(ant).redeemBonds(treasuryBalance.add(1))).to.revertedWith(
-        'Treasury: treasury has no more budget'
-      );
+      await expect(
+        treasury.connect(ant).redeemBonds(treasuryBalance.add(1))
+      ).to.revertedWith('Treasury: treasury has no more budget');
     });
   });
 });

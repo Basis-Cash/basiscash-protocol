@@ -40,27 +40,27 @@ pragma solidity ^0.6.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import "@openzeppelin/contracts/math/Math.sol";
+import '@openzeppelin/contracts/math/Math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import "@openzeppelin/contracts/utils/Address.sol";
+import '@openzeppelin/contracts/utils/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import "../interfaces/IRewardDistributionRecipient.sol";
+import '../interfaces/IRewardDistributionRecipient.sol';
 
 contract SUSDWrapper {
     using SafeMath for uint256;
@@ -116,7 +116,7 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, "BACSUSDPool: not start");
+        require(block.timestamp >= starttime, 'BACSUSDPool: not start');
         _;
     }
 
@@ -163,11 +163,11 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "BACSUSDPool: Cannot stake 0");
+        require(amount > 0, 'BACSUSDPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
         require(
             newDeposit <= 20000e18,
-            "BACSUSDPool: deposit amount exceeds maximum 20000"
+            'BACSUSDPool: deposit amount exceeds maximum 20000'
         );
         deposits[msg.sender] = newDeposit;
         super.stake(amount);
@@ -180,7 +180,7 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "BACSUSDPool: Cannot withdraw 0");
+        require(amount > 0, 'BACSUSDPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);

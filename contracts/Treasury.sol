@@ -95,16 +95,25 @@ contract Treasury is ContractGuard {
         return getCashPrice();
     }
 
-    function _allocateSeigniorage(uint256 cashPrice) internal onlyOneBlock checkTokenOperator {
+    function _allocateSeigniorage(uint256 cashPrice)
+        internal
+        onlyOneBlock
+        checkTokenOperator
+    {
         if (now.sub(lastAllocated) < allocationDelay) {
             return;
         }
 
         require(block.timestamp >= startTime, 'Treasury: not started yet');
-        require(cashPrice > cashPriceCeiling, 'Treasury: there is no seigniorage to be allocated');
+        require(
+            cashPrice > cashPriceCeiling,
+            'Treasury: there is no seigniorage to be allocated'
+        );
 
         uint256 cashSupply = IERC20(cash).totalSupply();
-        uint256 seigniorage = cashSupply.mul(cashPrice.sub(cashPriceOne)).div(1e18);
+        uint256 seigniorage = cashSupply.mul(cashPrice.sub(cashPriceOne)).div(
+            1e18
+        );
 
         if (seigniorageSaved > bondDepletionFloor) {
             IBasisAsset(cash).mint(address(this), seigniorage);
@@ -146,7 +155,10 @@ contract Treasury is ContractGuard {
         );
 
         uint256 treasuryBalance = IERC20(cash).balanceOf(address(this));
-        require(treasuryBalance >= amount, 'Treasury: treasury has no more budget');
+        require(
+            treasuryBalance >= amount,
+            'Treasury: treasury has no more budget'
+        );
 
         if (seigniorageSaved >= amount) {
             seigniorageSaved = seigniorageSaved.sub(amount);

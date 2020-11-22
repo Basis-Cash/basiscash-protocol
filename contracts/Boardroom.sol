@@ -47,7 +47,10 @@ contract Boardroom is ContractGuard {
 
     /* ========== Modifiers =============== */
     modifier directorExists {
-        require(directors[msg.sender].shares > 0, 'Boardroom: The director does not exist');
+        require(
+            directors[msg.sender].shares > 0,
+            'Boardroom: The director does not exist'
+        );
         _;
     }
 
@@ -61,7 +64,11 @@ contract Boardroom is ContractGuard {
         return directors[director].shares;
     }
 
-    function getAppointmentTimeOf(address director) public view returns (uint256) {
+    function getAppointmentTimeOf(address director)
+        public
+        view
+        returns (uint256)
+    {
         return directors[director].appointmentTime;
     }
 
@@ -78,9 +85,10 @@ contract Boardroom is ContractGuard {
                 break;
             }
 
-            uint256 snapshotRewards = snapshot.rewardReceived.mul(getShareOf(director)).div(
-                snapshot.totalShares
-            );
+            uint256 snapshotRewards = snapshot
+                .rewardReceived
+                .mul(getShareOf(director))
+                .div(snapshot.totalShares);
             totalRewards = totalRewards.add(snapshotRewards);
 
             if (i == 0) {
@@ -132,7 +140,10 @@ contract Boardroom is ContractGuard {
 
         // Update director's boardseat
         uint256 directorShare = getShareOf(msg.sender);
-        require(directorShare >= amount, 'Boardroom: withdraw request greater than staked amount');
+        require(
+            directorShare >= amount,
+            'Boardroom: withdraw request greater than staked amount'
+        );
         directors[msg.sender].shares = directorShare.sub(amount);
 
         // Update latest snapshot

@@ -40,7 +40,10 @@ describe('Boardroom', () => {
   beforeEach('deploy contracts', async () => {
     cash = await Cash.connect(operator).deploy();
     share = await Share.connect(operator).deploy();
-    boardroom = await Boardroom.connect(operator).deploy(cash.address, share.address);
+    boardroom = await Boardroom.connect(operator).deploy(
+      cash.address,
+      share.address
+    );
   });
 
   describe('#stake', () => {
@@ -55,7 +58,9 @@ describe('Boardroom', () => {
 
       const { timestamp: latestTime } = await provider.getBlock('latest');
       expect(await boardroom.getShareOf(whale.address)).to.eq(STAKE_AMOUNT);
-      expect(await boardroom.getAppointmentTimeOf(whale.address)).to.eq(latestTime);
+      expect(await boardroom.getAppointmentTimeOf(whale.address)).to.eq(
+        latestTime
+      );
     });
 
     it('should fail when user tries to stake with zero amount', async () => {
@@ -90,7 +95,9 @@ describe('Boardroom', () => {
     });
 
     it('should fail when user tries to withdraw more than staked amount', async () => {
-      await expect(boardroom.connect(whale).withdraw(STAKE_AMOUNT.add(1))).to.revertedWith(
+      await expect(
+        boardroom.connect(whale).withdraw(STAKE_AMOUNT.add(1))
+      ).to.revertedWith(
         'Boardroom: withdraw request greater than staked amount'
       );
     });
@@ -107,19 +114,25 @@ describe('Boardroom', () => {
 
     it('should allocate seigniorage to stakers', async () => {
       await cash.connect(operator).mint(operator.address, SEIGNIORAGE_AMOUNT);
-      await cash.connect(operator).approve(boardroom.address, SEIGNIORAGE_AMOUNT);
+      await cash
+        .connect(operator)
+        .approve(boardroom.address, SEIGNIORAGE_AMOUNT);
 
-      await expect(boardroom.connect(operator).allocateSeigniorage(SEIGNIORAGE_AMOUNT))
+      await expect(
+        boardroom.connect(operator).allocateSeigniorage(SEIGNIORAGE_AMOUNT)
+      )
         .to.emit(boardroom, 'RewardAdded')
         .withArgs(operator.address, SEIGNIORAGE_AMOUNT);
 
-      expect(await boardroom.getCashEarningsOf(whale.address)).to.eq(SEIGNIORAGE_AMOUNT);
+      expect(await boardroom.getCashEarningsOf(whale.address)).to.eq(
+        SEIGNIORAGE_AMOUNT
+      );
     });
 
     it('should fail when user tries to allocate with zero amount', async () => {
-      await expect(boardroom.connect(operator).allocateSeigniorage(ZERO)).to.revertedWith(
-        'Boardroom: Cannot allocate 0'
-      );
+      await expect(
+        boardroom.connect(operator).allocateSeigniorage(ZERO)
+      ).to.revertedWith('Boardroom: Cannot allocate 0');
     });
   });
 
@@ -134,7 +147,9 @@ describe('Boardroom', () => {
 
     it('should claim devidends', async () => {
       await cash.connect(operator).mint(operator.address, SEIGNIORAGE_AMOUNT);
-      await cash.connect(operator).approve(boardroom.address, SEIGNIORAGE_AMOUNT);
+      await cash
+        .connect(operator)
+        .approve(boardroom.address, SEIGNIORAGE_AMOUNT);
       await boardroom.connect(operator).allocateSeigniorage(SEIGNIORAGE_AMOUNT);
 
       await expect(boardroom.connect(whale).claimDividends())

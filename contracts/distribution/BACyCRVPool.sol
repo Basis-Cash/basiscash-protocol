@@ -40,27 +40,27 @@ pragma solidity ^0.6.0;
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-import "@openzeppelin/contracts/math/Math.sol";
+import '@openzeppelin/contracts/math/Math.sol';
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-import "@openzeppelin/contracts/utils/Address.sol";
+import '@openzeppelin/contracts/utils/Address.sol';
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-import "../interfaces/IRewardDistributionRecipient.sol";
+import '../interfaces/IRewardDistributionRecipient.sol';
 
 contract yCRVWrapper {
     using SafeMath for uint256;
@@ -116,7 +116,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, "BACyCRVPool: not start");
+        require(block.timestamp >= starttime, 'BACyCRVPool: not start');
         _;
     }
 
@@ -163,11 +163,11 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "BACyCRVPool: Cannot stake 0");
+        require(amount > 0, 'BACyCRVPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
         require(
             newDeposit <= 20000e18,
-            "BACyCRVPool: deposit amount exceeds maximum 20000"
+            'BACyCRVPool: deposit amount exceeds maximum 20000'
         );
         deposits[msg.sender] = newDeposit;
         super.stake(amount);
@@ -180,7 +180,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, "BACyCRVPool: Cannot withdraw 0");
+        require(amount > 0, 'BACyCRVPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);

@@ -3,13 +3,13 @@ pragma solidity ^0.6.0;
 library Safe112 {
     function add(uint112 a, uint112 b) internal pure returns (uint256) {
         uint256 c = a + b;
-        require(c >= a, "Safe112: addition overflow");
+        require(c >= a, 'Safe112: addition overflow');
 
         return c;
     }
 
     function sub(uint112 a, uint112 b) internal pure returns (uint256) {
-        return sub(a, b, "Safe112: subtraction overflow");
+        return sub(a, b, 'Safe112: subtraction overflow');
     }
 
     function sub(
@@ -29,13 +29,13 @@ library Safe112 {
         }
 
         uint256 c = a * b;
-        require(c / a == b, "Safe112: multiplication overflow");
+        require(c / a == b, 'Safe112: multiplication overflow');
 
         return c;
     }
 
     function div(uint112 a, uint112 b) internal pure returns (uint256) {
-        return div(a, b, "Safe112: division by zero");
+        return div(a, b, 'Safe112: division by zero');
     }
 
     function div(
@@ -51,7 +51,7 @@ library Safe112 {
     }
 
     function mod(uint112 a, uint112 b) internal pure returns (uint256) {
-        return mod(a, b, "Safe112: modulo by zero");
+        return mod(a, b, 'Safe112: modulo by zero');
     }
 
     function mod(
