@@ -62,6 +62,8 @@ contract Treasury is ContractGuard {
         lastAllocated = now;
     }
 
+    /* ========== MODIFIER ========== */
+
     modifier checkTokenOperator {
         require(
             IBasisAsset(cash).operator() == address(this),
@@ -74,15 +76,23 @@ contract Treasury is ContractGuard {
         _;
     }
 
-    function _getCashPrice() internal returns (uint256 cashPrice) {
-        try cashOracle.update()  {} catch {
-            revert('Treasury: failed to update cash oracle');
-        }
+    /* ========== VIEW FUNCTIONS ========== */
+
+    function getCashPrice() internal view returns (uint256 cashPrice) {
         try cashOracle.consult(cash, 1e18) returns (uint256 price) {
             return price;
         } catch {
             revert('Treasury: failed to consult cash price from the oracle');
         }
+    }
+
+    /* ========== MUTABLE FUNCTIONS ========== */
+
+    function _getCashPrice() internal returns (uint256 cashPrice) {
+        try cashOracle.update()  {} catch {
+            revert('Treasury: failed to update cash oracle');
+        }
+        return getCashPrice();
     }
 
     function _allocateSeigniorage(uint256 cashPrice) internal onlyOneBlock checkTokenOperator {
