@@ -65,20 +65,20 @@ contract Boardroom is ContractGuard {
         return directors[director].appointmentTime;
     }
 
-    function getCashEarnings() public view returns (uint256) {
+    function getCashEarningsOf(address director) public view returns (uint256) {
         uint256 totalRewards = 0;
-        if (getShareOf(msg.sender) <= 0) {
+        if (getShareOf(director) <= 0) {
             return totalRewards;
         }
 
         for (uint256 i = boardHistory.length.sub(1); i >= 0; i = i.sub(1)) {
             BoardSnapshot memory snapshot = boardHistory[i];
 
-            if (snapshot.timestamp < getAppointmentTimeOf(msg.sender)) {
+            if (snapshot.timestamp < getAppointmentTimeOf(director)) {
                 break;
             }
 
-            uint256 snapshotRewards = snapshot.rewardReceived.mul(getShareOf(msg.sender)).div(
+            uint256 snapshotRewards = snapshot.rewardReceived.mul(getShareOf(director)).div(
                 snapshot.totalShares
             );
             totalRewards = totalRewards.add(snapshotRewards);
@@ -93,7 +93,7 @@ contract Boardroom is ContractGuard {
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function claimDividends() public onlyOneBlock {
-        uint256 totalRewards = getCashEarnings();
+        uint256 totalRewards = getCashEarningsOf(msg.sender);
         directors[msg.sender].appointmentTime = now;
 
         if (totalRewards > 0) {
