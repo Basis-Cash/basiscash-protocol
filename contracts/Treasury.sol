@@ -99,21 +99,21 @@ contract Treasury is ContractGuard {
         internal
         onlyOneBlock
         checkTokenOperator
+        returns (bool, string memory)
     {
         if (now.sub(lastAllocated) < allocationDelay) {
-            return;
+            return (false, 'Treasury: a day has not passed yet');
+        }
+        if (block.timestamp < startTime) {
+            return (false, 'Treasury: not started yet');
+        }
+        if (cashPrice <= cashPriceCeiling) {
+            return (false, 'Treasury: there is no seigniorage to be allocated');
         }
 
-        require(block.timestamp >= startTime, 'Treasury: not started yet');
-        require(
-            cashPrice > cashPriceCeiling,
-            'Treasury: there is no seigniorage to be allocated'
-        );
-
         uint256 cashSupply = IERC20(cash).totalSupply();
-        uint256 seigniorage = cashSupply.mul(cashPrice.sub(cashPriceOne)).div(
-            1e18
-        );
+        uint256 percentage = cashPrice.sub(cashPriceOne);
+        uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
 
         if (seigniorageSaved > bondDepletionFloor) {
             IBasisAsset(cash).mint(address(this), seigniorage);
@@ -127,13 +127,14 @@ contract Treasury is ContractGuard {
         }
 
         lastAllocated = now;
+        return (true, 'Treasury: success');
     }
 
     function buyBonds(uint256 amount) external {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
         uint256 cashPrice = _getCashPrice();
-        _allocateSeigniorage(cashPrice);
+        _allocateSeigniorage(cashPrice); // ignore returns
 
         uint256 bondPrice = cashPrice;
 
@@ -147,7 +148,7 @@ contract Treasury is ContractGuard {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
         uint256 cashPrice = _getCashPrice();
-        _allocateSeigniorage(cashPrice);
+        _allocateSeigniorage(cashPrice); // ignore returns
 
         require(
             cashPrice > cashPriceCeiling,
@@ -172,8 +173,10 @@ contract Treasury is ContractGuard {
         emit RedeemedBonds(msg.sender, amount);
     }
 
-    function allocateSeigniorage() public {
-        _allocateSeigniorage(_getCashPrice());
+    function allocateSeigniorage() external {
+        uint256 cashPrice = _getCashPrice();
+        (bool result, string memory reason) = _allocateSeigniorage(cashPrice);
+        require(result, reason);
     }
 
     event RedeemedBonds(address indexed from, uint256 amount);
