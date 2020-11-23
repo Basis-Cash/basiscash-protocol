@@ -1,13 +1,14 @@
 import chai, { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { solidity, MockProvider } from 'ethereum-waffle';
+import { solidity } from 'ethereum-waffle';
 import { Contract, ContractFactory, BigNumber, utils } from 'ethers';
-import { Provider, TransactionReceipt } from '@ethersproject/providers';
+import { Provider } from '@ethersproject/providers';
 
 import { advanceTimeAndBlock } from './shared/utilities';
 
 import UniswapV2Factory from '@uniswap/v2-core/build/UniswapV2Factory.json';
 import UniswapV2Router from '@uniswap/v2-periphery/build/UniswapV2Router02.json';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
 chai.use(solidity);
 
@@ -17,17 +18,17 @@ async function latestBlocktime(provider: Provider): Promise<number> {
 }
 
 describe('Treasury', () => {
-  const provider = new MockProvider({
-    ganacheOptions: {
-      hardfork: 'istanbul',
-      gasLimit: 9999999,
-    },
-  });
-
-  const [operator, ant] = provider.getWallets();
-
   const ETH = utils.parseEther('1');
   const ZERO = BigNumber.from(0);
+
+  const { provider } = ethers;
+
+  let operator: SignerWithAddress;
+  let ant: SignerWithAddress;
+
+  before('provider & accounts setting', async () => {
+    [operator, ant] = await ethers.getSigners();
+  });
 
   // core
   let Bond: ContractFactory;

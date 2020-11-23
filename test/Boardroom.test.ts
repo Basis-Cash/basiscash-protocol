@@ -1,27 +1,26 @@
 import chai, { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { solidity, MockProvider } from 'ethereum-waffle';
+import { solidity } from 'ethereum-waffle';
 import { Contract, ContractFactory, BigNumber, utils } from 'ethers';
-
-import { advanceTimeAndBlock } from './shared/utilities';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
 chai.use(solidity);
 
 describe('Boardroom', () => {
-  const provider = new MockProvider({
-    ganacheOptions: {
-      hardfork: 'istanbul',
-      gasLimit: 9999999,
-    },
-  });
-
-  const [operator, whale] = provider.getWallets();
-
   const DAY = 86400;
   const ETH = utils.parseEther('1');
   const ZERO = BigNumber.from(0);
   const STAKE_AMOUNT = ETH.mul(5000);
   const SEIGNIORAGE_AMOUNT = ETH.mul(10000);
+
+  const { provider } = ethers;
+
+  let operator: SignerWithAddress;
+  let whale: SignerWithAddress;
+
+  before('provider & accounts setting', async () => {
+    [operator, whale] = await ethers.getSigners();
+  });
 
   let Cash: ContractFactory;
   let Share: ContractFactory;

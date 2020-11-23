@@ -1,50 +1,19 @@
-import { Block, Web3Provider } from '@ethersproject/providers';
+import { Block, JsonRpcProvider } from '@ethersproject/providers';
 
 export async function advanceTime(
-  { provider }: Web3Provider,
+  provider: JsonRpcProvider,
   time: number
 ): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (!provider?.sendAsync) {
-      reject(new Error('sendAsync undefined'));
-    } else {
-      provider.sendAsync(
-        { method: 'evm_increaseTime', params: [time] },
-        (error: any, result: any): void => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        }
-      );
-    }
-  });
+  return provider.send('evm_increaseTime', [time]);
 }
 
-export async function advanceBlock(provider: Web3Provider): Promise<Block> {
-  return new Promise(async (resolve, reject) => {
-    if (!provider?.provider?.sendAsync) {
-      reject(new Error('sendAsync undefined'));
-    } else {
-      provider.provider.sendAsync(
-        { method: 'evm_mine' },
-        (error: any, result: any): void => {
-          if (error) {
-            reject(error);
-          }
-          provider
-            .getBlock('latest')
-            .then((block) => resolve(block))
-            .catch((err) => reject(err));
-        }
-      );
-    }
-  });
+export async function advanceBlock(provider: JsonRpcProvider): Promise<Block> {
+  await provider.send('evm_mine', []);
+  return await provider.getBlock('latest');
 }
 
 export async function advanceTimeAndBlock(
-  provider: Web3Provider,
+  provider: JsonRpcProvider,
   time: number
 ): Promise<Block> {
   await advanceTime(provider, time);
