@@ -1,6 +1,11 @@
 import '@nomiclabs/hardhat-ethers';
+import 'hardhat-gas-reporter';
 
 export default {
+  default: 'hardhat',
+  networks: {
+    hardhat: {},
+  },
   solidity: {
     version: '0.6.12',
     settings: {
@@ -15,5 +20,9 @@ export default {
     tests: './test',
     cache: './build/cache',
     artifacts: './build/artifacts',
+  },
+  gasReporter: {
+    currency: 'KRW',
+    enabled: true,
   },
 };
