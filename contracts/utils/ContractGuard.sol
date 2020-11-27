@@ -5,12 +5,12 @@ contract ContractGuard {
 
     modifier onlyOneBlock() {
         require(
-            !_status[block.number][msg.sender],
+            !_status[block.number][tx.origin],
             'ContractGuard: one block, one function'
         );
 
         _;
 
-        _status[block.number][msg.sender] = true;
+        _status[block.number][tx.origin] = true;
     }
 }
