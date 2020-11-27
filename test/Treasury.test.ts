@@ -114,9 +114,13 @@ describe('Treasury', () => {
     treasury = await Treasury.connect(operator).deploy(
       cash.address,
       bond.address,
+      share.address,
       oracle.address,
-      boardroom.address
+      boardroom.address,
+      await latestBlocktime(provider)
     );
+    await boardroom.connect(operator).transferOperator(treasury.address);
+
     await advanceTimeAndBlock(provider, Number(await oracle.PERIOD()));
   });
 
@@ -249,7 +253,11 @@ describe('Treasury', () => {
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await expect(treasury.connect(ant).buyBonds(antBalance))
+      await expect(
+        treasury
+          .connect(ant)
+          .buyBonds(antBalance, await treasury.getCashPrice())
+      )
         .to.emit(treasury, 'BoughtBonds')
         .withArgs(ant.address, antBalance);
 
@@ -277,7 +285,9 @@ describe('Treasury', () => {
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury.connect(ant).buyBonds(antBalance);
+      await treasury
+        .connect(ant)
+        .buyBonds(antBalance, await treasury.getCashPrice());
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
       expect(await bond.balanceOf(ant.address)).to.eq(
@@ -304,7 +314,9 @@ describe('Treasury', () => {
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury.connect(ant).buyBonds(antBalance);
+      await treasury
+        .connect(ant)
+        .buyBonds(antBalance, await treasury.getCashPrice());
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
       expect(await bond.balanceOf(ant.address)).to.eq(
@@ -313,9 +325,9 @@ describe('Treasury', () => {
     });
 
     it('should fail when user tries to purchase bonds with zero amount', async () => {
-      await expect(treasury.connect(ant).buyBonds(ZERO)).to.revertedWith(
-        'Treasury: cannot purchase bonds with zero amount'
-      );
+      await expect(
+        treasury.connect(ant).buyBonds(ZERO, await treasury.getCashPrice())
+      ).to.revertedWith('Treasury: cannot purchase bonds with zero amount');
     });
   });
 
@@ -356,7 +368,11 @@ describe('Treasury', () => {
 
       await bond.connect(operator).transfer(ant.address, redeemAmount);
       await bond.connect(ant).approve(treasury.address, redeemAmount);
-      await expect(treasury.connect(ant).redeemBonds(redeemAmount))
+      await expect(
+        treasury
+          .connect(ant)
+          .redeemBonds(redeemAmount, await treasury.getCashPrice())
+      )
         .to.emit(treasury, 'RedeemedBonds')
         .withArgs(ant.address, redeemAmount);
 
@@ -388,21 +404,26 @@ describe('Treasury', () => {
       await cash.connect(ant).transfer(treasury.address, cashBalance);
       await bond.connect(operator).transfer(ant.address, redeemAmount);
       await bond.connect(ant).approve(treasury.address, redeemAmount);
-      await treasury.connect(ant).redeemBonds(redeemAmount);
+      await treasury
+        .connect(ant)
+        .redeemBonds(redeemAmount, await treasury.getCashPrice());
 
       expect(await bond.balanceOf(ant.address)).to.eq(ZERO);
       expect(await cash.balanceOf(ant.address)).to.eq(redeemAmount); // 1:1
     });
 
     it('should fail when user tries to redeem bonds with zero amount', async () => {
-      await expect(treasury.connect(ant).redeemBonds(ZERO)).to.revertedWith(
-        'Treasury: cannot redeem bonds with zero amount'
-      );
+      await expect(
+        treasury.connect(ant).redeemBonds(ZERO, await treasury.getCashPrice())
+      ).to.revertedWith('Treasury: cannot redeem bonds with zero amount');
     });
 
     it('should fail when cash price is below $1+ε', async () => {
+      await oracle.update();
       await expect(
-        treasury.connect(ant).redeemBonds(ZERO.add(1))
+        treasury
+          .connect(ant)
+          .redeemBonds(ZERO.add(1), await treasury.getCashPrice())
       ).to.revertedWith(
         'Treasury: bond redemption failed; basis cash remains depegged.'
       );
@@ -426,7 +447,9 @@ describe('Treasury', () => {
 
       const treasuryBalance = await cash.balanceOf(treasury.address);
       await expect(
-        treasury.connect(ant).redeemBonds(treasuryBalance.add(1))
+        treasury
+          .connect(ant)
+          .redeemBonds(treasuryBalance.add(1), await treasury.getCashPrice())
       ).to.revertedWith('Treasury: treasury has no more budget');
     });
   });
