@@ -79,8 +79,8 @@ contract Boardroom is ContractGuard, Operator {
             return totalRewards;
         }
 
-        for (uint256 i = boardHistory.length.sub(1); i >= 0; i = i.sub(1)) {
-            BoardSnapshot memory snapshot = boardHistory[i];
+        for (uint256 i = boardHistory.length; i > 0; i = i.sub(1)) {
+            BoardSnapshot memory snapshot = boardHistory[i.sub(1)];
 
             if (snapshot.timestamp < getAppointmentTimeOf(director)) {
                 break;
@@ -91,10 +91,6 @@ contract Boardroom is ContractGuard, Operator {
                 .mul(getShareOf(director))
                 .div(snapshot.totalShares);
             totalRewards = totalRewards.add(snapshotRewards);
-
-            if (i == 0) {
-                break;
-            }
         }
         return totalRewards;
     }
