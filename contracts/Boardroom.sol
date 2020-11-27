@@ -5,10 +5,11 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import './lib/Safe112.sol';
+import './owner/Operator.sol';
 import './utils/ContractGuard.sol';
 import './interfaces/IBasisAsset.sol';
 
-contract Boardroom is ContractGuard {
+contract Boardroom is ContractGuard, Operator {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -158,7 +159,11 @@ contract Boardroom is ContractGuard {
         withdraw(getShareOf(msg.sender));
     }
 
-    function allocateSeigniorage(uint256 amount) external onlyOneBlock {
+    function allocateSeigniorage(uint256 amount)
+        external
+        onlyOneBlock
+        onlyOperator
+    {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
 
         // Create & add new snapshot
