@@ -1,5 +1,6 @@
 import '@nomiclabs/hardhat-ethers';
 import 'hardhat-gas-reporter';
+import 'solidity-coverage';
 
 export default {
   default: 'hardhat',
