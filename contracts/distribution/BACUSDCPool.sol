@@ -96,7 +96,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
-    uint256 public starttime = 1600831965;
+    uint256 public starttime;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
@@ -110,9 +110,14 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisCash_, address usdc_) public {
+    constructor(
+        address basisCash_,
+        address usdc_,
+        uint256 starttime_
+    ) public {
         basisCash = IERC20(basisCash_);
         usdc = IERC20(usdc_);
+        starttime = starttime_;
     }
 
     modifier checkStart() {

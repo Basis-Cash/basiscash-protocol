@@ -71,7 +71,7 @@ contract DAIBASLPTokenSharePool is
     IERC20 public basisShare;
     uint256 public DURATION = 365 days;
 
-    uint256 public starttime = 1600831965;
+    uint256 public starttime;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
@@ -84,9 +84,14 @@ contract DAIBASLPTokenSharePool is
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisShare_, address lptoken_) public {
+    constructor(
+        address basisShare_,
+        address lptoken_,
+        uint256 starttime_
+    ) public {
         basisShare = IERC20(basisShare_);
         lpt = IERC20(lptoken_);
+        starttime = starttime_;
     }
 
     modifier checkStart() {

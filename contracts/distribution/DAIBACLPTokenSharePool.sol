@@ -72,7 +72,7 @@ contract DAIBACLPTokenSharePool is
     uint256 public constant DURATION = 30 days;
 
     uint256 public initreward = 18479995 * 10**16; // 184,799.95 Shares
-    uint256 public starttime = 1600831965; // starttime TBD
+    uint256 public starttime; // starttime TBD
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
@@ -85,9 +85,14 @@ contract DAIBACLPTokenSharePool is
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address basisShare_, address lptoken_) public {
+    constructor(
+        address basisShare_,
+        address lptoken_,
+        uint256 starttime_
+    ) public {
         basisShare = IERC20(basisShare_);
         lpt = IERC20(lptoken_);
+        starttime = starttime_;
     }
 
     modifier updateReward(address account) {
