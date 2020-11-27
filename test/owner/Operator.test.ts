@@ -27,6 +27,9 @@ describe('Operator', () => {
     expect(await operator.operator()).to.eq(owner.address);
     expect(await operator.connect(owner).isOperator()).to.be.true;
     expect(await operator.connect(whale).isOperator()).to.be.false;
+    await expect(operator.connect(whale).OnlyOperator()).to.revertedWith(
+      'operator: caller is not the operator'
+    );
 
     await expect(operator.connect(owner).transferOperator(whale.address))
       .to.emit(operator, 'OperatorTransferred')
@@ -38,5 +41,8 @@ describe('Operator', () => {
     expect(await operator.operator()).to.eq(whale.address);
     expect(await operator.connect(whale).isOperator()).to.be.true;
     expect(await operator.connect(owner).isOperator()).to.be.false;
+    await expect(operator.connect(whale).OnlyOperator())
+      .to.emit(operator, 'OKOnlyOperator')
+      .withArgs(whale.address);
   });
 });

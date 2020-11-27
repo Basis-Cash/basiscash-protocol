@@ -15,6 +15,12 @@ contract Tester is Operator {
         boardroom = Boardroom(_boardroom);
     }
 
+    event OKOnlyOperator(address caller);
+
+    function OnlyOperator() public onlyOperator {
+        emit OKOnlyOperator(msg.sender);
+    }
+
     function actionTreasury() public {
         treasury.allocateSeigniorage();
         treasury.allocateSeigniorage(); // should revert
