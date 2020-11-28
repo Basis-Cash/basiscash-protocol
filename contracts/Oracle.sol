@@ -16,7 +16,7 @@ contract Oracle {
 
     uint256 public constant PERIOD = 10 minutes;
 
-    IUniswapV2Pair pair;
+    IUniswapV2Pair public pair;
     address public token0;
     address public token1;
 
