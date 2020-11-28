@@ -31,6 +31,7 @@ describe('Oracle', () => {
   });
 
   let Cash: ContractFactory;
+  let Share: ContractFactory;
   let Oracle: ContractFactory;
   let MockDAI: ContractFactory;
 
@@ -46,6 +47,7 @@ describe('Oracle', () => {
 
   before('fetch contract factories', async () => {
     Cash = await ethers.getContractFactory('Cash');
+    Share = await ethers.getContractFactory('Share');
     Oracle = await ethers.getContractFactory('Oracle');
     MockDAI = await ethers.getContractFactory('MockDai');
   });
@@ -63,11 +65,13 @@ describe('Oracle', () => {
 
   let dai: Contract;
   let cash: Contract;
+  let share: Contract;
   let oracle: Contract;
 
   beforeEach('deploy contracts', async () => {
     dai = await MockDAI.connect(operator).deploy();
     cash = await Cash.connect(operator).deploy();
+    share = await Share.connect(operator).deploy();
 
     await dai.connect(operator).mint(operator.address, ETH.mul(2));
     await dai.connect(operator).approve(router.address, ETH.mul(2));
@@ -99,6 +103,9 @@ describe('Oracle', () => {
     await expect(oracle.update()).to.emit(oracle, 'Updated');
     expect(await oracle.consult(dai.address, ETH)).to.eq(ETH);
     expect(await oracle.consult(cash.address, ETH)).to.eq(ETH);
+    await expect(oracle.consult(share.address, ETH)).to.revertedWith(
+      'Oracle: INVALID_TOKEN'
+    );
     expect(
       await oracle.pairFor(factory.address, dai.address, cash.address)
     ).to.eq(await oracle.pair());
