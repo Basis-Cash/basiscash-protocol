@@ -15,6 +15,8 @@ const Treasury = artifacts.require('Treasury')
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
 
+const DAY = 86400;
+
 async function migration(deployer, network, accounts) {
   let uniswap, uniswapRouter;
   if (['dev'].includes(network)) {
@@ -73,7 +75,11 @@ async function migration(deployer, network, accounts) {
     dai.address,
   );
 
-  const startTime = network === 'mainnet' ? POOL_START_DATE + 432000 : POOL_START_DATE
+  let startTime = POOL_START_DATE;
+  if (network === 'mainnet') {
+    startTime += 5 * DAY;
+  }
+
   await deployer.deploy(
     Treasury,
     cash.address,
