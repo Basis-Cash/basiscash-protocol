@@ -1,6 +1,7 @@
 module.exports = {
   skipFiles: [
     'lib',
+    'test',
     'token',
     'interfaces',
     'distributor',
