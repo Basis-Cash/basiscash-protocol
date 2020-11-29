@@ -23,7 +23,7 @@ export default {
     artifacts: './build/artifacts',
   },
   gasReporter: {
-    currency: 'KRW',
+    currency: 'USD',
     enabled: true,
   },
 };
