@@ -229,6 +229,7 @@ describe('Treasury', () => {
 
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
+      await oracle.update();
       await treasury.allocateSeigniorage();
       await advanceTimeAndBlock(provider, allocationDelay);
       await oracle.update();
@@ -354,19 +355,19 @@ describe('Treasury', () => {
       );
     });
 
-    it('should fail if price moved after update', async () => {
+    it('should fail if price does not match with current price', async () => {
       await dai.connect(operator).mint(ant.address, swapAmount);
       await dai.connect(ant).approve(router.address, swapAmount);
 
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, oraclePeriod);
+      await oracle.update();
 
-      const price = await oracle.consult(cash.address, ETH);
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
       await expect(
-        treasury.connect(ant).buyBonds(antBalance, price)
+        treasury.connect(ant).buyBonds(antBalance, ETH)
       ).to.revertedWith('Treasury: cash price moved');
     });
 
@@ -395,6 +396,7 @@ describe('Treasury', () => {
     it('should work correctly', async () => {
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
+      await oracle.update();
       await treasury.connect(operator).allocateSeigniorage();
       await cash
         .connect(ant)
@@ -416,6 +418,7 @@ describe('Treasury', () => {
     it("should drain over seigniorage and even contract's budget", async () => {
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
+      await oracle.update();
       await treasury.connect(operator).allocateSeigniorage();
       await cash.connect(operator).transfer(treasury.address, ETH);
 
@@ -434,9 +437,10 @@ describe('Treasury', () => {
       expect(await cash.balanceOf(ant.address)).to.eq(redeemAmount); // 1:1
     });
 
-    it('should fail if price moved after update', async () => {
+    it('should fail if price does not match with current price', async () => {
       await swapToken(provider, router, ant, swapAmount.div(2), dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
+      await oracle.update();
       await treasury.connect(operator).allocateSeigniorage();
       await cash
         .connect(ant)
@@ -444,13 +448,13 @@ describe('Treasury', () => {
 
       await swapToken(provider, router, ant, swapAmount.div(2), dai, cash);
       await advanceTimeAndBlock(provider, oraclePeriod);
-      const price = await treasury.getCashPrice();
+      await oracle.update();
       const redeemAmount = await cash.balanceOf(treasury.address);
 
       await bond.connect(operator).transfer(ant.address, redeemAmount);
       await bond.connect(ant).approve(treasury.address, redeemAmount);
       await expect(
-        treasury.connect(ant).redeemBonds(redeemAmount, price)
+        treasury.connect(ant).redeemBonds(redeemAmount, ETH)
       ).to.revertedWith('Treasury: cash price moved');
     });
 
@@ -473,6 +477,7 @@ describe('Treasury', () => {
     it("should fail when user tries to redeem bonds with over contract's budget", async () => {
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
+      await oracle.update();
       await treasury.connect(operator).allocateSeigniorage();
 
       const price = await treasury.getCashPrice();

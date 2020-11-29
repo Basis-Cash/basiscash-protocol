@@ -150,6 +150,7 @@ describe('ContractGuard', () => {
       provider,
       Number(await treasury.allocationDelay())
     );
+    await oracle.update();
 
     await expect(tester.connect(fraud).actionTreasury()).to.revertedWith(
       'ContractGuard: one block, one function'

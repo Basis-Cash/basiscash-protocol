@@ -106,6 +106,8 @@ contract Treasury is ContractGuard, Operator {
     /* ========== GOVERNANCE ========== */
 
     function migrate(address target) public onlyOperator checkMigration {
+        require(block.timestamp >= startTime, 'Treasury: not started yet');
+
         // cash
         Operator(cash).transferOperator(target);
         Operator(cash).transferOwnership(target);
@@ -128,10 +130,10 @@ contract Treasury is ContractGuard, Operator {
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _getCashPrice() internal returns (uint256 cashPrice) {
+        cashPrice = getCashPrice();
         try cashOracle.update()  {} catch {
             revert('Treasury: failed to update cash oracle');
         }
-        return getCashPrice();
     }
 
     function _allocateSeigniorage(uint256 cashPrice)
