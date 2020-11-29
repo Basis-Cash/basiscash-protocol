@@ -11,7 +11,8 @@
     "console:dev": "truffle console --network dev",
     "deploy:dev": "truffle migrate --reset --network dev",
     "deploy:ropsten": "truffle migrate --network ropsten",
-    "deploy:rinkeby": "truffle migrate --network rinkeby"
+    "deploy:rinkeby": "truffle migrate --network rinkeby",
+    "deploy:mainnet": "truffle migrate --network mainnet"
   },
   "devDependencies": {
     "@ethersproject/address": "^5.0.0-beta",
