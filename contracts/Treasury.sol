@@ -105,14 +105,21 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== GOVERNANCE ========== */
 
-    function migrate(address target) public onlyOperator {
+    function migrate(address target) public onlyOperator checkMigration {
+        // cash
         Operator(cash).transferOperator(target);
+        Operator(cash).transferOwnership(target);
         IERC20(cash).transfer(target, IERC20(cash).balanceOf(address(this)));
+
+        // bond
         Operator(bond).transferOperator(target);
+        Operator(bond).transferOwnership(target);
         IERC20(bond).transfer(target, IERC20(bond).balanceOf(address(this)));
+
+        // share
         Operator(share).transferOperator(target);
+        Operator(share).transferOwnership(target);
         IERC20(share).transfer(target, IERC20(share).balanceOf(address(this)));
-        Operator(boardroom).transferOperator(target);
 
         migrated = true;
         emit Migration(target);
@@ -131,6 +138,7 @@ contract Treasury is ContractGuard, Operator {
         internal
         onlyOneBlock
         checkOperator
+        checkMigration
         returns (bool, string memory)
     {
         if (now.sub(lastAllocated) < allocationDelay) {
@@ -162,10 +170,7 @@ contract Treasury is ContractGuard, Operator {
         return (true, 'Treasury: success');
     }
 
-    function buyBonds(uint256 amount, uint256 targetPrice)
-        external
-        checkMigration
-    {
+    function buyBonds(uint256 amount, uint256 targetPrice) external {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
         uint256 cashPrice = _getCashPrice();
@@ -180,10 +185,7 @@ contract Treasury is ContractGuard, Operator {
         emit BoughtBonds(msg.sender, amount);
     }
 
-    function redeemBonds(uint256 amount, uint256 targetPrice)
-        external
-        checkMigration
-    {
+    function redeemBonds(uint256 amount, uint256 targetPrice) external {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
         uint256 cashPrice = _getCashPrice();
@@ -213,7 +215,7 @@ contract Treasury is ContractGuard, Operator {
         emit RedeemedBonds(msg.sender, amount);
     }
 
-    function allocateSeigniorage() external checkMigration {
+    function allocateSeigniorage() external {
         uint256 cashPrice = _getCashPrice();
         (bool result, string memory reason) = _allocateSeigniorage(cashPrice);
         require(result, reason);
