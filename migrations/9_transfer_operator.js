@@ -3,8 +3,9 @@ const Treasury = artifacts.require('Treasury');
 const Cash = artifacts.require('Cash');
 const Bond = artifacts.require('Bond');
 const Share = artifacts.require('Share');
+const Timelock = artifacts.require('Timelock');
 
-const TARGET_ADDR = '0xd78EC7CCDd3e51C29229e18ddE44337A7bd38e5b';
+const DAY = 86400;
 
 module.exports = async (deployer, network, accounts) => {
   const cash = await Cash.deployed();
@@ -12,15 +13,16 @@ module.exports = async (deployer, network, accounts) => {
   const bond = await Bond.deployed();
   const treasury = await Treasury.deployed();
   const boardroom = await Boardroom.deployed();
+  const timelock = await deployer.deploy(Timelock, accounts[0], 2 * DAY);
 
   for await (const contract of [ cash, share, bond ]) {
     await contract.transferOperator(treasury.address);
     await contract.transferOwnership(treasury.address);
   }
   await boardroom.transferOperator(treasury.address);
-  await boardroom.transferOwnership(TARGET_ADDR);
-  await treasury.transferOperator(TARGET_ADDR);
-  await treasury.transferOwnership(TARGET_ADDR);
+  await boardroom.transferOwnership(timelock.address);
+  await treasury.transferOperator(timelock.address);
+  await treasury.transferOwnership(timelock.address);
 
   console.log(`Transferred the operator role from the deployer (${accounts[0]}) to Treasury (${Treasury.address})`);
 }
