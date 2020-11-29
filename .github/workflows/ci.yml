@@ -28,9 +28,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-yarn-
 
-    - name: coverage
+    - name: yarn & coverage
       run: |
-        yarn coverage
+        yarn && yarn coverage
 
     - name: Coveralls
       uses: coverallsapp/github-action@master
