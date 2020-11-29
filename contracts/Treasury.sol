@@ -127,10 +127,11 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== MUTABLE FUNCTIONS ========== */
 
-    function updateCashPrice() internal {
+    function _getCashPrice() internal returns (uint256 cashPrice) {
         try cashOracle.update()  {} catch {
             revert('Treasury: failed to update cash oracle');
         }
+        return getCashPrice();
     }
 
     function _allocateSeigniorage(uint256 cashPrice)
@@ -172,7 +173,7 @@ contract Treasury is ContractGuard, Operator {
     function buyBonds(uint256 amount, uint256 targetPrice) external {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
-        uint256 cashPrice = getCashPrice();
+        uint256 cashPrice = _getCashPrice();
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         _allocateSeigniorage(cashPrice); // ignore returns
 
@@ -181,14 +182,13 @@ contract Treasury is ContractGuard, Operator {
         IBasisAsset(cash).burnFrom(msg.sender, amount);
         IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
 
-        updateCashPrice();
         emit BoughtBonds(msg.sender, amount);
     }
 
     function redeemBonds(uint256 amount, uint256 targetPrice) external {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
-        uint256 cashPrice = getCashPrice();
+        uint256 cashPrice = _getCashPrice();
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         _allocateSeigniorage(cashPrice); // ignore returns
 
@@ -212,16 +212,13 @@ contract Treasury is ContractGuard, Operator {
         IBasisAsset(bond).burnFrom(msg.sender, amount);
         IERC20(cash).safeTransfer(msg.sender, amount);
 
-        updateCashPrice();
         emit RedeemedBonds(msg.sender, amount);
     }
 
     function allocateSeigniorage() external {
-        uint256 cashPrice = getCashPrice();
+        uint256 cashPrice = _getCashPrice();
         (bool result, string memory reason) = _allocateSeigniorage(cashPrice);
         require(result, reason);
-
-        updateCashPrice();
     }
 
     event Migration(address indexed target);
