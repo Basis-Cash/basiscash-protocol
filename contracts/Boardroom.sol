@@ -115,9 +115,6 @@ contract Boardroom is ContractGuard, Operator {
 
         // Update director's boardseat
         Boardseat memory director = directors[msg.sender];
-        if (director.shares == 0) {
-            director.appointmentTime = now;
-        }
         director.shares = director.shares.add(amount);
         directors[msg.sender] = director;
 
@@ -149,10 +146,6 @@ contract Boardroom is ContractGuard, Operator {
 
         share.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
-    }
-
-    function exit() external {
-        withdraw(getShareOf(msg.sender));
     }
 
     function allocateSeigniorage(uint256 amount)
