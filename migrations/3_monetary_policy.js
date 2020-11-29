@@ -1,4 +1,5 @@
 const contract = require('@truffle/contract');
+const { POOL_START_DATE } = require('./pools');
 const knownContracts = require('./known-contracts');
 
 const Cash = artifacts.require('Cash');
@@ -72,12 +73,15 @@ async function migration(deployer, network, accounts) {
     dai.address,
   );
 
+  const startTime = network === 'mainnet' ? POOL_START_DATE + 432000 : POOL_START_DATE
   await deployer.deploy(
     Treasury,
     cash.address,
     Bond.address,
+    Share.address,
     Oracle.address,
     Boardroom.address,
+    startTime,
   );
 }
 
