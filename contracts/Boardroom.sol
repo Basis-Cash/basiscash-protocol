@@ -148,6 +148,10 @@ contract Boardroom is ContractGuard, Operator {
         emit Withdrawn(msg.sender, amount);
     }
 
+    function exit() external {
+        withdraw(getShareOf(msg.sender));
+    }
+
     function allocateSeigniorage(uint256 amount)
         external
         onlyOneBlock

@@ -109,6 +109,25 @@ describe('Boardroom', () => {
     });
   });
 
+  describe('#exit', async () => {
+    beforeEach('stake', async () => {
+      await Promise.all([
+        share.connect(operator).mint(whale.address, STAKE_AMOUNT),
+        share.connect(whale).approve(boardroom.address, STAKE_AMOUNT),
+      ]);
+      await boardroom.connect(whale).stake(STAKE_AMOUNT);
+    });
+
+    it('should work correctly', async () => {
+      await expect(boardroom.connect(whale).exit())
+        .to.emit(boardroom, 'Withdrawn')
+        .withArgs(whale.address, STAKE_AMOUNT);
+
+      expect(await share.balanceOf(whale.address)).to.eq(STAKE_AMOUNT);
+      expect(await boardroom.getShareOf(whale.address)).to.eq(ZERO);
+    });
+  });
+
   describe('#allocateSeigniorage', () => {
     beforeEach('stake', async () => {
       await Promise.all([
