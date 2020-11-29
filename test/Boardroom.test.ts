@@ -17,9 +17,10 @@ describe('Boardroom', () => {
 
   let operator: SignerWithAddress;
   let whale: SignerWithAddress;
+  let abuser: SignerWithAddress;
 
   before('provider & accounts setting', async () => {
-    [operator, whale] = await ethers.getSigners();
+    [operator, whale, abuser] = await ethers.getSigners();
   });
 
   let Cash: ContractFactory;
@@ -100,6 +101,12 @@ describe('Boardroom', () => {
         'Boardroom: withdraw request greater than staked amount'
       );
     });
+
+    it('should fail when non-director tries to withdraw', async () => {
+      await expect(boardroom.connect(abuser).withdraw(ZERO)).to.revertedWith(
+        'Boardroom: The director does not exist'
+      );
+    });
   });
 
   describe('#allocateSeigniorage', () => {
@@ -132,6 +139,12 @@ describe('Boardroom', () => {
       await expect(
         boardroom.connect(operator).allocateSeigniorage(ZERO)
       ).to.revertedWith('Boardroom: Cannot allocate 0');
+    });
+
+    it('should fail when non-operator tries to allocate seigniorage', async () => {
+      await expect(
+        boardroom.connect(abuser).allocateSeigniorage(ZERO)
+      ).to.revertedWith('operator: caller is not the operator');
     });
   });
 
