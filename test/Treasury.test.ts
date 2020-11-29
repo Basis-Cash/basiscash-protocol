@@ -12,15 +12,35 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 
 chai.use(solidity);
 
+const DAY = 86400;
+const ETH = utils.parseEther('1');
+const ZERO = BigNumber.from(0);
+
 async function latestBlocktime(provider: Provider): Promise<number> {
   const { timestamp } = await provider.getBlock('latest');
   return timestamp;
 }
 
-describe('Treasury', () => {
-  const ETH = utils.parseEther('1');
-  const ZERO = BigNumber.from(0);
+async function swapToken(
+  provider: Provider,
+  router: Contract,
+  account: SignerWithAddress,
+  amount: BigNumber,
+  tokenA: Contract,
+  tokenB: Contract
+): Promise<void> {
+  await router
+    .connect(account)
+    .swapExactTokensForTokens(
+      amount,
+      ZERO,
+      [tokenA.address, tokenB.address],
+      account.address,
+      (await latestBlocktime(provider)) + 1800
+    );
+}
 
+describe('Treasury', () => {
   const { provider } = ethers;
 
   let operator: SignerWithAddress;
@@ -78,6 +98,9 @@ describe('Treasury', () => {
   let treasury: Contract;
   let boardroom: Contract;
 
+  let oraclePeriod: number;
+  let allocationDelay: number;
+
   beforeEach('deploy contracts', async () => {
     dai = await MockDAI.connect(operator).deploy();
     bond = await Bond.connect(operator).deploy();
@@ -107,6 +130,10 @@ describe('Treasury', () => {
       cash.address,
       dai.address
     );
+    oraclePeriod = Number(await oracle.PERIOD());
+    await advanceTimeAndBlock(provider, oraclePeriod);
+    await oracle.update();
+
     boardroom = await Boardroom.connect(operator).deploy(
       cash.address,
       share.address
@@ -119,9 +146,47 @@ describe('Treasury', () => {
       boardroom.address,
       await latestBlocktime(provider)
     );
-    await boardroom.connect(operator).transferOperator(treasury.address);
+    allocationDelay = Number(await treasury.allocationDelay());
+  });
 
-    await advanceTimeAndBlock(provider, Number(await oracle.PERIOD()));
+  describe('#migrate', () => {
+    let newTreasury: Contract;
+
+    beforeEach('deploy new treasury', async () => {
+      newTreasury = await Treasury.connect(operator).deploy(
+        cash.address,
+        bond.address,
+        share.address,
+        oracle.address,
+        boardroom.address,
+        await latestBlocktime(provider)
+      );
+
+      for await (const token of [cash, bond, share]) {
+        await token.connect(operator).mint(treasury.address, ETH);
+        await token.connect(operator).transferOperator(treasury.address);
+        await token.connect(operator).transferOwnership(treasury.address);
+      }
+    });
+
+    it('should works correctly', async () => {
+      await expect(treasury.connect(operator).migrate(newTreasury.address))
+        .to.emit(treasury, 'Migration')
+        .withArgs(newTreasury.address);
+
+      for await (const token of [cash, bond, share]) {
+        expect(await token.balanceOf(newTreasury.address)).to.eq(ETH);
+        expect(await token.owner()).to.eq(newTreasury.address);
+        expect(await token.operator()).to.eq(newTreasury.address);
+      }
+    });
+
+    it('should fail if already migrated', async () => {
+      await treasury.connect(operator).migrate(newTreasury.address);
+      await expect(
+        treasury.connect(operator).migrate(newTreasury.address)
+      ).to.revertedWith('Treasury: this contract has been migrated');
+    });
   });
 
   describe('#allocateSeigniorage', () => {
@@ -137,22 +202,12 @@ describe('Treasury', () => {
     it('should work correctly', async () => {
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
 
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [dai.address, cash.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
-
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, allocationDelay);
       await oracle.update();
+
       const cashPrice = await oracle.consult(cash.address, ETH);
       const cashSupply = await cash.totalSupply();
       const expectedSeigniorage = cashSupply.mul(cashPrice.sub(ETH)).div(ETH);
@@ -170,27 +225,14 @@ describe('Treasury', () => {
       await cash.connect(operator).mint(operator.address, ETH.mul(1000));
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
 
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [dai.address, cash.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, allocationDelay);
       await treasury.allocateSeigniorage();
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
-
+      await advanceTimeAndBlock(provider, allocationDelay);
       await oracle.update();
+
       const cashPrice = await oracle.consult(cash.address, ETH);
       const cashSupply = await cash.totalSupply();
       const expectedSeigniorage = cashSupply.mul(cashPrice.sub(ETH)).div(ETH);
@@ -208,6 +250,7 @@ describe('Treasury', () => {
 
     it('should fail if treasury is not the operator of cash contract', async () => {
       await bond.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: this contract is not the operator of the basis cash contract'
       );
@@ -215,20 +258,28 @@ describe('Treasury', () => {
 
     it('should fail if treasury is not the operator of bond contract', async () => {
       await cash.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: this contract is not the operator of the basis bond contract'
       );
     });
 
+    it('should fail if treasury is not the operator of boardroom contract', async () => {
+      await bond.connect(operator).transferOperator(treasury.address);
+      await cash.connect(operator).transferOperator(treasury.address);
+      await expect(treasury.allocateSeigniorage()).to.revertedWith(
+        'Treasury: this contract is not the operator of the boardroom contract'
+      );
+    });
+
+    it('should fail when treasury not started yet', async () => {});
+
     it('should fail when cash price is below $1+ε', async () => {
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
 
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
-
+      await advanceTimeAndBlock(provider, allocationDelay);
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: there is no seigniorage to be allocated'
       );
@@ -245,6 +296,7 @@ describe('Treasury', () => {
         .mint(ant.address, swapAmount.add(purchaseAmount));
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
     });
 
     it('should work correctly', async () => {
@@ -253,11 +305,7 @@ describe('Treasury', () => {
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await expect(
-        treasury
-          .connect(ant)
-          .buyBonds(antBalance, await treasury.getCashPrice())
-      )
+      await expect(treasury.connect(ant).buyBonds(antBalance, price))
         .to.emit(treasury, 'BoughtBonds')
         .withArgs(ant.address, antBalance);
 
@@ -269,25 +317,16 @@ describe('Treasury', () => {
 
     it('should work correctly when cash price is below $1', async () => {
       await cash.connect(ant).approve(router.address, swapAmount);
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [cash.address, dai.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(provider, Number(await oracle.PERIOD()));
 
+      await swapToken(provider, router, ant, swapAmount, cash, dai);
+      await advanceTimeAndBlock(provider, oraclePeriod);
       await oracle.update();
+
       const price = await oracle.consult(cash.address, ETH);
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury
-        .connect(ant)
-        .buyBonds(antBalance, await treasury.getCashPrice());
+      await treasury.connect(ant).buyBonds(antBalance, price);
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
       expect(await bond.balanceOf(ant.address)).to.eq(
@@ -298,30 +337,37 @@ describe('Treasury', () => {
     it('should work correctly when cash price is above $1', async () => {
       await dai.connect(operator).mint(ant.address, swapAmount);
       await dai.connect(ant).approve(router.address, swapAmount);
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [dai.address, cash.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(provider, Number(await oracle.PERIOD()));
 
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, oraclePeriod);
       await oracle.update();
+
       const price = await oracle.consult(cash.address, ETH);
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury
-        .connect(ant)
-        .buyBonds(antBalance, await treasury.getCashPrice());
+      await treasury.connect(ant).buyBonds(antBalance, price);
 
       expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
       expect(await bond.balanceOf(ant.address)).to.eq(
         antBalance.mul(ETH).div(price)
       );
+    });
+
+    it('should fail if price moved after update', async () => {
+      await dai.connect(operator).mint(ant.address, swapAmount);
+      await dai.connect(ant).approve(router.address, swapAmount);
+
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, oraclePeriod);
+
+      const price = await oracle.consult(cash.address, ETH);
+      const antBalance = await cash.balanceOf(ant.address);
+
+      await cash.connect(ant).approve(treasury.address, antBalance);
+      await expect(
+        treasury.connect(ant).buyBonds(antBalance, price)
+      ).to.revertedWith('Treasury: cash price moved');
     });
 
     it('should fail when user tries to purchase bonds with zero amount', async () => {
@@ -343,36 +389,23 @@ describe('Treasury', () => {
       await bond.connect(operator).mint(operator.address, ETH.mul(100));
       await cash.connect(operator).transferOperator(treasury.address);
       await bond.connect(operator).transferOperator(treasury.address);
+      await boardroom.connect(operator).transferOperator(treasury.address);
     });
 
     it('should work correctly', async () => {
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [dai.address, cash.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, allocationDelay);
       await treasury.connect(operator).allocateSeigniorage();
       await cash
         .connect(ant)
         .transfer(treasury.address, await cash.balanceOf(ant.address));
 
+      const price = await treasury.getCashPrice();
       const redeemAmount = await cash.balanceOf(treasury.address);
 
       await bond.connect(operator).transfer(ant.address, redeemAmount);
       await bond.connect(ant).approve(treasury.address, redeemAmount);
-      await expect(
-        treasury
-          .connect(ant)
-          .redeemBonds(redeemAmount, await treasury.getCashPrice())
-      )
+      await expect(treasury.connect(ant).redeemBonds(redeemAmount, price))
         .to.emit(treasury, 'RedeemedBonds')
         .withArgs(ant.address, redeemAmount);
 
@@ -381,19 +414,8 @@ describe('Treasury', () => {
     });
 
     it("should drain over seigniorage and even contract's budget", async () => {
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [dai.address, cash.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, allocationDelay);
       await treasury.connect(operator).allocateSeigniorage();
       await cash.connect(operator).transfer(treasury.address, ETH);
 
@@ -412,44 +434,51 @@ describe('Treasury', () => {
       expect(await cash.balanceOf(ant.address)).to.eq(redeemAmount); // 1:1
     });
 
-    it('should fail when user tries to redeem bonds with zero amount', async () => {
+    it('should fail if price moved after update', async () => {
+      await swapToken(provider, router, ant, swapAmount.div(2), dai, cash);
+      await advanceTimeAndBlock(provider, allocationDelay);
+      await treasury.connect(operator).allocateSeigniorage();
+      await cash
+        .connect(ant)
+        .transfer(treasury.address, await cash.balanceOf(ant.address));
+
+      await swapToken(provider, router, ant, swapAmount.div(2), dai, cash);
+      await advanceTimeAndBlock(provider, oraclePeriod);
+      const price = await treasury.getCashPrice();
+      const redeemAmount = await cash.balanceOf(treasury.address);
+
+      await bond.connect(operator).transfer(ant.address, redeemAmount);
+      await bond.connect(ant).approve(treasury.address, redeemAmount);
       await expect(
-        treasury.connect(ant).redeemBonds(ZERO, await treasury.getCashPrice())
+        treasury.connect(ant).redeemBonds(redeemAmount, price)
+      ).to.revertedWith('Treasury: cash price moved');
+    });
+
+    it('should fail when user tries to redeem bonds with zero amount', async () => {
+      const price = await treasury.getCashPrice();
+      await expect(
+        treasury.connect(ant).redeemBonds(ZERO, price)
       ).to.revertedWith('Treasury: cannot redeem bonds with zero amount');
     });
 
     it('should fail when cash price is below $1+ε', async () => {
-      await oracle.update();
+      const price = await treasury.getCashPrice();
       await expect(
-        treasury
-          .connect(ant)
-          .redeemBonds(ZERO.add(1), await treasury.getCashPrice())
+        treasury.connect(ant).redeemBonds(ZERO.add(1), price)
       ).to.revertedWith(
         'Treasury: bond redemption failed; basis cash remains depegged.'
       );
     });
 
     it("should fail when user tries to redeem bonds with over contract's budget", async () => {
-      await router
-        .connect(ant)
-        .swapExactTokensForTokens(
-          swapAmount,
-          ZERO,
-          [dai.address, cash.address],
-          ant.address,
-          (await latestBlocktime(provider)) + 1800
-        );
-      await advanceTimeAndBlock(
-        provider,
-        Number(await treasury.allocationDelay())
-      );
+      await swapToken(provider, router, ant, swapAmount, dai, cash);
+      await advanceTimeAndBlock(provider, allocationDelay);
       await treasury.connect(operator).allocateSeigniorage();
 
+      const price = await treasury.getCashPrice();
       const treasuryBalance = await cash.balanceOf(treasury.address);
       await expect(
-        treasury
-          .connect(ant)
-          .redeemBonds(treasuryBalance.add(1), await treasury.getCashPrice())
+        treasury.connect(ant).redeemBonds(treasuryBalance.add(1), price)
       ).to.revertedWith('Treasury: treasury has no more budget');
     });
   });
