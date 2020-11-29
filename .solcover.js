@@ -6,6 +6,7 @@ module.exports = {
     'interfaces',
     'distributor',
     'distribution',
+    'Timelock.sol',
     'Migrations.sol',
     'Distributor.sol',
   ]
