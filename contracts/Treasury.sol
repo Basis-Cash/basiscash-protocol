@@ -103,6 +103,10 @@ contract Treasury is ContractGuard, Operator {
         }
     }
 
+    function getReserve() public view returns (uint256) {
+        return seigniorageSaved;
+    }
+
     /* ========== GOVERNANCE ========== */
 
     function migrate(address target) public onlyOperator checkMigration {
