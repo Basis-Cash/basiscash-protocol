@@ -209,7 +209,8 @@ describe('Treasury', () => {
       await oracle.update();
 
       const cashPrice = await oracle.consult(cash.address, ETH);
-      const cashSupply = await cash.totalSupply();
+      const treasuryReserve = await treasury.getReserve();
+      const cashSupply = (await cash.totalSupply()).sub(treasuryReserve);
       const expectedSeigniorage = cashSupply.mul(cashPrice.sub(ETH)).div(ETH);
 
       const tx = await treasury.allocateSeigniorage();
@@ -235,7 +236,8 @@ describe('Treasury', () => {
       await oracle.update();
 
       const cashPrice = await oracle.consult(cash.address, ETH);
-      const cashSupply = await cash.totalSupply();
+      const treasuryReserve = await treasury.getReserve();
+      const cashSupply = (await cash.totalSupply()).sub(treasuryReserve);
       const expectedSeigniorage = cashSupply.mul(cashPrice.sub(ETH)).div(ETH);
 
       const tx = await treasury.allocateSeigniorage();
@@ -272,8 +274,6 @@ describe('Treasury', () => {
         'Treasury: this contract is not the operator of the boardroom contract'
       );
     });
-
-    it('should fail when treasury not started yet', async () => {});
 
     it('should fail when cash price is below $1+ε', async () => {
       await cash.connect(operator).transferOperator(treasury.address);
