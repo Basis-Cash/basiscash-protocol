@@ -1,4 +1,5 @@
 import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-etherscan';
 import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 
@@ -25,5 +26,10 @@ export default {
   gasReporter: {
     currency: 'USD',
     enabled: true,
+  },
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: '<api-key>',
   },
 };

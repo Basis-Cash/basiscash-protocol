@@ -21,6 +21,7 @@
     "@ethersproject/providers": "^5.0.0-beta",
     "@ethersproject/solidity": "^5.0.0-beta",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^2.0.1",
     "@truffle/artifactor": "^4.0.84",
     "@truffle/contract": "^4.2.25",
     "@truffle/hdwallet-provider": "^1.1.0",
