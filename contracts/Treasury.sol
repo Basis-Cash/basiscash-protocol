@@ -151,7 +151,7 @@ contract Treasury is ContractGuard, Operator {
             return (false, 'Treasury: there is no seigniorage to be allocated');
         }
 
-        uint256 cashSupply = IERC20(cash).totalSupply();
+        uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
 
