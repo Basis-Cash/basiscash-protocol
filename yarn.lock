@@ -737,6 +737,14 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.2.0.tgz#3e6b3a7662d8ed64271ade96ef42655db983fd9d"
   integrity sha512-bUOmkSoPkjnUyMiKo6RYnb0VHBk5D9KKDAgNLzF41aqAM3TeE0yGdFF5dVRcV60pZdJLlyFT/jjXIZCWyyEzAQ==
 
+"@resolver-engine/core@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@resolver-engine/core/-/core-0.2.1.tgz#0d71803f6d3b8cb2e9ed481a1bf0ca5f5256d0c0"
+  integrity sha512-nsLQHmPJ77QuifqsIvqjaF5B9aHnDzJjp73Q1z6apY3e9nqYrx4Dtowhpsf7Jwftg/XzVDEMQC+OzUBNTS+S1A==
+  dependencies:
+    debug "^3.1.0"
+    request "^2.85.0"
+
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@resolver-engine/core/-/core-0.3.3.tgz#590f77d85d45bc7ecc4e06c654f41345db6ca967"
@@ -746,12 +754,29 @@
     is-url "^1.2.4"
     request "^2.85.0"
 
+"@resolver-engine/fs@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@resolver-engine/fs/-/fs-0.2.1.tgz#f98a308d77568cc02651d03636f46536b941b241"
+  integrity sha512-7kJInM1Qo2LJcKyDhuYzh9ZWd+mal/fynfL9BNjWOiTcOpX+jNfqb/UmGUqros5pceBITlWGqS4lU709yHFUbg==
+  dependencies:
+    "@resolver-engine/core" "^0.2.1"
+    debug "^3.1.0"
+
 "@resolver-engine/fs@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@resolver-engine/fs/-/fs-0.3.3.tgz#fbf83fa0c4f60154a82c817d2fe3f3b0c049a973"
   integrity sha512-wQ9RhPUcny02Wm0IuJwYMyAG8fXVeKdmhm8xizNByD4ryZlx6PP6kRen+t/haF43cMfmaV7T3Cx6ChOdHEhFUQ==
   dependencies:
     "@resolver-engine/core" "^0.3.3"
+    debug "^3.1.0"
+
+"@resolver-engine/imports-fs@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@resolver-engine/imports-fs/-/imports-fs-0.2.2.tgz#5a81ef3285dbf0411ab3b15205080a1ad7622d9e"
+  integrity sha512-gFCgMvCwyppjwq0UzIjde/WI+yDs3oatJhozG9xdjJdewwtd7LiF0T5i9lrHAUtqrQbqoFE4E+ZMRVHWpWHpKQ==
+  dependencies:
+    "@resolver-engine/fs" "^0.2.1"
+    "@resolver-engine/imports" "^0.2.2"
     debug "^3.1.0"
 
 "@resolver-engine/imports-fs@^0.3.3":
@@ -762,6 +787,15 @@
     "@resolver-engine/fs" "^0.3.3"
     "@resolver-engine/imports" "^0.3.3"
     debug "^3.1.0"
+
+"@resolver-engine/imports@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@resolver-engine/imports/-/imports-0.2.2.tgz#d3de55a1bb5f3beb7703fdde743298f321175843"
+  integrity sha512-u5/HUkvo8q34AA+hnxxqqXGfby5swnH0Myw91o3Sm2TETJlNKXibFGSKBavAH+wvWdBi4Z5gS2Odu0PowgVOUg==
+  dependencies:
+    "@resolver-engine/core" "^0.2.1"
+    debug "^3.1.0"
+    hosted-git-info "^2.6.0"
 
 "@resolver-engine/imports@^0.3.3":
   version "0.3.3"
@@ -6446,7 +6480,7 @@ mkdirp-promise@^5.0.1:
   dependencies:
     mkdirp "*"
 
-mkdirp@*:
+mkdirp@*, mkdirp@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
@@ -8754,6 +8788,17 @@ trim-right@^1.0.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/true-case-path/-/true-case-path-2.2.1.tgz#c5bf04a5bbec3fd118be4084461b3a27c4d796bf"
   integrity sha512-0z3j8R7MCjy10kc/g+qg7Ln3alJTodw9aDuVWZa3uiWqfuBMKeAeP2ocWcxoyM3D73yz3Jt/Pu4qPr4wHSdB/Q==
+
+truffle-flattener@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/truffle-flattener/-/truffle-flattener-1.5.0.tgz#c358fa3e5cb0a663429f7912a58c4f0879414e64"
+  integrity sha512-vmzWG/L5OXoNruMV6u2l2IaheI091e+t+fFCOR9sl46EE3epkSRIwGCmIP/EYDtPsFBIG7e6exttC9/GlfmxEQ==
+  dependencies:
+    "@resolver-engine/imports-fs" "^0.2.2"
+    "@solidity-parser/parser" "^0.8.0"
+    find-up "^2.1.0"
+    mkdirp "^1.0.4"
+    tsort "0.0.1"
 
 truffle@5.1.49:
   version "5.1.49"
