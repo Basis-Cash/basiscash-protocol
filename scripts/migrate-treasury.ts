@@ -2,10 +2,12 @@ import { network, ethers } from 'hardhat';
 import { Contract } from 'ethers';
 import { ParamType, keccak256 } from 'ethers/lib/utils';
 
+import { TREASURY_START_DATE } from '../deploy.config';
 import deployments from '../deployments.json';
 import { wait } from './utils';
 
 const DAY = 86400;
+const override = { gasPrice: 100000000000 };
 
 function encodeParameters(
   types: Array<string | ParamType>,
@@ -46,7 +48,8 @@ async function main() {
 
   const newBoardroom = await Boardroom.connect(operator).deploy(
     cash.address,
-    share.address
+    share.address,
+    override
   );
   await wait(
     newBoardroom.deployTransaction.hash,
@@ -59,7 +62,8 @@ async function main() {
     share.address,
     oracle.address,
     newBoardroom.address,
-    TREASURY_START_DATE
+    TREASURY_START_DATE,
+    override
   );
   await wait(
     newTreasury.deployTransaction.hash,
@@ -72,23 +76,29 @@ async function main() {
 
   tx = await newBoardroom
     .connect(operator)
-    .transferOperator(newTreasury.address);
+    .transferOperator(newTreasury.address, override);
   await wait(tx.hash, 'boardroom.transferOperator');
 
-  tx = await newBoardroom.connect(operator).transferOwnership(timelock.address);
+  tx = await newBoardroom
+    .connect(operator)
+    .transferOwnership(timelock.address, override);
   await wait(tx.hash, 'boardroom.transferOwnership');
 
-  tx = await newTreasury.connect(operator).transferOperator(timelock.address);
+  tx = await newTreasury
+    .connect(operator)
+    .transferOperator(timelock.address, override);
   await wait(tx.hash, 'treasury.transferOperator');
 
-  tx = await newTreasury.connect(operator).transferOwnership(timelock.address);
+  tx = await newTreasury
+    .connect(operator)
+    .transferOwnership(timelock.address, override);
   await wait(tx.hash, 'treasury.transferOwnership');
 
   console.log('\n===================================================\n');
 
   console.log('=> Migration\n');
 
-  const eta = new Date().getTime() / 1000 + 2 * DAY + 60;
+  const eta = 1607182000;
   const signature = 'migrate(address)';
   const data = encodeParameters(['address'], [newTreasury.address]);
   const calldata = [treasury.address, 0, signature, data, eta];
@@ -99,8 +109,8 @@ async function main() {
     )
   );
 
-  tx = await timelock.connect(operator).queueTransaction(...calldata);
-  await wait(tx.hash, 'timelock.queueTransaction');
+  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
+  await wait(tx.hash, `timelock.queueTransaction => payload: ${calldata}`);
 
   const isQueued = await timelock.connect(operator).queuedTransactions(txHash);
 
