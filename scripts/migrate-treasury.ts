@@ -1,12 +1,10 @@
 import { network, ethers } from 'hardhat';
-import { Contract } from 'ethers';
 import { ParamType, keccak256 } from 'ethers/lib/utils';
 
 import { TREASURY_START_DATE } from '../deploy.config';
 import deployments from '../deployments.json';
 import { wait } from './utils';
 
-const DAY = 86400;
 const override = { gasPrice: 100000000000 };
 
 function encodeParameters(
