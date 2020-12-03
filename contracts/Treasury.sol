@@ -103,11 +103,13 @@ contract Treasury is ContractGuard, Operator {
         }
     }
 
+    function getReserve() public view returns (uint256) {
+        return seigniorageSaved;
+    }
+
     /* ========== GOVERNANCE ========== */
 
     function migrate(address target) public onlyOperator checkMigration {
-        require(block.timestamp >= startTime, 'Treasury: not started yet');
-
         // cash
         Operator(cash).transferOperator(target);
         Operator(cash).transferOwnership(target);
@@ -153,7 +155,7 @@ contract Treasury is ContractGuard, Operator {
             return (false, 'Treasury: there is no seigniorage to be allocated');
         }
 
-        uint256 cashSupply = IERC20(cash).totalSupply();
+        uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
 
