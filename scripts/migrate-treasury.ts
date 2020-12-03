@@ -5,6 +5,8 @@ import { ParamType, keccak256 } from 'ethers/lib/utils';
 import deployments from '../deployments.json';
 import { wait } from './utils';
 
+const DAY = 86400;
+
 function encodeParameters(
   types: Array<string | ParamType>,
   values: Array<any>
@@ -86,7 +88,7 @@ async function main() {
 
   console.log('=> Migration\n');
 
-  const eta = 0; // TODO
+  const eta = new Date().getTime() / 1000 + 2 * DAY + 60;
   const signature = 'migrate(address)';
   const data = encodeParameters(['address'], [newTreasury.address]);
   const calldata = [treasury.address, 0, signature, data, eta];
