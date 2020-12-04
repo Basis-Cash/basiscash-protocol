@@ -95,6 +95,10 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== VIEW FUNCTIONS ========== */
 
+    function getLastAllocated() public view returns (uint256) {
+        return lastAllocated;
+    }
+
     function getCashPrice() public view returns (uint256 cashPrice) {
         try cashOracle.consult(cash, 1e18) returns (uint256 price) {
             return price;
