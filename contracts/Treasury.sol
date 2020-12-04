@@ -27,7 +27,7 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========= CONSTANT VARIABLES ======== */
 
-    uint256 public constant allocationDelay = 3 days;
+    uint256 public constant allocationDelay = 1 days;
 
     /* ========== STATE VARIABLES ========== */
 
