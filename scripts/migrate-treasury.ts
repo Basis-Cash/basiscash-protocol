@@ -2,9 +2,10 @@ import { network, ethers } from 'hardhat';
 import { ParamType, keccak256 } from 'ethers/lib/utils';
 
 import { TREASURY_START_DATE } from '../deploy.config';
-import deployments from '../deployments.json';
+import deployments from '../deployments.second.json';
 import { wait } from './utils';
 
+const DAY = 86400;
 const override = { gasPrice: 100000000000 };
 
 function encodeParameters(
@@ -96,7 +97,7 @@ async function main() {
 
   console.log('=> Migration\n');
 
-  const eta = 1607182000;
+  const eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
   const signature = 'migrate(address)';
   const data = encodeParameters(['address'], [newTreasury.address]);
   const calldata = [treasury.address, 0, signature, data, eta];
@@ -108,7 +109,8 @@ async function main() {
   );
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
-  await wait(tx.hash, `timelock.queueTransaction => payload: ${calldata}`);
+  await wait(tx.hash, `timelock.queueTransaction => txHash: ${txHash}`);
+  console.log(`Tx execution ETA: ${eta}`);
 
   const isQueued = await timelock.connect(operator).queuedTransactions(txHash);
 
