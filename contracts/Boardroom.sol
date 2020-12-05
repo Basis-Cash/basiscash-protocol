@@ -1,8 +1,8 @@
 pragma solidity ^0.6.0;
 //pragma experimental ABIEncoderV2;
 
-import 'OpenZeppelin/openzeppelin-contracts@3.0.0/contracts/token/ERC20/IERC20.sol';
-import 'OpenZeppelin/openzeppelin-contracts@3.0.0/contracts/token/ERC20/SafeERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import './lib/Safe112.sol';
 import './owner/Operator.sol';
@@ -65,6 +65,10 @@ contract Boardroom is ContractGuard, Operator {
         return directors[director].shares;
     }
 
+    function getLastBoardSnapshotTS() public view returns (uint256) {
+        return boardHistory[boardHistory.length.sub(1)].timestamp;
+    }
+
     function getAppointmentTimeOf(address director)
         public
         view
@@ -99,7 +103,7 @@ contract Boardroom is ContractGuard, Operator {
 
     function claimDividends() public onlyOneBlock {
         uint256 totalRewards = getCashEarningsOf(msg.sender);
-        directors[msg.sender].appointmentTime = now;
+        directors[msg.sender].appointmentTime = getLastBoardSnapshotTS().add(1); 
 
         if (totalRewards > 0) {
             cash.safeTransfer(msg.sender, totalRewards);
@@ -179,3 +183,4 @@ contract Boardroom is ContractGuard, Operator {
     event RewardPaid(address indexed user, uint256 reward);
     event RewardAdded(address indexed user, uint256 reward);
 }
+
