@@ -165,9 +165,9 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         directorExists
         updateReward(msg.sender)
     {
-      require(amount > 0, 'Boardroom: Cannot withdraw 0');
-      super.withdraw(amount);
-      emit Withdrawn(msg.sender, amount);
+        require(amount > 0, 'Boardroom: Cannot withdraw 0');
+        super.withdraw(amount);
+        emit Withdrawn(msg.sender, amount);
     }
 
     function exit() external {
