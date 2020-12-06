@@ -213,6 +213,11 @@ contract Treasury is ContractGuard, Operator {
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         _allocateSeigniorage(cashPrice); // ignore returns
 
+        require(
+            cashPrice < cashPriceOne,
+            'Treasury: cashPrice not eligible for bond purchase'
+        );
+
         uint256 bondPrice = cashPrice;
 
         IBasisAsset(cash).burnFrom(msg.sender, amount);
@@ -230,7 +235,7 @@ contract Treasury is ContractGuard, Operator {
 
         require(
             cashPrice > cashPriceCeiling,
-            'Treasury: bond redemption failed; basis cash remains depegged.'
+            'Treasury: cashPrice not eligible for bond purchase'
         );
 
         uint256 treasuryBalance = IERC20(cash).balanceOf(address(this));
