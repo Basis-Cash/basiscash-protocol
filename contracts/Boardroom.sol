@@ -153,9 +153,9 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         onlyOneBlock
         updateReward(msg.sender)
     {
-        require(amount > 0, 'Boardroom: Cannot stake 0');
-        super.stake(amount);
-        emit Staked(msg.sender, amount);
+          require(amount > 0, 'Boardroom: Cannot stake 0');
+          super.stake(amount);
+          emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount)
