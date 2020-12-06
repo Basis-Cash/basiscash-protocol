@@ -167,11 +167,10 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== MUTABLE FUNCTIONS ========== */
 
-    function _getCashPrice() internal returns (uint256 cashPrice) {
+    function _updateCashPrice() internal {
         try IOracle(cashOracle).update()  {} catch {
             revert('Treasury: failed to update cash oracle');
         }
-        cashPrice = getCashPrice();
     }
 
     function _allocateSeigniorage(uint256 cashPrice)
@@ -259,7 +258,8 @@ contract Treasury is ContractGuard, Operator {
     }
 
     function allocateSeigniorage() external {
-        uint256 cashPrice = _getCashPrice();
+        _updateCashPrice();
+        uint256 cashPrice = getCashPrice();
         (bool result, string memory reason) = _allocateSeigniorage(cashPrice);
         require(result, reason);
     }
