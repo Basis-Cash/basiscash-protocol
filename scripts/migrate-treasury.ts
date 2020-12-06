@@ -1,7 +1,7 @@
 import { network, ethers } from 'hardhat';
 import { ParamType, keccak256 } from 'ethers/lib/utils';
 
-import { TREASURY_START_DATE } from '../deploy.config';
+import { DAI, TREASURY_START_DATE, UNI_FACTORY } from '../deploy.config';
 import deployments from '../deployments.second.json';
 import { wait } from './utils';
 
@@ -23,27 +23,37 @@ async function main() {
 
   const [operator] = await ethers.getSigners();
 
+  // Fetch existing contracts
   const cash = await ethers.getContractAt('Cash', deployments.Cash);
   const bond = await ethers.getContractAt('Bond', deployments.Bond);
   const share = await ethers.getContractAt('Share', deployments.Share);
-  const oracle = await ethers.getContractAt('Oracle', deployments.Oracle);
   const timelock = await ethers.getContractAt('Timelock', deployments.Timelock);
+  const treasury = await ethers.getContractAt('Treasury', deployments.Treasury);
 
   if (operator.address !== (await timelock.admin())) {
     throw new Error(`Invalid admin ${operator.address}`);
   }
   console.log(`Admin verified ${operator.address}`);
 
+  const Oracle = await ethers.getContractFactory('Oracle');
   const Treasury = await ethers.getContractFactory('Treasury');
   const Boardroom = await ethers.getContractFactory('Boardroom');
-
-  const treasury = await Treasury.attach(deployments.Treasury);
 
   let tx;
 
   console.log('\n===================================================\n');
 
   console.log('=> Deploy\n');
+
+  const newOracle = await Oracle.connect(operator).deploy(
+    UNI_FACTORY,
+    cash.address,
+    DAI
+  );
+  await wait(
+    newOracle.deployTransaction.hash,
+    `\nDeploy new Oracle => ${newOracle.address}`
+  );
 
   const newBoardroom = await Boardroom.connect(operator).deploy(
     cash.address,
@@ -52,26 +62,36 @@ async function main() {
   );
   await wait(
     newBoardroom.deployTransaction.hash,
-    `Deploy new Boardroom => ${newBoardroom.address}`
+    `\nDeploy new Boardroom => ${newBoardroom.address}`
   );
 
   const newTreasury = await Treasury.connect(operator).deploy(
     cash.address,
     bond.address,
     share.address,
-    oracle.address,
+    newOracle.address,
     newBoardroom.address,
     TREASURY_START_DATE,
     override
   );
   await wait(
     newTreasury.deployTransaction.hash,
-    `Deploy new Treasury => ${newTreasury.address}`
+    `\nDeploy new Treasury => ${newTreasury.address}`
   );
 
   console.log('\n===================================================\n');
 
   console.log('=> RBAC\n');
+
+  tx = await newOracle
+    .connect(operator)
+    .transferOperator(newTreasury.address, override);
+  await wait(tx.hash, 'oracle.transferOperator');
+
+  tx = await newOracle
+    .connect(operator)
+    .transferOwnership(newTreasury.address, override);
+  await wait(tx.hash, 'oracle.transferOwnership');
 
   tx = await newBoardroom
     .connect(operator)
