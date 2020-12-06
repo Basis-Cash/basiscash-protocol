@@ -206,14 +206,14 @@ describe('Treasury', () => {
 
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
-      await oracle.update();
+
+      const tx = await treasury.allocateSeigniorage();
 
       const cashPrice = await oracle.consult(cash.address, ETH);
       const treasuryReserve = await treasury.getReserve();
       const cashSupply = (await cash.totalSupply()).sub(treasuryReserve);
       const expectedSeigniorage = cashSupply.mul(cashPrice.sub(ETH)).div(ETH);
 
-      const tx = await treasury.allocateSeigniorage();
       const blocktime = await latestBlocktime(provider);
       await expect(new Promise((resolve) => resolve(tx)))
         .to.emit(treasury, 'TreasuryFunded')
