@@ -15,7 +15,8 @@ import './interfaces/IUniswapV2Factory.sol';
 contract Oracle is Operator {
     using FixedPoint for *;
 
-    uint256 public constant PERIOD = 24 hours;
+    uint256 public constant PERIOD = 1 days;
+    uint256 public startTime;
 
     IUniswapV2Pair public pair;
     address public token0;
@@ -30,7 +31,8 @@ contract Oracle is Operator {
     constructor(
         address factory,
         address tokenA,
-        address tokenB
+        address tokenB,
+        uint256 _startTime
     ) public {
         IUniswapV2Pair _pair = IUniswapV2Pair(
             UniswapV2Library.pairFor(factory, tokenA, tokenB)
@@ -42,8 +44,11 @@ contract Oracle is Operator {
         price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
         uint112 reserve0;
         uint112 reserve1;
-        (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
+        (reserve0, reserve1, ) = _pair.getReserves();
         require(reserve0 != 0 && reserve1 != 0, 'Oracle: NO_RESERVES'); // ensure that there's liquidity in the pair
+
+        blockTimestampLast = 0;
+        startTime = _startTime;
     }
 
     /** @dev Updates 1-day EMA price from Uniswap.  */
@@ -55,10 +60,14 @@ contract Oracle is Operator {
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
-        if (timeElapsed < PERIOD && operator() != msg.sender) {
-            // if (timeElapsed < PERIOD) {
-            // doesn't need to be updated, since a minimum period is not elapsed yet
-            return;
+        if (block.timestamp < startTime) {
+            if (timeElapsed < PERIOD) {
+                return;
+            }
+        } else {
+            if (operator() != msg.sender) {
+                return;
+            }
         }
 
         if (timeElapsed == 0) {
