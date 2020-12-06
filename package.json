@@ -8,6 +8,7 @@
     "dev": "hardhat node",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
+    "flatten": "truffle-flattener",
     "console:dev": "truffle console --network dev",
     "deploy:dev": "truffle migrate --reset --network dev",
     "deploy:ropsten": "truffle migrate --network ropsten",
