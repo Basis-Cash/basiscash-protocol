@@ -96,6 +96,14 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== VIEW FUNCTIONS ========== */
 
+    function isMigrated() public view returns (bool) {
+        return migrated;
+    }
+
+    function isInitialized() public view returns (bool) {
+        return initialized;
+    }
+
     function getLastAllocated() public view returns (uint256) {
         return lastAllocated;
     }
