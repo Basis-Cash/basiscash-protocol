@@ -138,6 +138,7 @@ contract Treasury is ContractGuard, Operator {
         seigniorageSaved = IERC20(cash).balanceOf(address(this));
 
         initialized = true;
+        emit Initialized(msg.sender, block.number);
     }
 
     function migrate(address target) public onlyOperator checkMigration {
@@ -256,6 +257,7 @@ contract Treasury is ContractGuard, Operator {
         require(result, reason);
     }
 
+    event Initialized(address indexed executor, uint256 at);
     event Migration(address indexed target);
     event RedeemedBonds(address indexed from, uint256 amount);
     event BoughtBonds(address indexed from, uint256 amount);
