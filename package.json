@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "hardhat node",
     "test": "hardhat test",
+    "compile": "hardhat compile",
     "coverage": "hardhat coverage",
     "flatten": "truffle-flattener",
     "console:dev": "truffle console --network dev",
