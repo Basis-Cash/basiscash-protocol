@@ -352,22 +352,6 @@ describe('Treasury', () => {
     });
 
     it('should work correctly', async () => {
-      await oracle.update();
-      const price = await oracle.consult(cash.address, ETH);
-      const antBalance = await cash.balanceOf(ant.address);
-
-      await cash.connect(ant).approve(treasury.address, antBalance);
-      await expect(treasury.connect(ant).buyBonds(antBalance, price))
-        .to.emit(treasury, 'BoughtBonds')
-        .withArgs(ant.address, antBalance);
-
-      expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(
-        antBalance.mul(ETH).div(price)
-      );
-    });
-
-    it('should work correctly when cash price is below $1', async () => {
       await cash.connect(ant).approve(router.address, swapAmount);
 
       await swapToken(provider, router, ant, swapAmount, cash, dai);
@@ -386,7 +370,7 @@ describe('Treasury', () => {
       );
     });
 
-    it('should work correctly when cash price is above $1', async () => {
+    it('should fail when cash price is over $1', async () => {
       await dai.connect(operator).mint(ant.address, swapAmount);
       await dai.connect(ant).approve(router.address, swapAmount);
 
@@ -398,12 +382,9 @@ describe('Treasury', () => {
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury.connect(ant).buyBonds(antBalance, price);
-
-      expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(
-        antBalance.mul(ETH).div(price)
-      );
+      await expect(
+        treasury.connect(ant).buyBonds(ZERO.add(1), price)
+      ).to.revertedWith('Treasury: cashPrice not eligible for bond purchase');
     });
 
     it('should fail if price does not match with current price', async () => {
@@ -520,9 +501,7 @@ describe('Treasury', () => {
       const price = await treasury.getCashPrice();
       await expect(
         treasury.connect(ant).redeemBonds(ZERO.add(1), price)
-      ).to.revertedWith(
-        'Treasury: bond redemption failed; basis cash remains depegged.'
-      );
+      ).to.revertedWith('Treasury: cashPrice not eligible for bond purchase');
     });
 
     it("should fail when user tries to redeem bonds with over contract's budget", async () => {
