@@ -14,7 +14,7 @@ import './interfaces/IUniswapV2Factory.sol';
 contract Oracle {
     using FixedPoint for *;
 
-    uint256 public constant PERIOD = 10 minutes;
+    uint256 public constant PERIOD = 24 hours;
 
     IUniswapV2Pair public pair;
     address public token0;
