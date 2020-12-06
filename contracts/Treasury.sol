@@ -35,7 +35,7 @@ contract Treasury is ContractGuard, Operator {
     address private bond;
     address private share;
     address private boardroom;
-    IOracle private cashOracle;
+    address private cashOracle;
 
     bool private migrated = false;
     uint256 private seigniorageSaved = 0;
@@ -58,7 +58,7 @@ contract Treasury is ContractGuard, Operator {
         cash = _cash;
         bond = _bond;
         share = _share;
-        cashOracle = IOracle(_cashOracle);
+        cashOracle = _cashOracle;
         boardroom = _boardroom;
 
         startTime = _startTime;
@@ -90,6 +90,10 @@ contract Treasury is ContractGuard, Operator {
             Operator(boardroom).operator() == address(this),
             'Treasury: this contract is not the operator of the boardroom contract'
         );
+        require(
+            Operator(cashOracle).operator() == address(this),
+            'Treasury: this contract is not the operator of the oracle contract'
+        );
         _;
     }
 
@@ -100,7 +104,7 @@ contract Treasury is ContractGuard, Operator {
     }
 
     function getCashPrice() public view returns (uint256 cashPrice) {
-        try cashOracle.consult(cash, 1e18) returns (uint256 price) {
+        try IOracle(cashOracle).consult(cash, 1e18) returns (uint256 price) {
             return price;
         } catch {
             revert('Treasury: failed to consult cash price from the oracle');
@@ -137,7 +141,7 @@ contract Treasury is ContractGuard, Operator {
 
     function _getCashPrice() internal returns (uint256 cashPrice) {
         cashPrice = getCashPrice();
-        try cashOracle.update()  {} catch {
+        try IOracle(cashOracle).update()  {} catch {
             revert('Treasury: failed to update cash oracle');
         }
     }

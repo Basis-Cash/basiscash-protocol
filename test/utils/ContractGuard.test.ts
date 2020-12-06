@@ -109,6 +109,7 @@ describe('ContractGuard', () => {
       cash.address,
       dai.address
     );
+
     boardroom = await Boardroom.connect(operator).deploy(
       cash.address,
       share.address
@@ -121,6 +122,7 @@ describe('ContractGuard', () => {
       boardroom.address,
       await latestBlocktime(provider)
     );
+    await oracle.connect(operator).transferOperator(treasury.address);
     await boardroom.connect(operator).transferOperator(treasury.address);
 
     tester = await Tester.connect(operator).deploy(

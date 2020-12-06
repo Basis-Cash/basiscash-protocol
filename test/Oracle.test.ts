@@ -25,9 +25,10 @@ describe('Oracle', () => {
   const { provider } = ethers;
 
   let operator: SignerWithAddress;
+  let whale: SignerWithAddress;
 
   before('setup accounts', async () => {
-    [operator] = await ethers.getSigners();
+    [operator, whale] = await ethers.getSigners();
   });
 
   let Cash: ContractFactory;
@@ -99,7 +100,7 @@ describe('Oracle', () => {
     await advanceTimeAndBlock(provider, Number(await oracle.PERIOD()));
   });
 
-  it('works correctly', async () => {
+  it('should works correctly', async () => {
     await expect(oracle.update()).to.emit(oracle, 'Updated');
     expect(await oracle.consult(dai.address, ETH)).to.eq(ETH);
     expect(await oracle.consult(cash.address, ETH)).to.eq(ETH);
@@ -109,5 +110,10 @@ describe('Oracle', () => {
     expect(
       await oracle.pairFor(factory.address, dai.address, cash.address)
     ).to.eq(await oracle.pair());
+  });
+
+  it('should force updated when execute with operator', async () => {
+    await oracle.connect(operator).update();
+    await expect(oracle.connect(operator).update()).to.emit(oracle, 'Updated');
   });
 });

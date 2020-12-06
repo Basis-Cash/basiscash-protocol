@@ -200,9 +200,9 @@ describe('Treasury', () => {
     });
 
     it('should work correctly', async () => {
-      await cash.connect(operator).transferOperator(treasury.address);
-      await bond.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [cash, bond, share, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
 
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
@@ -224,9 +224,9 @@ describe('Treasury', () => {
 
     it("should funded to boardroom when contract's seigniorage budget exceeds depletion floor", async () => {
       await cash.connect(operator).mint(operator.address, ETH.mul(1000));
-      await cash.connect(operator).transferOperator(treasury.address);
-      await bond.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [cash, bond, share, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
 
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
@@ -252,34 +252,44 @@ describe('Treasury', () => {
     });
 
     it('should fail if treasury is not the operator of cash contract', async () => {
-      await bond.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [bond, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: this contract is not the operator of the basis cash contract'
       );
     });
 
     it('should fail if treasury is not the operator of bond contract', async () => {
-      await cash.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [cash, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: this contract is not the operator of the basis bond contract'
       );
     });
 
     it('should fail if treasury is not the operator of boardroom contract', async () => {
-      await bond.connect(operator).transferOperator(treasury.address);
-      await cash.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [cash, bond, oracle]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: this contract is not the operator of the boardroom contract'
       );
     });
+    it('should fail if treasury is not the operator of oracle contract', async () => {
+      for await (const contract of [cash, bond, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
+      await expect(treasury.allocateSeigniorage()).to.revertedWith(
+        'Treasury: this contract is not the operator of the oracle contract'
+      );
+    });
 
     it('should fail when cash price is below $1+ε', async () => {
-      await cash.connect(operator).transferOperator(treasury.address);
-      await bond.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
-
+      for await (const contract of [cash, bond, share, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
       await advanceTimeAndBlock(provider, allocationDelay);
       await expect(treasury.allocateSeigniorage()).to.revertedWith(
         'Treasury: there is no seigniorage to be allocated'
@@ -295,9 +305,9 @@ describe('Treasury', () => {
       await cash
         .connect(operator)
         .mint(ant.address, swapAmount.add(purchaseAmount));
-      await cash.connect(operator).transferOperator(treasury.address);
-      await bond.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [cash, bond, share, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
     });
 
     it('should work correctly', async () => {
@@ -388,9 +398,9 @@ describe('Treasury', () => {
       ]);
       await cash.connect(operator).mint(operator.address, ETH.mul(10));
       await bond.connect(operator).mint(operator.address, ETH.mul(100));
-      await cash.connect(operator).transferOperator(treasury.address);
-      await bond.connect(operator).transferOperator(treasury.address);
-      await boardroom.connect(operator).transferOperator(treasury.address);
+      for await (const contract of [cash, bond, share, oracle, boardroom]) {
+        await contract.connect(operator).transferOperator(treasury.address);
+      }
     });
 
     it('should work correctly', async () => {

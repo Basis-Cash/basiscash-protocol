@@ -6,12 +6,13 @@ import './lib/Babylonian.sol';
 import './lib/FixedPoint.sol';
 import './lib/UniswapV2Library.sol';
 import './lib/UniswapV2OracleLibrary.sol';
+import './owner/Operator.sol';
 import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IUniswapV2Factory.sol';
 
 // fixed window oracle that recomputes the average price for the entire period once every period
 // note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
-contract Oracle {
+contract Oracle is Operator {
     using FixedPoint for *;
 
     uint256 public constant PERIOD = 24 hours;
@@ -54,7 +55,7 @@ contract Oracle {
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
-        if (timeElapsed < PERIOD) {
+        if (operator() != msg.sender && timeElapsed < PERIOD) {
             // doesn't need to be updated, since a minimum period is not elapsed yet
             return;
         }
