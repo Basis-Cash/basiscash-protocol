@@ -62,11 +62,12 @@ contract Boardroom is ContractGuard, Operator {
     }
 
     modifier updateReward(address director) {
+        uint256 currentIndex = latestSnapshotIndex();
         if (director != address(0)) {
             Boardseat memory seat = directors[director];
             seat.rewardEarned = earned(director);
-            seat.rewardPerSharePaid = getLatestSnapshot().rewardPerShare;
-            seat.lastSnapshotIndex = latestSnapshotIndex();
+            seat.rewardPerSharePaid = boardHistory[currentIndex].rewardPerShare;
+            seat.lastSnapshotIndex = currentIndex;
             directors[director] = seat;
         }
         _;
@@ -97,6 +98,7 @@ contract Boardroom is ContractGuard, Operator {
     }
 
     // =========== Director getters
+
     function shareOf(address director) public view returns (uint256) {
         return directors[director].shares;
     }
@@ -117,7 +119,11 @@ contract Boardroom is ContractGuard, Operator {
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function stake(uint256 amount) public updateReward(msg.sender) {
+    function stake(uint256 amount)
+        public
+        onlyOneBlock
+        updateReward(msg.sender)
+    {
         require(amount > 0, 'Boardroom: Cannot stake 0');
 
         // Update director's boardseat
@@ -133,6 +139,7 @@ contract Boardroom is ContractGuard, Operator {
 
     function withdraw(uint256 amount)
         public
+        onlyOneBlock
         directorExists
         updateReward(msg.sender)
     {
@@ -154,10 +161,10 @@ contract Boardroom is ContractGuard, Operator {
 
     function exit() external {
         withdraw(shareOf(msg.sender));
-        getReward();
+        claimReward();
     }
 
-    function getReward() public updateReward(msg.sender) {
+    function claimReward() public updateReward(msg.sender) {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             directors[msg.sender].rewardEarned = 0;
@@ -174,12 +181,13 @@ contract Boardroom is ContractGuard, Operator {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
 
         // Create & add new snapshot
+        uint256 prevRPS = getLatestSnapshot().rewardPerShare;
+        uint256 nextRPS = prevRPS.add(amount.div(totalShares));
+
         BoardSnapshot memory newSnapshot = BoardSnapshot({
             timestamp: now,
             rewardReceived: amount,
-            rewardPerShare: getLatestSnapshot().rewardPerShare.add(
-                amount.div(totalShares)
-            )
+            rewardPerShare: nextRPS
         });
         boardHistory.push(newSnapshot);
 
