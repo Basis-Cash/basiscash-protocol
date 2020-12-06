@@ -208,6 +208,8 @@ describe('Treasury', () => {
         await token.connect(operator).transferOperator(treasury.address);
         await token.connect(operator).transferOwnership(treasury.address);
       }
+      await oracle.connect(operator).transferOperator(newTreasury.address);
+      await oracle.connect(operator).transferOwnership(newTreasury.address);
       await boardroom.connect(operator).transferOperator(newTreasury.address);
       await boardroom.connect(operator).transferOwnership(newTreasury.address);
     });
@@ -275,7 +277,7 @@ describe('Treasury', () => {
 
     it("should funded to boardroom when contract's seigniorage budget exceeds depletion floor", async () => {
       await cash.connect(operator).mint(operator.address, ETH.mul(1000));
-      await share.connect(operator).mint(ant.address, ETH);        
+      await share.connect(operator).mint(ant.address, ETH);
 
       for await (const contract of [cash, bond, share, oracle, boardroom]) {
         await contract.connect(operator).transferOperator(treasury.address);
@@ -286,7 +288,7 @@ describe('Treasury', () => {
       await oracle.update();
 
       await share.connect(ant).approve(boardroom.address, ETH);
-      await boardroom.connect(ant).stake(ETH);        
+      await boardroom.connect(ant).stake(ETH);
       await treasury.allocateSeigniorage();
       await advanceTimeAndBlock(provider, allocationDelay);
       await oracle.update();
