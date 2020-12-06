@@ -56,7 +56,6 @@ describe('Boardroom', () => {
       await expect(boardroom.connect(whale).stake(STAKE_AMOUNT))
         .to.emit(boardroom, 'Staked')
         .withArgs(whale.address, STAKE_AMOUNT);
-
         
       const latestSnapshotIndex = await boardroom.latestSnapshotIndex();
         
@@ -176,6 +175,9 @@ describe('Boardroom', () => {
       await Promise.all([
         share.connect(operator).mint(whale.address, STAKE_AMOUNT),
         share.connect(whale).approve(boardroom.address, STAKE_AMOUNT),
+
+        share.connect(operator).mint(abuser.address, STAKE_AMOUNT),                    
+        share.connect(abuser).approve(boardroom.address, STAKE_AMOUNT), 
       ]);
       await boardroom.connect(whale).stake(STAKE_AMOUNT);
     });
@@ -187,10 +189,28 @@ describe('Boardroom', () => {
         .approve(boardroom.address, SEIGNIORAGE_AMOUNT);
       await boardroom.connect(operator).allocateSeigniorage(SEIGNIORAGE_AMOUNT);
 
-      await expect(boardroom.connect(whale).claimRewards())
+      await expect(boardroom.connect(whale).claimReward())
         .to.emit(boardroom, 'RewardPaid')
         .withArgs(whale.address, SEIGNIORAGE_AMOUNT);
       expect(await boardroom.balanceOf(whale.address)).to.eq(STAKE_AMOUNT);
     });
+
+   it('should claim devidends correctly even after other person stakes after snapshot', async () => {
+      await cash.connect(operator).mint(operator.address, SEIGNIORAGE_AMOUNT);
+      await cash
+        .connect(operator)
+        .approve(boardroom.address, SEIGNIORAGE_AMOUNT);
+      await boardroom.connect(operator).allocateSeigniorage(SEIGNIORAGE_AMOUNT);
+
+      await boardroom.connect(abuser).stake(STAKE_AMOUNT);        
+
+      await expect(boardroom.connect(whale).claimReward())
+        .to.emit(boardroom, 'RewardPaid')
+        .withArgs(whale.address, SEIGNIORAGE_AMOUNT);
+      expect(await boardroom.balanceOf(whale.address)).to.eq(STAKE_AMOUNT);
+    });      
+      
   });
+
+    
 });
