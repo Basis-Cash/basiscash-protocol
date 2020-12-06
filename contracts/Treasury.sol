@@ -38,6 +38,7 @@ contract Treasury is ContractGuard, Operator {
     IOracle private cashOracle;
 
     bool private migrated = false;
+    bool private initialized = false;
     uint256 private seigniorageSaved = 0;
     uint256 public startTime;
     uint256 public cashPriceCeiling;
@@ -112,6 +113,24 @@ contract Treasury is ContractGuard, Operator {
     }
 
     /* ========== GOVERNANCE ========== */
+
+    function initialize() public checkOperator {
+        require(
+            !initialized,
+            'Treasury: this contract already has been initialized'
+        );
+
+        // burn all of it's balance
+        IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
+
+        // mint only 1001 cash to itself
+        IBasisAsset(cash).mint(address(this), 1001 ether);
+
+        // set seigniorageSaved to it's balance
+        seigniorageSaved = IERC20(cash).balanceOf(address(this));
+
+        initialized = true;
+    }
 
     function migrate(address target) public onlyOperator checkMigration {
         // cash
