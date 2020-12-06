@@ -49,7 +49,6 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
     struct Boardseat {
         uint256 lastSnapshotIndex;
-        uint256 rewardPerSharePaid;
         uint256 rewardEarned;
     }
 
@@ -94,7 +93,6 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         if (director != address(0)) {
             Boardseat memory seat = directors[director];
             seat.rewardEarned = earned(director);
-            seat.rewardPerSharePaid = boardHistory[currentIndex].rewardPerShare;
             seat.lastSnapshotIndex = currentIndex;
             directors[director] = seat;
         }
