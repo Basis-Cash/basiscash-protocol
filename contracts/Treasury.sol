@@ -140,10 +140,10 @@ contract Treasury is ContractGuard, Operator {
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _getCashPrice() internal returns (uint256 cashPrice) {
-        cashPrice = getCashPrice();
         try IOracle(cashOracle).update()  {} catch {
             revert('Treasury: failed to update cash oracle');
         }
+        cashPrice = getCashPrice();
     }
 
     function _allocateSeigniorage(uint256 cashPrice)
