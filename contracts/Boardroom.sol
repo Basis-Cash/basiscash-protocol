@@ -33,8 +33,13 @@ contract ShareWrapper {
     }
 
     function withdraw(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        uint256 directorShare = _balances[msg.sender];
+        require(
+            directorShare >= amount,
+            'Boardroom: withdraw request greater than staked amount'
+        );
+        _totalSupply = _totalSupply.sub(amount);        
+        _balances[msg.sender] = directorShare.sub(amount);
         share.safeTransfer(msg.sender, amount);
     }
 }
@@ -135,7 +140,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 storedRPS = getLastSnapshotOf(director).rewardPerShare;
 
         return
-            balanceOf(director).mul(latestRPS.sub(storedRPS)).div(1e18).add(
+            balanceOf(director).mul(latestRPS.sub(storedRPS)).add(
                 directors[director].rewardEarned
             );
     }
@@ -160,9 +165,9 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         directorExists
         updateReward(msg.sender)
     {
-        require(amount > 0, 'Boardroom: Cannot withdraw 0');
-        super.withdraw(amount);
-        emit Withdrawn(msg.sender, amount);
+      require(amount > 0, 'Boardroom: Cannot withdraw 0');
+      super.withdraw(amount);
+      emit Withdrawn(msg.sender, amount);
     }
 
     function exit() external {
@@ -185,6 +190,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         onlyOperator
     {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
+        require(totalSupply() > 0, 'Boardroom: Cannot allocate when totalSupply is 0');        
 
         // Create & add new snapshot
         uint256 prevRPS = getLatestSnapshot().rewardPerShare;
