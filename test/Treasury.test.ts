@@ -15,6 +15,7 @@ chai.use(solidity);
 const DAY = 86400;
 const ETH = utils.parseEther('1');
 const ZERO = BigNumber.from(0);
+const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
 async function latestBlocktime(provider: Provider): Promise<number> {
   const { timestamp } = await provider.getBlock('latest');
@@ -189,6 +190,56 @@ describe('Treasury', () => {
     });
   });
 
+  describe('#initialize', () => {
+    let newTreasury: Contract;
+
+    beforeEach('deploy new treasury', async () => {
+      newTreasury = await Treasury.connect(operator).deploy(
+        cash.address,
+        bond.address,
+        share.address,
+        oracle.address,
+        boardroom.address,
+        await latestBlocktime(provider)
+      );
+
+      for await (const token of [cash, bond, share]) {
+        await token.connect(operator).mint(treasury.address, ETH);
+        await token.connect(operator).transferOperator(treasury.address);
+        await token.connect(operator).transferOwnership(treasury.address);
+      }
+      await boardroom.connect(operator).transferOperator(newTreasury.address);
+      await boardroom.connect(operator).transferOwnership(newTreasury.address);
+    });
+
+    it('should works correctly', async () => {
+      await treasury.connect(operator).migrate(newTreasury.address);
+
+      await expect(newTreasury.initialize())
+        .to.emit(newTreasury, 'Initialized')
+        .to.emit(cash, 'Transfer')
+        .withArgs(newTreasury.address, ZERO_ADDR, ETH)
+        .to.emit(cash, 'Transfer')
+        .withArgs(ZERO_ADDR, newTreasury.address, ETH.mul(1001));
+
+      expect(await newTreasury.getReserve()).to.eq(ETH.mul(1001));
+    });
+
+    it("should fail if newTreasury is not the operator of tokens' contract", async () => {
+      await expect(newTreasury.initialize()).to.revertedWith(
+        'Treasury: this contract is not the operator of the basis cash contract'
+      );
+    });
+
+    it('should fail if abuser tries to initialize twice', async () => {
+      await treasury.connect(operator).migrate(newTreasury.address);
+      await newTreasury.initialize();
+      await expect(newTreasury.initialize()).to.revertedWith(
+        'Treasury: this contract already has been initialized'
+      );
+    });
+  });
+
   describe('#allocateSeigniorage', () => {
     const swapAmount = ETH.sub(ETH.div(4));
 
@@ -224,6 +275,8 @@ describe('Treasury', () => {
 
     it("should funded to boardroom when contract's seigniorage budget exceeds depletion floor", async () => {
       await cash.connect(operator).mint(operator.address, ETH.mul(1000));
+      await share.connect(operator).mint(ant.address, ETH);        
+
       for await (const contract of [cash, bond, share, oracle, boardroom]) {
         await contract.connect(operator).transferOperator(treasury.address);
       }
@@ -231,6 +284,9 @@ describe('Treasury', () => {
       await swapToken(provider, router, ant, swapAmount, dai, cash);
       await advanceTimeAndBlock(provider, allocationDelay);
       await oracle.update();
+
+      await share.connect(ant).approve(boardroom.address, ETH);
+      await boardroom.connect(ant).stake(ETH);        
       await treasury.allocateSeigniorage();
       await advanceTimeAndBlock(provider, allocationDelay);
       await oracle.update();
@@ -311,22 +367,6 @@ describe('Treasury', () => {
     });
 
     it('should work correctly', async () => {
-      await oracle.update();
-      const price = await oracle.consult(cash.address, ETH);
-      const antBalance = await cash.balanceOf(ant.address);
-
-      await cash.connect(ant).approve(treasury.address, antBalance);
-      await expect(treasury.connect(ant).buyBonds(antBalance, price))
-        .to.emit(treasury, 'BoughtBonds')
-        .withArgs(ant.address, antBalance);
-
-      expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(
-        antBalance.mul(ETH).div(price)
-      );
-    });
-
-    it('should work correctly when cash price is below $1', async () => {
       await cash.connect(ant).approve(router.address, swapAmount);
 
       await swapToken(provider, router, ant, swapAmount, cash, dai);
@@ -345,7 +385,7 @@ describe('Treasury', () => {
       );
     });
 
-    it('should work correctly when cash price is above $1', async () => {
+    it('should fail when cash price is over $1', async () => {
       await dai.connect(operator).mint(ant.address, swapAmount);
       await dai.connect(ant).approve(router.address, swapAmount);
 
@@ -357,12 +397,9 @@ describe('Treasury', () => {
       const antBalance = await cash.balanceOf(ant.address);
 
       await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury.connect(ant).buyBonds(antBalance, price);
-
-      expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(
-        antBalance.mul(ETH).div(price)
-      );
+      await expect(
+        treasury.connect(ant).buyBonds(ZERO.add(1), price)
+      ).to.revertedWith('Treasury: cashPrice not eligible for bond purchase');
     });
 
     it('should fail if price does not match with current price', async () => {
@@ -479,9 +516,7 @@ describe('Treasury', () => {
       const price = await treasury.getCashPrice();
       await expect(
         treasury.connect(ant).redeemBonds(ZERO.add(1), price)
-      ).to.revertedWith(
-        'Treasury: bond redemption failed; basis cash remains depegged.'
-      );
+      ).to.revertedWith('Treasury: cashPrice not eligible for bond purchase');
     });
 
     it("should fail when user tries to redeem bonds with over contract's budget", async () => {
