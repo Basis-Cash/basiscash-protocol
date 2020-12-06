@@ -55,8 +55,14 @@ contract Oracle is Operator {
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
-        if (operator() != msg.sender && timeElapsed < PERIOD) {
+        if (timeElapsed < PERIOD && operator() != msg.sender) {
+            // if (timeElapsed < PERIOD) {
             // doesn't need to be updated, since a minimum period is not elapsed yet
+            return;
+        }
+
+        if (timeElapsed == 0) {
+            // prevent divided by zero
             return;
         }
 
