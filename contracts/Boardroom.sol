@@ -115,12 +115,21 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         return boardHistory[latestSnapshotIndex()];
     }
 
+    function getLastSnapshotIndexOf(address director)
+        public
+        view
+        returns (uint256)
+    {
+        return directors[director].lastSnapshotIndex;
+    }
+
+    
     function getLastSnapshotOf(address director)
         internal
         view
         returns (BoardSnapshot memory)
     {
-        return boardHistory[directors[director].lastSnapshotIndex];
+        return boardHistory[getLastSnapshotIndexOf(director)];
     }
 
     // =========== Director getters
