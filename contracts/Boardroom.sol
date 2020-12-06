@@ -62,8 +62,6 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
     IERC20 private cash;
 
-    uint256 private totalShares;
-
     mapping(address => Boardseat) private directors;
     BoardSnapshot[] private boardHistory;
 
@@ -75,8 +73,6 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
         BoardSnapshot memory genesisSnapshot = BoardSnapshot(now, 0, 0);
         boardHistory.push(genesisSnapshot);
-
-        totalShares = 0;
     }
 
     /* ========== Modifiers =============== */
@@ -100,10 +96,6 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     /* ========== VIEW FUNCTIONS ========== */
-
-    function totalShare() public view returns (uint256) {
-        return totalShares;
-    }
 
     // =========== Snapshot getters
 
@@ -187,7 +179,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
         // Create & add new snapshot
         uint256 prevRPS = getLatestSnapshot().rewardPerShare;
-        uint256 nextRPS = prevRPS.add(amount.div(totalShares));
+        uint256 nextRPS = prevRPS.add(amount.div(totalSupply()));
 
         BoardSnapshot memory newSnapshot = BoardSnapshot({
             timestamp: now,
