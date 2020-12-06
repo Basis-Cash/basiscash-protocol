@@ -7,3 +7,6 @@ build/
 coverage/
 coverage.json
 *.log
+
+hardhat.config.ts
+truffle-config.js
