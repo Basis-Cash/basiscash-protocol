@@ -185,9 +185,8 @@ contract Treasury is ContractGuard, Operator {
     function buyBonds(uint256 amount, uint256 targetPrice) external {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
-        uint256 cashPrice = _getCashPrice();
+        uint256 cashPrice = getCashPrice();
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
-        _allocateSeigniorage(cashPrice); // ignore returns
 
         uint256 bondPrice = cashPrice;
 
@@ -200,9 +199,8 @@ contract Treasury is ContractGuard, Operator {
     function redeemBonds(uint256 amount, uint256 targetPrice) external {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
-        uint256 cashPrice = _getCashPrice();
+        uint256 cashPrice = getCashPrice();
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
-        _allocateSeigniorage(cashPrice); // ignore returns
 
         require(
             cashPrice > cashPriceCeiling,
