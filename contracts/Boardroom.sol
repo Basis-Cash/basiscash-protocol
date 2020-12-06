@@ -33,8 +33,13 @@ contract ShareWrapper {
     }
 
     function withdraw(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        uint256 directorShare = _balances[msg.sender];
+        require(
+            directorShare >= amount,
+            'Boardroom: withdraw request greater than staked amount'
+        );
+        _totalSupply = _totalSupply.sub(amount);        
+        _balances[msg.sender] = directorShare.sub(amount);
         share.safeTransfer(msg.sender, amount);
     }
 }
@@ -107,12 +112,21 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         return boardHistory[latestSnapshotIndex()];
     }
 
+    function getLastSnapshotIndexOf(address director)
+        public
+        view
+        returns (uint256)
+    {
+        return directors[director].lastSnapshotIndex;
+    }
+
+    
     function getLastSnapshotOf(address director)
         internal
         view
         returns (BoardSnapshot memory)
     {
-        return boardHistory[directors[director].lastSnapshotIndex];
+        return boardHistory[getLastSnapshotIndexOf(director)];
     }
 
     // =========== Director getters
@@ -126,7 +140,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 storedRPS = getLastSnapshotOf(director).rewardPerShare;
 
         return
-            balanceOf(director).mul(latestRPS.sub(storedRPS)).div(1e18).add(
+            balanceOf(director).mul(latestRPS.sub(storedRPS)).add(
                 directors[director].rewardEarned
             );
     }
@@ -139,9 +153,9 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         onlyOneBlock
         updateReward(msg.sender)
     {
-        require(amount > 0, 'Boardroom: Cannot stake 0');
-        super.stake(amount);
-        emit Staked(msg.sender, amount);
+          require(amount > 0, 'Boardroom: Cannot stake 0');
+          super.stake(amount);
+          emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount)
@@ -176,6 +190,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         onlyOperator
     {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
+        require(totalSupply() > 0, 'Boardroom: Cannot allocate when totalSupply is 0');        
 
         // Create & add new snapshot
         uint256 prevRPS = getLatestSnapshot().rewardPerShare;
