@@ -162,7 +162,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     function claimReward() public updateReward(msg.sender) {
-        uint256 reward = earned(msg.sender);
+        uint256 reward = directors[msg.sender].rewardEarned;
         if (reward > 0) {
             directors[msg.sender].rewardEarned = 0;
             cash.safeTransfer(msg.sender, reward);
