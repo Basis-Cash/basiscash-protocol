@@ -38,6 +38,7 @@ contract Treasury is ContractGuard, Operator {
     IOracle private cashOracle;
 
     bool private migrated = false;
+    bool private initialized = false;
     uint256 private seigniorageSaved = 0;
     uint256 public startTime;
     uint256 public cashPriceCeiling;
@@ -95,6 +96,14 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== VIEW FUNCTIONS ========== */
 
+    function isMigrated() public view returns (bool) {
+        return migrated;
+    }
+
+    function isInitialized() public view returns (bool) {
+        return initialized;
+    }
+
     function getLastAllocated() public view returns (uint256) {
         return lastAllocated;
     }
@@ -112,6 +121,25 @@ contract Treasury is ContractGuard, Operator {
     }
 
     /* ========== GOVERNANCE ========== */
+
+    function initialize() public checkOperator {
+        require(
+            !initialized,
+            'Treasury: this contract already has been initialized'
+        );
+
+        // burn all of it's balance
+        IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
+
+        // mint only 1001 cash to itself
+        IBasisAsset(cash).mint(address(this), 1001 ether);
+
+        // set seigniorageSaved to it's balance
+        seigniorageSaved = IERC20(cash).balanceOf(address(this));
+
+        initialized = true;
+        emit Initialized(msg.sender, block.number);
+    }
 
     function migrate(address target) public onlyOperator checkMigration {
         // cash
@@ -185,6 +213,11 @@ contract Treasury is ContractGuard, Operator {
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         _allocateSeigniorage(cashPrice); // ignore returns
 
+        require(
+            cashPrice < cashPriceOne,
+            'Treasury: cashPrice not eligible for bond purchase'
+        );
+
         uint256 bondPrice = cashPrice;
 
         IBasisAsset(cash).burnFrom(msg.sender, amount);
@@ -202,7 +235,7 @@ contract Treasury is ContractGuard, Operator {
 
         require(
             cashPrice > cashPriceCeiling,
-            'Treasury: bond redemption failed; basis cash remains depegged.'
+            'Treasury: cashPrice not eligible for bond purchase'
         );
 
         uint256 treasuryBalance = IERC20(cash).balanceOf(address(this));
@@ -229,6 +262,7 @@ contract Treasury is ContractGuard, Operator {
         require(result, reason);
     }
 
+    event Initialized(address indexed executor, uint256 at);
     event Migration(address indexed target);
     event RedeemedBonds(address indexed from, uint256 amount);
     event BoughtBonds(address indexed from, uint256 amount);
