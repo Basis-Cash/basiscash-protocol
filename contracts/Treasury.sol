@@ -1,5 +1,6 @@
 pragma solidity ^0.6.0;
 
+import '@openzeppelin/contracts/math/Math.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
@@ -27,24 +28,31 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========= CONSTANT VARIABLES ======== */
 
-    uint256 public constant allocationDelay = 1 days;
+    uint256 public constant PERIOD = 1 days;
 
     /* ========== STATE VARIABLES ========== */
 
+    // flags
+    bool private migrated = false;
+    bool private initialized = false;
+
+    // epoch
+    uint256 public startTime;
+    uint256 public epoch = 0;
+    mapping(uint256 => bool) public updateHistory;
+
+    // core components
     address private cash;
     address private bond;
     address private share;
     address private boardroom;
     address private cashOracle;
 
-    bool private migrated = false;
-    bool private initialized = false;
-    uint256 private seigniorageSaved = 0;
-    uint256 public startTime;
-    uint256 public cashPriceCeiling;
+    // price
     uint256 public cashPriceOne;
+    uint256 public cashPriceCeiling;
     uint256 private bondDepletionFloor;
-    uint256 private lastAllocated;
+    uint256 private seigniorageSaved = 0;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -68,38 +76,24 @@ contract Treasury is ContractGuard, Operator {
         cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
 
         bondDepletionFloor = uint256(1000).mul(cashPriceOne);
-        lastAllocated = now;
     }
 
-    /* ========== MODIFIER ========== */
+    /* =================== Modifier =================== */
 
-    modifier checkMigration {
-        require(!migrated, 'Treasury: this contract has been migrated');
-        _;
-    }
+    modifier checkEpoch {
+        uint256 epochPoint = nextEpochPoint();
+        require(now >= epochPoint, 'Treasury: not opened yet');
+        require(allocated() == false, 'Treasury: already executed');
 
-    modifier checkOperator {
-        require(
-            IBasisAsset(cash).operator() == address(this),
-            'Treasury: this contract is not the operator of the basis cash contract'
-        );
-        require(
-            IBasisAsset(bond).operator() == address(this),
-            'Treasury: this contract is not the operator of the basis bond contract'
-        );
-        require(
-            Operator(boardroom).operator() == address(this),
-            'Treasury: this contract is not the operator of the boardroom contract'
-        );
-        require(
-            Operator(cashOracle).operator() == address(this),
-            'Treasury: this contract is not the operator of the oracle contract'
-        );
         _;
+
+        updateHistory[epoch] = true;
+        epoch = epoch.add(1);
     }
 
     /* ========== VIEW FUNCTIONS ========== */
 
+    // flags
     function isMigrated() public view returns (bool) {
         return migrated;
     }
@@ -108,10 +102,25 @@ contract Treasury is ContractGuard, Operator {
         return initialized;
     }
 
-    function getLastAllocated() public view returns (uint256) {
-        return lastAllocated;
+    function checkOperator() internal view returns (bool) {
+        return
+            IBasisAsset(cash).operator() == address(this) &&
+            IBasisAsset(bond).operator() == address(this) &&
+            IBasisAsset(share).operator() == address(this) &&
+            Operator(boardroom).operator() == address(this) &&
+            Operator(cashOracle).operator() == address(this);
     }
 
+    // epoch
+    function allocated() public view returns (bool) {
+        return updateHistory[epoch];
+    }
+
+    function nextEpochPoint() public view returns (uint256) {
+        return startTime.add(epoch.mul(PERIOD));
+    }
+
+    // oracle
     function getCashPrice() public view returns (uint256 cashPrice) {
         try IOracle(cashOracle).consult(cash, 1e18) returns (uint256 price) {
             return price;
@@ -120,17 +129,16 @@ contract Treasury is ContractGuard, Operator {
         }
     }
 
+    // budget
     function getReserve() public view returns (uint256) {
         return seigniorageSaved;
     }
 
     /* ========== GOVERNANCE ========== */
 
-    function initialize() public checkOperator {
-        require(
-            !initialized,
-            'Treasury: this contract already has been initialized'
-        );
+    function initialize() public {
+        require(checkOperator(), 'Treasury: need more permission');
+        require(!initialized, 'Treasury: already initialized');
 
         // burn all of it's balance
         IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
@@ -145,7 +153,10 @@ contract Treasury is ContractGuard, Operator {
         emit Initialized(msg.sender, block.number);
     }
 
-    function migrate(address target) public onlyOperator checkMigration {
+    function migrate(address target) public onlyOperator {
+        require(checkOperator(), 'Treasury: need more permission');
+        require(!migrated, 'Treasury: already migrated');
+
         // cash
         Operator(cash).transferOperator(target);
         Operator(cash).transferOwnership(target);
@@ -168,27 +179,63 @@ contract Treasury is ContractGuard, Operator {
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _updateCashPrice() internal {
-        try IOracle(cashOracle).update()  {} catch {
-            revert('Treasury: failed to update cash oracle');
-        }
+        try IOracle(cashOracle).update()  {} catch {}
     }
 
-    function _allocateSeigniorage(uint256 cashPrice)
-        internal
-        onlyOneBlock
-        checkOperator
-        checkMigration
-        returns (bool, string memory)
-    {
-        if (now.sub(lastAllocated) < allocationDelay) {
-            return (false, 'Treasury: a day has not passed yet');
-        }
-        if (block.timestamp < startTime) {
-            return (false, 'Treasury: not started yet');
-        }
-        if (cashPrice <= cashPriceCeiling) {
-            return (false, 'Treasury: there is no seigniorage to be allocated');
-        }
+    function buyBonds(uint256 amount, uint256 targetPrice) external {
+        require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
+
+        uint256 cashPrice = getCashPrice();
+        require(cashPrice == targetPrice, 'Treasury: cash price moved');
+        require(
+            cashPrice < cashPriceOne, // price < $1
+            'Treasury: cashPrice not eligible for bond purchase'
+        );
+
+        uint256 bondPrice = cashPrice;
+
+        IBasisAsset(cash).burnFrom(msg.sender, amount);
+        IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
+        _updateCashPrice();
+
+        emit BoughtBonds(msg.sender, amount);
+    }
+
+    function redeemBonds(uint256 amount, uint256 targetPrice) external {
+        require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
+
+        uint256 cashPrice = getCashPrice();
+        require(cashPrice == targetPrice, 'Treasury: cash price moved');
+        require(
+            cashPrice > cashPriceCeiling, // price > $1.05
+            'Treasury: cashPrice not eligible for bond purchase'
+        );
+        require(
+            IERC20(cash).balanceOf(address(this)) >= amount,
+            'Treasury: treasury has no more budget'
+        );
+
+        seigniorageSaved = seigniorageSaved.sub(
+            Math.min(seigniorageSaved, amount)
+        );
+
+        IBasisAsset(bond).burnFrom(msg.sender, amount);
+        IERC20(cash).safeTransfer(msg.sender, amount);
+        _updateCashPrice();
+
+        emit RedeemedBonds(msg.sender, amount);
+    }
+
+    function allocateSeigniorage() external onlyOneBlock checkEpoch {
+        _updateCashPrice();
+        uint256 cashPrice = getCashPrice();
+        require(
+            cashPrice > cashPriceCeiling,
+            'Treasury: there is no seigniorage to be allocated'
+        );
+
+        require(checkOperator(), 'Treasury: need more permission');
+        require(!migrated, 'Treasury: already migrated');
 
         uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
@@ -204,64 +251,6 @@ contract Treasury is ContractGuard, Operator {
             IBasisAsset(cash).mint(address(this), seigniorage);
             emit TreasuryFunded(now, seigniorage);
         }
-
-        lastAllocated = now;
-        return (true, 'Treasury: success');
-    }
-
-    function buyBonds(uint256 amount, uint256 targetPrice) external {
-        require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
-
-        uint256 cashPrice = getCashPrice();
-        require(cashPrice == targetPrice, 'Treasury: cash price moved');
-
-        require(
-            cashPrice < cashPriceOne,
-            'Treasury: cashPrice not eligible for bond purchase'
-        );
-
-        uint256 bondPrice = cashPrice;
-
-        IBasisAsset(cash).burnFrom(msg.sender, amount);
-        IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
-
-        emit BoughtBonds(msg.sender, amount);
-    }
-
-    function redeemBonds(uint256 amount, uint256 targetPrice) external {
-        require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
-
-        uint256 cashPrice = getCashPrice();
-        require(cashPrice == targetPrice, 'Treasury: cash price moved');
-
-        require(
-            cashPrice > cashPriceCeiling,
-            'Treasury: cashPrice not eligible for bond purchase'
-        );
-
-        uint256 treasuryBalance = IERC20(cash).balanceOf(address(this));
-        require(
-            treasuryBalance >= amount,
-            'Treasury: treasury has no more budget'
-        );
-
-        if (seigniorageSaved >= amount) {
-            seigniorageSaved = seigniorageSaved.sub(amount);
-        } else {
-            seigniorageSaved = 0;
-        }
-
-        IBasisAsset(bond).burnFrom(msg.sender, amount);
-        IERC20(cash).safeTransfer(msg.sender, amount);
-
-        emit RedeemedBonds(msg.sender, amount);
-    }
-
-    function allocateSeigniorage() external {
-        _updateCashPrice();
-        uint256 cashPrice = getCashPrice();
-        (bool result, string memory reason) = _allocateSeigniorage(cashPrice);
-        require(result, reason);
     }
 
     event Initialized(address indexed executor, uint256 at);
