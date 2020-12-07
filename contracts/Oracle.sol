@@ -6,27 +6,40 @@ import './lib/Babylonian.sol';
 import './lib/FixedPoint.sol';
 import './lib/UniswapV2Library.sol';
 import './lib/UniswapV2OracleLibrary.sol';
-import './owner/Operator.sol';
 import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IUniswapV2Factory.sol';
 
 // fixed window oracle that recomputes the average price for the entire period once every period
 // note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
-contract Oracle is Operator {
+contract Oracle {
     using FixedPoint for *;
+    using SafeMath for uint256;
+
+    /* ========= CONSTANT VARIABLES ======== */
 
     uint256 public constant PERIOD = 1 days;
-    uint256 public startTime;
+    uint256 public constant OFFSET = 5 minutes;
 
-    IUniswapV2Pair public pair;
+    /* ========== STATE VARIABLES ========== */
+
+    // epoch
+    uint256 public startTime;
+    uint256 public epoch = 0;
+    mapping(uint256 => bool) public updateHistory;
+
+    // uniswap
     address public token0;
     address public token1;
+    IUniswapV2Pair public pair;
 
+    // oracle
+    uint32 public blockTimestampLast;
     uint256 public price0CumulativeLast;
     uint256 public price1CumulativeLast;
-    uint32 public blockTimestampLast;
     FixedPoint.uq112x112 public price0Average;
     FixedPoint.uq112x112 public price1Average;
+
+    /* ========== CONSTRUCTOR ========== */
 
     constructor(
         address factory,
@@ -51,24 +64,40 @@ contract Oracle is Operator {
         startTime = _startTime;
     }
 
+    /* =================== Modifier =================== */
+
+    modifier checkEpoch {
+        uint256 epochPoint = nextEpochPoint();
+        require(now >= epochPoint.sub(OFFSET), 'Oracle: not opened yet');
+        require(now <= epochPoint.add(OFFSET), 'Oracle: already closed');
+        require(updated() == false, 'Oracle: already executed');
+
+        _;
+
+        updateHistory[epoch] = true;
+        epoch = epoch.add(1);
+    }
+
+    /* ========== VIEW FUNCTIONS ========== */
+
+    function updated() public view returns (bool) {
+        return updateHistory[epoch];
+    }
+
+    function nextEpochPoint() public view returns (uint256) {
+        return startTime.add(epoch.mul(PERIOD));
+    }
+
+    /* ========== MUTABLE FUNCTIONS ========== */
+
     /** @dev Updates 1-day EMA price from Uniswap.  */
-    function update() external {
+    function update() external checkEpoch {
         (
             uint256 price0Cumulative,
             uint256 price1Cumulative,
             uint32 blockTimestamp
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
-
-        if (block.timestamp < startTime) {
-            if (timeElapsed < PERIOD) {
-                return;
-            }
-        } else {
-            if (operator() != msg.sender) {
-                return;
-            }
-        }
 
         if (timeElapsed == 0) {
             // prevent divided by zero
