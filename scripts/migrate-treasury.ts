@@ -2,7 +2,7 @@ import { network, ethers } from 'hardhat';
 import { ParamType, keccak256 } from 'ethers/lib/utils';
 
 import { DAI, TREASURY_START_DATE, UNI_FACTORY } from '../deploy.config';
-import deployments from '../deployments.second.json';
+import deployments from '../deployments.third.json';
 import { wait } from './utils';
 
 const DAY = 86400;
@@ -27,6 +27,7 @@ async function main() {
   const cash = await ethers.getContractAt('Cash', deployments.Cash);
   const bond = await ethers.getContractAt('Bond', deployments.Bond);
   const share = await ethers.getContractAt('Share', deployments.Share);
+  const oracle = await ethers.getContractAt('Oracle', deployments.Oracle);
   const timelock = await ethers.getContractAt('Timelock', deployments.Timelock);
   const treasury = await ethers.getContractAt('Treasury', deployments.Treasury);
 
@@ -45,15 +46,15 @@ async function main() {
 
   console.log('=> Deploy\n');
 
-  const newOracle = await Oracle.connect(operator).deploy(
-    UNI_FACTORY,
-    cash.address,
-    DAI
-  );
-  await wait(
-    newOracle.deployTransaction.hash,
-    `\nDeploy new Oracle => ${newOracle.address}`
-  );
+  // const newOracle = await Oracle.connect(operator).deploy(
+  //   UNI_FACTORY,
+  //   cash.address,
+  //   DAI
+  // );
+  // await wait(
+  //   newOracle.deployTransaction.hash,
+  //   `\nDeploy new Oracle => ${newOracle.address}`
+  // );
 
   const newBoardroom = await Boardroom.connect(operator).deploy(
     cash.address,
@@ -69,7 +70,8 @@ async function main() {
     cash.address,
     bond.address,
     share.address,
-    newOracle.address,
+    // newOracle.address,
+    oracle.address,
     newBoardroom.address,
     TREASURY_START_DATE,
     override
@@ -83,15 +85,15 @@ async function main() {
 
   console.log('=> RBAC\n');
 
-  tx = await newOracle
-    .connect(operator)
-    .transferOperator(newTreasury.address, override);
-  await wait(tx.hash, 'oracle.transferOperator');
+  // tx = await newOracle
+  //   .connect(operator)
+  //   .transferOperator(newTreasury.address, override);
+  // await wait(tx.hash, 'oracle.transferOperator');
 
-  tx = await newOracle
-    .connect(operator)
-    .transferOwnership(newTreasury.address, override);
-  await wait(tx.hash, 'oracle.transferOwnership');
+  // tx = await newOracle
+  //   .connect(operator)
+  //   .transferOwnership(newTreasury.address, override);
+  // await wait(tx.hash, 'oracle.transferOwnership');
 
   tx = await newBoardroom
     .connect(operator)
