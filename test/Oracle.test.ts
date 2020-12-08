@@ -40,6 +40,7 @@ async function addLiquidity(
 }
 
 describe('Oracle', () => {
+  const MINUTE = 60;
   const DAY = 86400;
   const ETH = utils.parseEther('1');
 
@@ -116,7 +117,7 @@ describe('Oracle', () => {
     it('should works correctly', async () => {
       await advanceTimeAndBlock(
         provider,
-        oracleStartTime.sub(await latestBlocktime(provider)).toNumber() - 2
+        oracleStartTime.sub(await latestBlocktime(provider)).toNumber() - MINUTE
       );
 
       // epoch 0
@@ -124,7 +125,7 @@ describe('Oracle', () => {
       expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime);
       expect(await oracle.epoch()).to.eq(BigNumber.from(0));
 
-      await advanceTimeAndBlock(provider, 1);
+      await advanceTimeAndBlock(provider, 2 * MINUTE);
 
       // epoch 1
       await expect(oracle.update()).to.emit(oracle, 'Updated');
