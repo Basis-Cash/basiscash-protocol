@@ -18,7 +18,6 @@ contract Oracle {
     /* ========= CONSTANT VARIABLES ======== */
 
     uint256 public constant PERIOD = 1 days;
-    uint256 public constant OFFSET = 5 minutes;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -68,8 +67,7 @@ contract Oracle {
 
     modifier checkEpoch {
         uint256 epochPoint = nextEpochPoint();
-        require(now >= epochPoint.sub(OFFSET), 'Oracle: not opened yet');
-        require(now <= epochPoint.add(OFFSET), 'Oracle: already closed');
+        require(now >= epochPoint, 'Oracle: not opened yet');
         require(updated() == false, 'Oracle: already executed');
 
         _;
