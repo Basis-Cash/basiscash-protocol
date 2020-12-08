@@ -40,13 +40,13 @@ contract Oracle {
     /* ========== CONSTRUCTOR ========== */
 
     constructor(
-        address factory,
-        address tokenA,
-        address tokenB,
+        address _factory,
+        address _tokenA,
+        address _tokenB,
         uint256 _startTime
     ) public {
         IUniswapV2Pair _pair = IUniswapV2Pair(
-            UniswapV2Library.pairFor(factory, tokenA, tokenB)
+            UniswapV2Library.pairFor(_factory, _tokenA, _tokenB)
         );
         pair = _pair;
         token0 = _pair.token0();
