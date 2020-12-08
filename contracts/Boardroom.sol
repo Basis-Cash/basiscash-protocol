@@ -142,7 +142,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 storedRPS = getLastSnapshotOf(director).rewardPerShare;
 
         return
-            balanceOf(director).mul(latestRPS.sub(storedRPS)).add(
+            balanceOf(director).mul(latestRPS.sub(storedRPS)).div(1e18).add(
                 directors[director].rewardEarned
             );
     }
@@ -199,7 +199,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
         // Create & add new snapshot
         uint256 prevRPS = getLatestSnapshot().rewardPerShare;
-        uint256 nextRPS = prevRPS.add(amount.div(totalSupply()));
+        uint256 nextRPS = prevRPS.add(amount.mul(1e18).div(totalSupply()));
 
         BoardSnapshot memory newSnapshot = BoardSnapshot({
             time: block.number,
