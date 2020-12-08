@@ -39,7 +39,6 @@ contract Treasury is ContractGuard, Operator {
     // epoch
     uint256 public startTime;
     uint256 public epoch = 0;
-    mapping(uint256 => bool) public updateHistory;
 
     // core components
     address private cash;
@@ -83,11 +82,9 @@ contract Treasury is ContractGuard, Operator {
     modifier checkEpoch {
         uint256 epochPoint = nextEpochPoint();
         require(now >= epochPoint, 'Treasury: not opened yet');
-        require(allocated() == false, 'Treasury: already executed');
 
         _;
 
-        updateHistory[epoch] = true;
         epoch = epoch.add(1);
     }
 
@@ -107,15 +104,10 @@ contract Treasury is ContractGuard, Operator {
             IBasisAsset(cash).operator() == address(this) &&
             IBasisAsset(bond).operator() == address(this) &&
             IBasisAsset(share).operator() == address(this) &&
-            Operator(boardroom).operator() == address(this) &&
-            Operator(cashOracle).operator() == address(this);
+            Operator(boardroom).operator() == address(this);
     }
 
     // epoch
-    function allocated() public view returns (bool) {
-        return updateHistory[epoch];
-    }
-
     function nextEpochPoint() public view returns (uint256) {
         return startTime.add(epoch.mul(PERIOD));
     }

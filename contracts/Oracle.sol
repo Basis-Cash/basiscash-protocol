@@ -24,7 +24,6 @@ contract Oracle {
     // epoch
     uint256 public startTime;
     uint256 public epoch = 0;
-    mapping(uint256 => bool) public updateHistory;
 
     // uniswap
     address public token0;
@@ -67,19 +66,13 @@ contract Oracle {
     modifier checkEpoch {
         uint256 epochPoint = nextEpochPoint();
         require(now >= epochPoint, 'Oracle: not opened yet');
-        require(updated() == false, 'Oracle: already executed');
 
         _;
 
-        updateHistory[epoch] = true;
         epoch = epoch.add(1);
     }
 
     /* ========== VIEW FUNCTIONS ========== */
-
-    function updated() public view returns (bool) {
-        return updateHistory[epoch];
-    }
 
     function nextEpochPoint() public view returns (uint256) {
         return startTime.add(epoch.mul(PERIOD));
