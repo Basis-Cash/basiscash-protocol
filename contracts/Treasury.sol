@@ -80,8 +80,7 @@ contract Treasury is ContractGuard, Operator {
     /* =================== Modifier =================== */
 
     modifier checkEpoch {
-        uint256 epochPoint = nextEpochPoint();
-        require(now >= epochPoint, 'Treasury: not opened yet');
+        require(now >= nextEpochPoint(), 'Treasury: not opened yet');
 
         _;
 

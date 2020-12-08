@@ -64,8 +64,7 @@ contract Oracle {
     /* =================== Modifier =================== */
 
     modifier checkEpoch {
-        uint256 epochPoint = nextEpochPoint();
-        require(now >= epochPoint, 'Oracle: not opened yet');
+        require(now >= nextEpochPoint(), 'Oracle: not opened yet');
 
         _;
 
