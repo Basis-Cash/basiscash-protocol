@@ -164,6 +164,9 @@ contract Treasury is ContractGuard, Operator {
         Operator(share).transferOwnership(target);
         IERC20(share).transfer(target, IERC20(share).balanceOf(address(this)));
 
+        // boardroom
+        Operator(boardroom).transferOperator(target);
+
         migrated = true;
         emit Migration(target);
     }
