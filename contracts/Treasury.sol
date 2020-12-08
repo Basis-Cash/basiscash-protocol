@@ -79,18 +79,36 @@ contract Treasury is ContractGuard, Operator {
 
     /* =================== Modifier =================== */
 
-    modifier checkMigration {
-        require(!migrated, 'Treasury: already migrated');
-
-        _;
-    }
-
     modifier checkEpoch {
         require(now >= nextEpochPoint(), 'Treasury: not opened yet');
 
         _;
 
         epoch = epoch.add(1);
+    }
+
+    modifier checkOperator {
+        require(
+            IBasisAsset(cash).operator() == address(this) &&
+                IBasisAsset(bond).operator() == address(this) &&
+                IBasisAsset(share).operator() == address(this) &&
+                Operator(boardroom).operator() == address(this),
+            'Treasury: need more permission'
+        );
+
+        _;
+    }
+
+    modifier checkMigration {
+        require(!migrated, 'Treasury: already migrated');
+
+        _;
+    }
+
+    modifier notInitialized {
+        require(!initialized, 'Treasury: already initialized');
+
+        _;
     }
 
     /* ========== VIEW FUNCTIONS ========== */
@@ -102,14 +120,6 @@ contract Treasury is ContractGuard, Operator {
 
     function isInitialized() public view returns (bool) {
         return initialized;
-    }
-
-    function checkOperator() internal view returns (bool) {
-        return
-            IBasisAsset(cash).operator() == address(this) &&
-            IBasisAsset(bond).operator() == address(this) &&
-            IBasisAsset(share).operator() == address(this) &&
-            Operator(boardroom).operator() == address(this);
     }
 
     // epoch
@@ -133,10 +143,7 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========== GOVERNANCE ========== */
 
-    function initialize() public {
-        require(checkOperator(), 'Treasury: need more permission');
-        require(!initialized, 'Treasury: already initialized');
-
+    function initialize() public notInitialized checkOperator {
         // burn all of it's balance
         IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
 
@@ -150,9 +157,12 @@ contract Treasury is ContractGuard, Operator {
         emit Initialized(msg.sender, block.number);
     }
 
-    function migrate(address target) public onlyOperator checkMigration {
-        require(checkOperator(), 'Treasury: need more permission');
-
+    function migrate(address target)
+        public
+        onlyOperator
+        checkMigration
+        checkOperator
+    {
         // cash
         Operator(cash).transferOperator(target);
         Operator(cash).transferOwnership(target);
@@ -182,6 +192,7 @@ contract Treasury is ContractGuard, Operator {
         external
         onlyOneBlock
         checkMigration
+        checkOperator
     {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
@@ -205,6 +216,7 @@ contract Treasury is ContractGuard, Operator {
         external
         onlyOneBlock
         checkMigration
+        checkOperator
     {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
@@ -233,8 +245,9 @@ contract Treasury is ContractGuard, Operator {
     function allocateSeigniorage()
         external
         onlyOneBlock
-        checkEpoch
         checkMigration
+        checkEpoch
+        checkOperator
     {
         _updateCashPrice();
         uint256 cashPrice = getCashPrice();
@@ -242,7 +255,6 @@ contract Treasury is ContractGuard, Operator {
             cashPrice > cashPriceCeiling,
             'Treasury: there is no seigniorage to be allocated'
         );
-        require(checkOperator(), 'Treasury: need more permission');
 
         uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
