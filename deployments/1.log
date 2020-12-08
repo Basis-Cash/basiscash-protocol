@@ -1,0 +1,26 @@
+Admin verified 0x68C3a95B35C45Db5dB67ed83c43305052FAD6e04
+
+===================================================
+
+=> Deploy
+
+Waiting tx 0x982665d9765b68bfa4e73e19896cea470b2ad993ebb20e9fa05e2fd4ae2780b1. action = Deploy new Boardroom => 0xB435930fa4DA72328E867b67E4fBb64e7d45efd4
+Waiting tx 0xeacc6069ab4940a621b6abfa8a15a1a393ef4c8e5b841a6de2be67f8845af77b. action = Deploy new Treasury => 0xF43775b508B7C3C1624e95fD874630876728FB93
+
+===================================================
+
+=> RBAC
+
+Waiting tx 0xf608cc7073aecd052ca0367e17c56273ab35c59337c93018ffd5068b42815312. action = boardroom.transferOperator
+Waiting tx 0x26cb56121da9ca6cab18e4a96481bd5738c5b0919dc753891331f9d13d20f4c1. action = boardroom.transferOwnership
+Waiting tx 0xc47cc6db255d0cd433a005fd1b7f6f491e1a1a7913967cf6e018016ff25491f4. action = treasury.transferOperator
+Waiting tx 0x9a954623f02b8b8b60da49620435c7246549d353a89cdf61f291268b288284ee. action = treasury.transferOwnership
+
+===================================================
+
+=> Migration
+
+Waiting tx 0xa15ff18a26df63fcba0a1a90b8bfe3e61e086a5d28aaeac11da0b3e219977199. action = timelock.queueTransaction => payload: 0x88da5151ab20387626520c8af8e29e3fc64ee747,0,migrate(address),0x000000000000000000000000f43775b508b7c3c1624e95fd874630876728fb93,1607182000
+OK!
+
+===================================================
