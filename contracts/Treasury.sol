@@ -79,6 +79,12 @@ contract Treasury is ContractGuard, Operator {
 
     /* =================== Modifier =================== */
 
+    modifier checkMigration {
+        require(!migrated, 'Treasury: already migrated');
+
+        _;
+    }
+
     modifier checkEpoch {
         require(now >= nextEpochPoint(), 'Treasury: not opened yet');
 
@@ -144,9 +150,8 @@ contract Treasury is ContractGuard, Operator {
         emit Initialized(msg.sender, block.number);
     }
 
-    function migrate(address target) public onlyOperator {
+    function migrate(address target) public onlyOperator checkMigration {
         require(checkOperator(), 'Treasury: need more permission');
-        require(!migrated, 'Treasury: already migrated');
 
         // cash
         Operator(cash).transferOperator(target);
@@ -173,7 +178,11 @@ contract Treasury is ContractGuard, Operator {
         try IOracle(cashOracle).update()  {} catch {}
     }
 
-    function buyBonds(uint256 amount, uint256 targetPrice) external {
+    function buyBonds(uint256 amount, uint256 targetPrice)
+        external
+        onlyOneBlock
+        checkMigration
+    {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
         uint256 cashPrice = getCashPrice();
@@ -192,7 +201,11 @@ contract Treasury is ContractGuard, Operator {
         emit BoughtBonds(msg.sender, amount);
     }
 
-    function redeemBonds(uint256 amount, uint256 targetPrice) external {
+    function redeemBonds(uint256 amount, uint256 targetPrice)
+        external
+        onlyOneBlock
+        checkMigration
+    {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
         uint256 cashPrice = getCashPrice();
@@ -217,16 +230,19 @@ contract Treasury is ContractGuard, Operator {
         emit RedeemedBonds(msg.sender, amount);
     }
 
-    function allocateSeigniorage() external onlyOneBlock checkEpoch {
+    function allocateSeigniorage()
+        external
+        onlyOneBlock
+        checkEpoch
+        checkMigration
+    {
         _updateCashPrice();
         uint256 cashPrice = getCashPrice();
         require(
             cashPrice > cashPriceCeiling,
             'Treasury: there is no seigniorage to be allocated'
         );
-
         require(checkOperator(), 'Treasury: need more permission');
-        require(!migrated, 'Treasury: already migrated');
 
         uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
