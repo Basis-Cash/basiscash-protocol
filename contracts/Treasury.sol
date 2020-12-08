@@ -79,6 +79,13 @@ contract Treasury is ContractGuard, Operator {
 
     /* =================== Modifier =================== */
 
+    modifier checkCondition {
+        require(!migrated, 'Treasury: migrated');
+        require(now >= startTime, 'Treasury: not started yet');
+
+        _;
+    }
+
     modifier checkEpoch {
         require(now >= nextEpochPoint(), 'Treasury: not opened yet');
 
@@ -95,12 +102,6 @@ contract Treasury is ContractGuard, Operator {
                 Operator(boardroom).operator() == address(this),
             'Treasury: need more permission'
         );
-
-        _;
-    }
-
-    modifier checkMigration {
-        require(!migrated, 'Treasury: already migrated');
 
         _;
     }
@@ -157,12 +158,9 @@ contract Treasury is ContractGuard, Operator {
         emit Initialized(msg.sender, block.number);
     }
 
-    function migrate(address target)
-        public
-        onlyOperator
-        checkMigration
-        checkOperator
-    {
+    function migrate(address target) public onlyOperator checkOperator {
+        require(!migrated, 'Treasury: migrated');
+
         // cash
         Operator(cash).transferOperator(target);
         Operator(cash).transferOwnership(target);
@@ -191,7 +189,7 @@ contract Treasury is ContractGuard, Operator {
     function buyBonds(uint256 amount, uint256 targetPrice)
         external
         onlyOneBlock
-        checkMigration
+        checkCondition
         checkOperator
     {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
@@ -215,7 +213,7 @@ contract Treasury is ContractGuard, Operator {
     function redeemBonds(uint256 amount, uint256 targetPrice)
         external
         onlyOneBlock
-        checkMigration
+        checkCondition
         checkOperator
     {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
@@ -245,7 +243,7 @@ contract Treasury is ContractGuard, Operator {
     function allocateSeigniorage()
         external
         onlyOneBlock
-        checkMigration
+        checkCondition
         checkEpoch
         checkOperator
     {
