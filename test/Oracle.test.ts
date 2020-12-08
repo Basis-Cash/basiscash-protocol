@@ -17,10 +17,31 @@ async function latestBlocktime(provider: Provider): Promise<number> {
   return timestamp;
 }
 
+async function addLiquidity(
+  provider: Provider,
+  operator: SignerWithAddress,
+  router: Contract,
+  tokenA: Contract,
+  tokenB: Contract,
+  amount: BigNumber
+): Promise<void> {
+  await router
+    .connect(operator)
+    .addLiquidity(
+      tokenA.address,
+      tokenB.address,
+      amount,
+      amount,
+      amount,
+      amount,
+      operator.address,
+      (await latestBlocktime(provider)) + 1800
+    );
+}
+
 describe('Oracle', () => {
   const DAY = 86400;
   const ETH = utils.parseEther('1');
-  const ZERO = BigNumber.from(0);
 
   const { provider } = ethers;
 
@@ -68,6 +89,7 @@ describe('Oracle', () => {
   let cash: Contract;
   let share: Contract;
   let oracle: Contract;
+  let oracleStartTime: BigNumber;
 
   beforeEach('deploy contracts', async () => {
     dai = await MockDAI.connect(operator).deploy();
@@ -79,41 +101,37 @@ describe('Oracle', () => {
     await cash.connect(operator).mint(operator.address, ETH);
     await cash.connect(operator).approve(router.address, ETH);
 
-    await router
-      .connect(operator)
-      .addLiquidity(
-        cash.address,
-        dai.address,
-        ETH,
-        ETH,
-        ETH,
-        ETH,
-        operator.address,
-        (await latestBlocktime(provider)) + 1800
-      );
+    await addLiquidity(provider, operator, router, cash, dai, ETH);
 
+    oracleStartTime = BigNumber.from(await latestBlocktime(provider)).add(DAY);
     oracle = await Oracle.connect(operator).deploy(
       factory.address,
       cash.address,
-      dai.address
+      dai.address,
+      oracleStartTime
     );
-    await advanceTimeAndBlock(provider, Number(await oracle.PERIOD()));
   });
 
-  it('should works correctly', async () => {
-    await expect(oracle.update()).to.emit(oracle, 'Updated');
-    expect(await oracle.consult(dai.address, ETH)).to.eq(ETH);
-    expect(await oracle.consult(cash.address, ETH)).to.eq(ETH);
-    await expect(oracle.consult(share.address, ETH)).to.revertedWith(
-      'Oracle: INVALID_TOKEN'
-    );
-    expect(
-      await oracle.pairFor(factory.address, dai.address, cash.address)
-    ).to.eq(await oracle.pair());
-  });
+  describe('#update', async () => {
+    it('should works correctly', async () => {
+      await advanceTimeAndBlock(
+        provider,
+        oracleStartTime.sub(await latestBlocktime(provider)).toNumber() - 2
+      );
 
-  it('should force updated when execute with operator', async () => {
-    await oracle.connect(operator).update();
-    await expect(oracle.connect(operator).update()).to.emit(oracle, 'Updated');
+      // epoch 0
+      await expect(oracle.update()).to.revertedWith('Oracle: not opened yet');
+      expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime);
+      expect(await oracle.epoch()).to.eq(BigNumber.from(0));
+
+      await advanceTimeAndBlock(provider, 1);
+
+      // epoch 1
+      await expect(oracle.update()).to.emit(oracle, 'Updated');
+      expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime.add(DAY));
+      expect(await oracle.epoch()).to.eq(BigNumber.from(1));
+      // check double update
+      await expect(oracle.update()).to.revertedWith('Oracle: not opened yet');
+    });
   });
 });
