@@ -58,7 +58,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     struct BoardSnapshot {
-        uint256 timestamp;
+        uint256 time;
         uint256 rewardReceived;
         uint256 rewardPerShare;
     }
@@ -76,7 +76,11 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         cash = _cash;
         share = _share;
 
-        BoardSnapshot memory genesisSnapshot = BoardSnapshot(now, 0, 0);
+        BoardSnapshot memory genesisSnapshot = BoardSnapshot({
+            time: block.number,
+            rewardReceived: 0,
+            rewardPerShare: 0
+        });
         boardHistory.push(genesisSnapshot);
     }
 
@@ -90,11 +94,10 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     modifier updateReward(address director) {
-        uint256 currentIndex = latestSnapshotIndex();
         if (director != address(0)) {
             Boardseat memory seat = directors[director];
             seat.rewardEarned = earned(director);
-            seat.lastSnapshotIndex = currentIndex;
+            seat.lastSnapshotIndex = latestSnapshotIndex();
             directors[director] = seat;
         }
         _;
@@ -199,7 +202,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 nextRPS = prevRPS.add(amount.div(totalSupply()));
 
         BoardSnapshot memory newSnapshot = BoardSnapshot({
-            timestamp: now,
+            time: block.number,
             rewardReceived: amount,
             rewardPerShare: nextRPS
         });
