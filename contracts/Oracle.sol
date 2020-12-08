@@ -56,10 +56,9 @@ contract Oracle {
         price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
         uint112 reserve0;
         uint112 reserve1;
-        (reserve0, reserve1, ) = _pair.getReserves();
+        (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
         require(reserve0 != 0 && reserve1 != 0, 'Oracle: NO_RESERVES'); // ensure that there's liquidity in the pair
 
-        blockTimestampLast = 0;
         startTime = _startTime;
     }
 
