@@ -13,26 +13,40 @@ import './interfaces/IUniswapV2Factory.sol';
 // note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
 contract Oracle {
     using FixedPoint for *;
+    using SafeMath for uint256;
+
+    /* ========= CONSTANT VARIABLES ======== */
 
     uint256 public constant PERIOD = 1 days;
 
-    IUniswapV2Pair public pair;
+    /* ========== STATE VARIABLES ========== */
+
+    // epoch
+    uint256 public startTime;
+    uint256 public epoch = 0;
+
+    // uniswap
     address public token0;
     address public token1;
+    IUniswapV2Pair public pair;
 
+    // oracle
+    uint32 public blockTimestampLast;
     uint256 public price0CumulativeLast;
     uint256 public price1CumulativeLast;
-    uint32 public blockTimestampLast;
     FixedPoint.uq112x112 public price0Average;
     FixedPoint.uq112x112 public price1Average;
 
+    /* ========== CONSTRUCTOR ========== */
+
     constructor(
-        address factory,
-        address tokenA,
-        address tokenB
+        address _factory,
+        address _tokenA,
+        address _tokenB,
+        uint256 _startTime
     ) public {
         IUniswapV2Pair _pair = IUniswapV2Pair(
-            UniswapV2Library.pairFor(factory, tokenA, tokenB)
+            UniswapV2Library.pairFor(_factory, _tokenA, _tokenB)
         );
         pair = _pair;
         token0 = _pair.token0();
@@ -43,10 +57,30 @@ contract Oracle {
         uint112 reserve1;
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
         require(reserve0 != 0 && reserve1 != 0, 'Oracle: NO_RESERVES'); // ensure that there's liquidity in the pair
+
+        startTime = _startTime;
     }
 
+    /* =================== Modifier =================== */
+
+    modifier checkEpoch {
+        require(now >= nextEpochPoint(), 'Oracle: not opened yet');
+
+        _;
+
+        epoch = epoch.add(1);
+    }
+
+    /* ========== VIEW FUNCTIONS ========== */
+
+    function nextEpochPoint() public view returns (uint256) {
+        return startTime.add(epoch.mul(PERIOD));
+    }
+
+    /* ========== MUTABLE FUNCTIONS ========== */
+
     /** @dev Updates 1-day EMA price from Uniswap.  */
-    function update() external {
+    function update() external checkEpoch {
         (
             uint256 price0Cumulative,
             uint256 price1Cumulative,
@@ -54,8 +88,8 @@ contract Oracle {
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
-        if (timeElapsed < PERIOD) {
-            // doesn't need to be updated, since a minimum period is not elapsed yet
+        if (timeElapsed == 0) {
+            // prevent divided by zero
             return;
         }
 

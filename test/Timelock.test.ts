@@ -61,7 +61,6 @@ describe('Timelock', () => {
   let boardroom: Contract;
 
   let startTime: number;
-  let allocationDelay: number;
 
   beforeEach('deploy contracts', async () => {
     bond = await Bond.connect(operator).deploy();
@@ -93,9 +92,9 @@ describe('Timelock', () => {
     }
     await treasury.connect(operator).transferOperator(timelock.address);
     await treasury.connect(operator).transferOwnership(timelock.address);
+    await boardroom.connect(operator).transferOperator(treasury.address);
 
     startTime = Number(await treasury.startTime());
-    allocationDelay = Number(await treasury.allocationDelay());
   });
 
   describe('#migrate', async () => {
@@ -108,7 +107,7 @@ describe('Timelock', () => {
         share.address,
         ZERO_ADDR,
         boardroom.address,
-        allocationDelay // same as legacy treasury
+        startTime
       );
     });
 
@@ -146,6 +145,11 @@ describe('Timelock', () => {
       }
 
       expect(await latestBlocktime(provider)).to.lt(startTime);
+
+      await advanceTimeAndBlock(
+        provider,
+        startTime - (await latestBlocktime(provider))
+      );
     });
   });
 });
