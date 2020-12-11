@@ -7,7 +7,8 @@ import {
   TREASURY_START_DATE,
   UNI_FACTORY,
 } from '../deploy.config';
-import deployments from '../deployments/3.json';
+import OLD from '../deployments/3.json';
+import NEW from '../deployments/4.json';
 import { wait } from './utils';
 
 const DAY = 86400;
@@ -29,18 +30,22 @@ async function main() {
   const [operator] = await ethers.getSigners();
 
   // Fetch existing contracts
-  const cash = await ethers.getContractAt('Cash', deployments.Cash);
-  const bond = await ethers.getContractAt('Bond', deployments.Bond);
-  const share = await ethers.getContractAt('Share', deployments.Share);
-  const timelock = await ethers.getContractAt('Timelock', deployments.Timelock);
-  const treasury = await ethers.getContractAt('Treasury', deployments.Treasury);
+  // === token
+  const cash = await ethers.getContractAt('Cash', OLD.Cash);
+  const bond = await ethers.getContractAt('Bond', OLD.Bond);
+  const share = await ethers.getContractAt('Share', OLD.Share);
+
+  // === core
+  const oracle = await ethers.getContractAt('Oracle', NEW.Oracle);
+  const timelock = await ethers.getContractAt('Timelock', OLD.Timelock);
+  const treasury = await ethers.getContractAt('Treasury', OLD.Treasury);
 
   if (operator.address !== (await timelock.admin())) {
     throw new Error(`Invalid admin ${operator.address}`);
   }
   console.log(`Admin verified ${operator.address}`);
 
-  const Oracle = await ethers.getContractFactory('Oracle');
+  // const Oracle = await ethers.getContractFactory('Oracle');
   const Treasury = await ethers.getContractFactory('Treasury');
   const Boardroom = await ethers.getContractFactory('Boardroom');
 
@@ -50,17 +55,17 @@ async function main() {
 
   console.log('=> Deploy\n');
 
-  const newOracle = await Oracle.connect(operator).deploy(
-    UNI_FACTORY,
-    cash.address,
-    DAI,
-    ORACLE_START_DATE,
-    override
-  );
-  await wait(
-    newOracle.deployTransaction.hash,
-    `\nDeploy new Oracle => ${newOracle.address}`
-  );
+  // const newOracle = await Oracle.connect(operator).deploy(
+  //   UNI_FACTORY,
+  //   cash.address,
+  //   DAI,
+  //   ORACLE_START_DATE,
+  //   override
+  // );
+  // await wait(
+  //   newOracle.deployTransaction.hash,
+  //   `\nDeploy new Oracle => ${newOracle.address}`
+  // );
 
   const newBoardroom = await Boardroom.connect(operator).deploy(
     cash.address,
@@ -76,7 +81,7 @@ async function main() {
     cash.address,
     bond.address,
     share.address,
-    newOracle.address,
+    oracle.address,
     newBoardroom.address,
     TREASURY_START_DATE,
     override
