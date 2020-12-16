@@ -10,6 +10,7 @@ import './lib/FixedPoint.sol';
 import './lib/Safe112.sol';
 import './owner/Operator.sol';
 import './utils/ContractGuard.sol';
+import './utils/Epoch.sol';
 import './interfaces/IBasisAsset.sol';
 import './interfaces/IOracle.sol';
 import './interfaces/IBoardroom.sol';
@@ -19,35 +20,29 @@ import './interfaces/IBoardroom.sol';
  * @notice Monetary policy logic to adjust supplies of basis cash assets
  * @author Summer Smith & Rick Sanchez
  */
-contract Treasury is ContractGuard, Operator {
+contract Treasury is ContractGuard, Epoch {
     using FixedPoint for *;
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
     using Safe112 for uint112;
 
-    /* ========= CONSTANT VARIABLES ======== */
-
-    uint256 public constant PERIOD = 1 days;
-
     /* ========== STATE VARIABLES ========== */
 
-    // flags
-    bool private migrated = false;
-    bool private initialized = false;
+    // ========== FLAGS
+    bool public migrated = false;
+    bool public initialized = false;
 
-    // epoch
-    uint256 public startTime;
-    uint256 public epoch = 0;
+    // ========== CORE
+    address public cash;
+    address public bond;
+    address public share;
+    address public boardroom;
 
-    // core components
-    address private cash;
-    address private bond;
-    address private share;
-    address private boardroom;
-    address private cashOracle;
+    address public bondOracle;
+    address public seigniorageOracle;
 
-    // price
+    // ========== PRICE
     uint256 public cashPriceOne;
     uint256 public cashPriceCeiling;
     uint256 private bondDepletionFloor;
@@ -59,17 +54,18 @@ contract Treasury is ContractGuard, Operator {
         address _cash,
         address _bond,
         address _share,
-        address _cashOracle,
+        address _bondOracle,
+        address _seigniorageOracle,
         address _boardroom,
         uint256 _startTime
-    ) public {
+    ) public Epoch(1 days, _startTime, 0) {
         cash = _cash;
         bond = _bond;
         share = _share;
-        cashOracle = _cashOracle;
-        boardroom = _boardroom;
+        bondOracle = _bondOracle;
+        seigniorageOracle = _seigniorageOracle;
 
-        startTime = _startTime;
+        boardroom = _boardroom;
 
         cashPriceOne = 10**18;
         cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
@@ -79,19 +75,10 @@ contract Treasury is ContractGuard, Operator {
 
     /* =================== Modifier =================== */
 
-    modifier checkCondition {
+    modifier checkMigration {
         require(!migrated, 'Treasury: migrated');
-        require(now >= startTime, 'Treasury: not started yet');
 
         _;
-    }
-
-    modifier checkEpoch {
-        require(now >= nextEpochPoint(), 'Treasury: not opened yet');
-
-        _;
-
-        epoch = epoch.add(1);
     }
 
     modifier checkOperator {
@@ -106,50 +93,37 @@ contract Treasury is ContractGuard, Operator {
         _;
     }
 
-    modifier notInitialized {
-        require(!initialized, 'Treasury: already initialized');
-
-        _;
-    }
-
     /* ========== VIEW FUNCTIONS ========== */
-
-    // flags
-    function isMigrated() public view returns (bool) {
-        return migrated;
-    }
-
-    function isInitialized() public view returns (bool) {
-        return initialized;
-    }
-
-    // epoch
-    function nextEpochPoint() public view returns (uint256) {
-        return startTime.add(epoch.mul(PERIOD));
-    }
-
-    // oracle
-    function getCashPrice() public view returns (uint256 cashPrice) {
-        try IOracle(cashOracle).consult(cash, 1e18) returns (uint256 price) {
-            return price;
-        } catch {
-            revert('Treasury: failed to consult cash price from the oracle');
-        }
-    }
 
     // budget
     function getReserve() public view returns (uint256) {
         return seigniorageSaved;
     }
 
+    function getBondOraclePrice() public view returns (uint256) {
+        return _getCashPrice(bondOracle);
+    }
+
+    function getSeigniorageOraclePrice() public view returns (uint256) {
+        return _getCashPrice(seigniorageOracle);
+    }
+
+    // oracle
+    function _getCashPrice(address oracle) internal view returns (uint256) {
+        try IOracle(oracle).consult(cash, 1e18) returns (uint256 price) {
+            return price;
+        } catch {
+            revert('Treasury: failed to consult cash price from the oracle');
+        }
+    }
+
     /* ========== GOVERNANCE ========== */
 
-    function initialize() public notInitialized checkOperator {
+    function initialize() public checkOperator {
+        require(!initialized, 'Treasury: initialized');
+
         // burn all of it's balance
         IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
-
-        // mint only 1001 cash to itself
-        IBasisAsset(cash).mint(address(this), 1001 ether);
 
         // set seigniorageSaved to it's balance
         seigniorageSaved = IERC20(cash).balanceOf(address(this));
@@ -183,18 +157,20 @@ contract Treasury is ContractGuard, Operator {
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _updateCashPrice() internal {
-        try IOracle(cashOracle).update()  {} catch {}
+        try IOracle(bondOracle).update()  {} catch {}
+        try IOracle(seigniorageOracle).update()  {} catch {}
     }
 
     function buyBonds(uint256 amount, uint256 targetPrice)
         external
         onlyOneBlock
-        checkCondition
+        checkMigration
+        checkStartTime
         checkOperator
     {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
-        uint256 cashPrice = getCashPrice();
+        uint256 cashPrice = _getCashPrice(bondOracle);
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         require(
             cashPrice < cashPriceOne, // price < $1
@@ -213,12 +189,13 @@ contract Treasury is ContractGuard, Operator {
     function redeemBonds(uint256 amount, uint256 targetPrice)
         external
         onlyOneBlock
-        checkCondition
+        checkMigration
+        checkStartTime
         checkOperator
     {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
-        uint256 cashPrice = getCashPrice();
+        uint256 cashPrice = _getCashPrice(bondOracle);
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         require(
             cashPrice > cashPriceCeiling, // price > $1.05
@@ -243,31 +220,37 @@ contract Treasury is ContractGuard, Operator {
     function allocateSeigniorage()
         external
         onlyOneBlock
-        checkCondition
+        checkMigration
+        checkStartTime
         checkEpoch
         checkOperator
     {
         _updateCashPrice();
-        uint256 cashPrice = getCashPrice();
-        require(
-            cashPrice > cashPriceCeiling,
-            'Treasury: there is no seigniorage to be allocated'
-        );
+        uint256 cashPrice = _getCashPrice(seigniorageOracle);
+        if (cashPrice <= cashPriceCeiling) {
+            return; // just advance epoch instead revert
+        }
 
+        // circulating supply
         uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
 
-        if (seigniorageSaved > bondDepletionFloor) {
-            IBasisAsset(cash).mint(address(this), seigniorage);
-            IERC20(cash).safeApprove(boardroom, seigniorage);
-            IBoardroom(boardroom).allocateSeigniorage(seigniorage);
-            emit BoardroomFunded(now, seigniorage);
-        } else {
-            seigniorageSaved = seigniorageSaved.add(seigniorage);
-            IBasisAsset(cash).mint(address(this), seigniorage);
-            emit TreasuryFunded(now, seigniorage);
-        }
+        // treasury
+        uint256 treasuryReserve = Math.min(
+            seigniorage,
+            IERC20(bond).totalSupply().sub(seigniorageSaved)
+        );
+        IBasisAsset(cash).mint(address(this), seigniorage);
+        seigniorageSaved = seigniorageSaved.add(treasuryReserve);
+
+        // boardroom
+        uint256 boardroomReserve = seigniorage.sub(treasuryReserve);
+        IERC20(cash).safeApprove(boardroom, boardroomReserve);
+        IBoardroom(boardroom).allocateSeigniorage(boardroomReserve);
+
+        emit TreasuryFunded(now, treasuryReserve);
+        emit BoardroomFunded(now, boardroomReserve);
     }
 
     event Initialized(address indexed executor, uint256 at);

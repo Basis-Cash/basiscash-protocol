@@ -6,21 +6,17 @@ import './lib/Babylonian.sol';
 import './lib/FixedPoint.sol';
 import './lib/UniswapV2Library.sol';
 import './lib/UniswapV2OracleLibrary.sol';
+import './utils/Epoch.sol';
 import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IUniswapV2Factory.sol';
 
 // fixed window oracle that recomputes the average price for the entire period once every period
 // note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
-contract Oracle {
+contract Oracle is Epoch {
     using FixedPoint for *;
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
-
-    // epoch
-    uint256 public startTime;
-    uint256 public period;
-    uint256 public epoch = 0;
 
     // uniswap
     address public token0;
@@ -40,9 +36,9 @@ contract Oracle {
         address _factory,
         address _tokenA,
         address _tokenB,
-        uint256 _startTime,
-        uint256 _period
-    ) public {
+        uint256 _period,
+        uint256 _startTime
+    ) public Epoch(_period, _startTime, 0) {
         IUniswapV2Pair _pair = IUniswapV2Pair(
             UniswapV2Library.pairFor(_factory, _tokenA, _tokenB)
         );
@@ -55,25 +51,6 @@ contract Oracle {
         uint112 reserve1;
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
         require(reserve0 != 0 && reserve1 != 0, 'Oracle: NO_RESERVES'); // ensure that there's liquidity in the pair
-
-        period = _period;
-        startTime = _startTime;
-    }
-
-    /* =================== Modifier =================== */
-
-    modifier checkEpoch {
-        require(now >= nextEpochPoint(), 'Oracle: not opened yet');
-
-        _;
-
-        epoch = epoch.add(1);
-    }
-
-    /* ========== VIEW FUNCTIONS ========== */
-
-    function nextEpochPoint() public view returns (uint256) {
-        return startTime.add(epoch.mul(period));
     }
 
     /* ========== MUTABLE FUNCTIONS ========== */
