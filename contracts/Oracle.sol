@@ -15,14 +15,11 @@ contract Oracle {
     using FixedPoint for *;
     using SafeMath for uint256;
 
-    /* ========= CONSTANT VARIABLES ======== */
-
-    uint256 public constant PERIOD = 1 days;
-
     /* ========== STATE VARIABLES ========== */
 
     // epoch
     uint256 public startTime;
+    uint256 public period;
     uint256 public epoch = 0;
 
     // uniswap
@@ -43,7 +40,8 @@ contract Oracle {
         address _factory,
         address _tokenA,
         address _tokenB,
-        uint256 _startTime
+        uint256 _startTime,
+        uint256 _period
     ) public {
         IUniswapV2Pair _pair = IUniswapV2Pair(
             UniswapV2Library.pairFor(_factory, _tokenA, _tokenB)
@@ -58,6 +56,7 @@ contract Oracle {
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
         require(reserve0 != 0 && reserve1 != 0, 'Oracle: NO_RESERVES'); // ensure that there's liquidity in the pair
 
+        period = _period;
         startTime = _startTime;
     }
 
@@ -74,7 +73,7 @@ contract Oracle {
     /* ========== VIEW FUNCTIONS ========== */
 
     function nextEpochPoint() public view returns (uint256) {
-        return startTime.add(epoch.mul(PERIOD));
+        return startTime.add(epoch.mul(period));
     }
 
     /* ========== MUTABLE FUNCTIONS ========== */
