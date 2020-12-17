@@ -109,6 +109,7 @@ describe('Oracle', () => {
       factory.address,
       cash.address,
       dai.address,
+      DAY,
       oracleStartTime
     );
   });
@@ -121,18 +122,19 @@ describe('Oracle', () => {
       );
 
       // epoch 0
-      await expect(oracle.update()).to.revertedWith('Oracle: not opened yet');
+      await expect(oracle.update()).to.revertedWith('Epoch: not allowed');
       expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime);
-      expect(await oracle.epoch()).to.eq(BigNumber.from(0));
+      expect(await oracle.getCurrentEpoch()).to.eq(BigNumber.from(0));
 
       await advanceTimeAndBlock(provider, 2 * MINUTE);
 
       // epoch 1
       await expect(oracle.update()).to.emit(oracle, 'Updated');
+
       expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime.add(DAY));
-      expect(await oracle.epoch()).to.eq(BigNumber.from(1));
+      expect(await oracle.getCurrentEpoch()).to.eq(BigNumber.from(1));
       // check double update
-      await expect(oracle.update()).to.revertedWith('Oracle: not opened yet');
+      await expect(oracle.update()).to.revertedWith('Epoch: not allowed');
     });
   });
 });
