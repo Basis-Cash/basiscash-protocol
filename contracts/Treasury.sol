@@ -48,7 +48,7 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceOne;
     uint256 public cashPriceCeiling;
     uint256 public bondDepletionFloor;
-    uint256 private seigniorageSaved = 0;
+    uint256 private accumulatedSeigniorage = 0;
     uint256 public fundAllocationRate = 2; // %
 
     /* ========== CONSTRUCTOR ========== */
@@ -102,7 +102,7 @@ contract Treasury is ContractGuard, Epoch {
 
     // budget
     function getReserve() public view returns (uint256) {
-        return seigniorageSaved;
+        return accumulatedSeigniorage;
     }
 
     // oracle
@@ -130,8 +130,8 @@ contract Treasury is ContractGuard, Epoch {
         // burn all of it's balance
         IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
 
-        // set seigniorageSaved to it's balance
-        seigniorageSaved = IERC20(cash).balanceOf(address(this));
+        // set accumulatedSeigniorage to it's balance
+        accumulatedSeigniorage = IERC20(cash).balanceOf(address(this));
 
         initialized = true;
         emit Initialized(msg.sender, block.number);
@@ -221,8 +221,8 @@ contract Treasury is ContractGuard, Epoch {
             'Treasury: treasury has no more budget'
         );
 
-        seigniorageSaved = seigniorageSaved.sub(
-            Math.min(seigniorageSaved, amount)
+        accumulatedSeigniorage = accumulatedSeigniorage.sub(
+            Math.min(accumulatedSeigniorage, amount)
         );
 
         IBasisAsset(bond).burnFrom(msg.sender, amount);
@@ -247,29 +247,36 @@ contract Treasury is ContractGuard, Epoch {
         }
 
         // circulating supply
-        uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
+        uint256 cashSupply = IERC20(cash).totalSupply().sub(
+            accumulatedSeigniorage
+        );
         uint256 percentage = cashPrice.sub(cashPriceOne);
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
         IBasisAsset(cash).mint(address(this), seigniorage);
 
         // fund
         uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
-        IERC20(cash).safeApprove(fund, fundReserve);
-        ISimpleERCFund(fund).deposit(
-            cash,
-            fundReserve,
-            'Treasury: Seigniorage Allocation'
-        );
+        if (fundReserve > 0) {
+            IERC20(cash).safeApprove(fund, fundReserve);
+            ISimpleERCFund(fund).deposit(
+                cash,
+                fundReserve,
+                'Treasury: Seigniorage Allocation'
+            );
+            emit ContributionPoolFunded(now, fundReserve);
+        }
 
         seigniorage = seigniorage.sub(fundReserve);
 
         // treasury
         uint256 treasuryReserve = Math.min(
             seigniorage,
-            IERC20(bond).totalSupply().sub(seigniorageSaved)
+            IERC20(bond).totalSupply().sub(accumulatedSeigniorage)
         );
         if (treasuryReserve > 0) {
-            seigniorageSaved = seigniorageSaved.add(treasuryReserve);
+            accumulatedSeigniorage = accumulatedSeigniorage.add(
+                treasuryReserve
+            );
             emit TreasuryFunded(now, treasuryReserve);
         }
 
@@ -293,4 +300,5 @@ contract Treasury is ContractGuard, Epoch {
     event BoughtBonds(address indexed from, uint256 amount);
     event TreasuryFunded(uint256 timestamp, uint256 seigniorage);
     event BoardroomFunded(uint256 timestamp, uint256 seigniorage);
+    event ContributionPoolFunded(uint256 timestamp, uint256 seigniorage);
 }
