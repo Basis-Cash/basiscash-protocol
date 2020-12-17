@@ -268,15 +268,18 @@ contract Treasury is ContractGuard, Epoch {
             seigniorage,
             IERC20(bond).totalSupply().sub(seigniorageSaved)
         );
-        seigniorageSaved = seigniorageSaved.add(treasuryReserve);
+        if (treasuryReserve > 0) {
+            seigniorageSaved = seigniorageSaved.add(treasuryReserve);
+            emit TreasuryFunded(now, treasuryReserve);
+        }
 
         // boardroom
         uint256 boardroomReserve = seigniorage.sub(treasuryReserve);
-        IERC20(cash).safeApprove(boardroom, boardroomReserve);
-        IBoardroom(boardroom).allocateSeigniorage(boardroomReserve);
-
-        emit TreasuryFunded(now, treasuryReserve);
-        emit BoardroomFunded(now, boardroomReserve);
+        if (boardroomReserve > 0) {
+            IERC20(cash).safeApprove(boardroom, boardroomReserve);
+            IBoardroom(boardroom).allocateSeigniorage(boardroomReserve);
+            emit BoardroomFunded(now, boardroomReserve);
+        }
     }
 
     // GOV
