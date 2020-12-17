@@ -5,15 +5,16 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
+import './interfaces/IOracle.sol';
+import './interfaces/IBoardroom.sol';
+import './interfaces/IBasisAsset.sol';
+import './interfaces/ISimpleERCFund.sol';
 import './lib/Babylonian.sol';
 import './lib/FixedPoint.sol';
 import './lib/Safe112.sol';
 import './owner/Operator.sol';
-import './utils/ContractGuard.sol';
 import './utils/Epoch.sol';
-import './interfaces/IBasisAsset.sol';
-import './interfaces/IOracle.sol';
-import './interfaces/IBoardroom.sol';
+import './utils/ContractGuard.sol';
 
 /**
  * @title Basis Cash Treasury contract
@@ -34,6 +35,7 @@ contract Treasury is ContractGuard, Epoch {
     bool public initialized = false;
 
     // ========== CORE
+    address public fund;
     address public cash;
     address public bond;
     address public share;
@@ -42,11 +44,12 @@ contract Treasury is ContractGuard, Epoch {
     address public bondOracle;
     address public seigniorageOracle;
 
-    // ========== PRICE
+    // ========== PARAMS
     uint256 public cashPriceOne;
     uint256 public cashPriceCeiling;
-    uint256 private bondDepletionFloor;
+    uint256 public bondDepletionFloor;
     uint256 private seigniorageSaved = 0;
+    uint256 public fundAllocationRate = 2; // %
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -57,6 +60,7 @@ contract Treasury is ContractGuard, Epoch {
         address _bondOracle,
         address _seigniorageOracle,
         address _boardroom,
+        address _fund,
         uint256 _startTime
     ) public Epoch(1 days, _startTime, 0) {
         cash = _cash;
@@ -66,6 +70,7 @@ contract Treasury is ContractGuard, Epoch {
         seigniorageOracle = _seigniorageOracle;
 
         boardroom = _boardroom;
+        fund = _fund;
 
         cashPriceOne = 10**18;
         cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
@@ -100,6 +105,7 @@ contract Treasury is ContractGuard, Epoch {
         return seigniorageSaved;
     }
 
+    // oracle
     function getBondOraclePrice() public view returns (uint256) {
         return _getCashPrice(bondOracle);
     }
@@ -108,7 +114,6 @@ contract Treasury is ContractGuard, Epoch {
         return _getCashPrice(seigniorageOracle);
     }
 
-    // oracle
     function _getCashPrice(address oracle) internal view returns (uint256) {
         try IOracle(oracle).consult(cash, 1e18) returns (uint256 price) {
             return price;
@@ -152,6 +157,16 @@ contract Treasury is ContractGuard, Epoch {
 
         migrated = true;
         emit Migration(target);
+    }
+
+    function setFund(address newFund) public onlyOperator {
+        fund = newFund;
+        emit FundChanged(msg.sender, newFund);
+    }
+
+    function setFundAllocationRate(uint256 rate) public onlyOperator {
+        fundAllocationRate = rate;
+        emit FundAllocationRateChanged(msg.sender, rate);
     }
 
     /* ========== MUTABLE FUNCTIONS ========== */
@@ -235,13 +250,24 @@ contract Treasury is ContractGuard, Epoch {
         uint256 cashSupply = IERC20(cash).totalSupply().sub(seigniorageSaved);
         uint256 percentage = cashPrice.sub(cashPriceOne);
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
+        IBasisAsset(cash).mint(address(this), seigniorage);
+
+        // fund
+        uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
+        IERC20(cash).safeApprove(fund, fundReserve);
+        ISimpleERCFund(fund).deposit(
+            cash,
+            fundReserve,
+            'Treasury: Seigniorage Allocation'
+        );
+
+        seigniorage = seigniorage.sub(fundReserve);
 
         // treasury
         uint256 treasuryReserve = Math.min(
             seigniorage,
             IERC20(bond).totalSupply().sub(seigniorageSaved)
         );
-        IBasisAsset(cash).mint(address(this), seigniorage);
         seigniorageSaved = seigniorageSaved.add(treasuryReserve);
 
         // boardroom
@@ -253,8 +279,13 @@ contract Treasury is ContractGuard, Epoch {
         emit BoardroomFunded(now, boardroomReserve);
     }
 
+    // GOV
     event Initialized(address indexed executor, uint256 at);
     event Migration(address indexed target);
+    event FundChanged(address indexed operator, address newFund);
+    event FundAllocationRateChanged(address indexed operator, uint256 newRate);
+
+    // CORE
     event RedeemedBonds(address indexed from, uint256 amount);
     event BoughtBonds(address indexed from, uint256 amount);
     event TreasuryFunded(uint256 timestamp, uint256 seigniorage);
