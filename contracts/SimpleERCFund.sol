@@ -25,9 +25,14 @@ contract SimpleERCFund is ISimpleERCFund, Operator {
         string memory reason
     ) public override onlyOperator {
         IERC20(token).safeTransfer(to, amount);
-        emit Withdrawal(msg.sender, now, reason);
+        emit Withdrawal(msg.sender, to, now, reason);
     }
 
     event Deposit(address indexed from, uint256 indexed at, string reason);
-    event Withdrawal(address indexed from, uint256 indexed at, string reason);
+    event Withdrawal(
+        address indexed from,
+        address indexed to,
+        uint256 indexed at,
+        string reason
+    );
 }
