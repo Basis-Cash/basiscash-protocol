@@ -1,0 +1,41 @@
+Gas Price: 99.0 gwei
+Deployments
+{
+  "seigniorageOracle": "0x8a573cB5234657c8bf054DA2eBe63B66FB1f9502",
+  "timelock": "0xD98Bc19FFc98E9009146524c8bD835F1BC5d0E6a",
+  "treasury": "0x4e153d084c28F20411D6EA01f7A18E0Ec45E19d3",
+  "boardroom": "0x4B182469337d46E6603ed7e26BA60c56930a342c"
+}
+Admin verified 0x68C3a95B35C45Db5dB67ed83c43305052FAD6e04
+
+===================================================
+
+=> Deploy
+
+Waiting tx 0x23a0f5bd817c9b9fe7c0832f4269dc093e64680807d18d67af1b4f83fdf010b6. action =
+Deploy fund contract => 0x7B075B3aA2F1143775101986B52E32DA9d98fE22
+Waiting tx 0xcebe53ea77bc7eed4146292e5374c8187969218919a541b4903a8369a822270b. action =
+Deploy new Oracle => 0x3e233a85535d32De0FDeA8510D460c0Aef7fDFeC
+Waiting tx 0xa8c375e7c0e04d8b30cfd05a2c558eb21adef9ce96177e250dd5c14d9abc6c1f. action =
+Deploy new Treasury => 0xe5Fc22DB659b09A476622bea3a612c9252b27884
+
+===================================================
+
+=> RBAC
+
+Waiting tx 0x3f3e0ee04a7df7a9384bbd5ef752aa81a48405488a5eb6a264e0456c495241c8. action = fund.transferOperator
+Waiting tx 0x173cfcd0178012f9d40d788426e7130d511e01e4e9836d88adf032235ef1f866. action = fund.transferOwnership
+Waiting tx 0x2305a5d92d771cbbf67f1cd9b438a3f08cb8f1614aff473eaa1bf4646accd5e7. action = treasury.transferOperator
+Waiting tx 0x59def0e2b1913739a1c64dd0d8cca77ae78d4bccb57081d31117c4e937e987da. action = treasury.transferOwnership
+
+===================================================
+
+=> Migration
+
+Waiting tx 0xff2071c541705259c61597265b59a840ff5f0b087b67dc610c04c26cba388cbe. action = timelock.queueTransaction (boardroom.transferOperator) => txHash: 0x753d6abe256d986a4f1aeb23e248558b9e030330e710d8a66ed91297362cec52
+Tx execution ETA: 1608416220
+Waiting tx 0x9dc39e9bd96b7e4e362e5c838d1f3ccc2043b4eddbc87930e1aad33a05c7b5d9. action = timelock.queueTransaction (treasury.migrate) => txHash: 0x2152c3460070be89feb651bd82bf2ab7f9883360ec8a9b63f90e1b94f06b7d3a
+Tx execution ETA: 1608416650
+OK!
+
+===================================================
