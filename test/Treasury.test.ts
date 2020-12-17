@@ -28,7 +28,7 @@ async function latestBlocktime(provider: Provider): Promise<number> {
   return timestamp;
 }
 
-function bigmin(a: BigNumber, b: BigNumber): BigNumberish {
+function bigmin(a: BigNumber, b: BigNumber): BigNumber {
   return a.lt(b) ? a : b;
 }
 
@@ -253,16 +253,31 @@ describe('Treasury', () => {
             .sub(expectedFundReserve)
             .sub(expectedTreasuryReserve);
 
-          await expect(treasury.allocateSeigniorage())
-            .to.emit(treasury, 'ContributionPoolFunded')
-            .withArgs(await latestBlocktime(provider), expectedFundReserve)
-            .to.emit(treasury, 'TreasuryFunded')
-            .withArgs(await latestBlocktime(provider), expectedTreasuryReserve)
-            .to.emit(treasury, 'BoardroomFunded')
-            .withArgs(
-              await latestBlocktime(provider),
-              expectedBoardroomReserve
-            );
+          const allocationResult = await treasury.allocateSeigniorage();
+
+          if (expectedFundReserve.gt(ZERO)) {
+            await expect(new Promise((resolve) => resolve(allocationResult)))
+              .to.emit(treasury, 'ContributionPoolFunded')
+              .withArgs(await latestBlocktime(provider), expectedFundReserve);
+          }
+
+          if (expectedTreasuryReserve.gt(ZERO)) {
+            await expect(new Promise((resolve) => resolve(allocationResult)))
+              .to.emit(treasury, 'TreasuryFunded')
+              .withArgs(
+                await latestBlocktime(provider),
+                expectedTreasuryReserve
+              );
+          }
+
+          if (expectedBoardroomReserve.gt(ZERO)) {
+            await expect(new Promise((resolve) => resolve(allocationResult)))
+              .to.emit(treasury, 'BoardroomFunded')
+              .withArgs(
+                await latestBlocktime(provider),
+                expectedBoardroomReserve
+              );
+          }
 
           expect(await cash.balanceOf(fund.address)).to.eq(expectedFundReserve);
           expect(await treasury.getReserve()).to.eq(expectedTreasuryReserve);
