@@ -80,7 +80,7 @@ async function main() {
   const simpleFund = await SimpleFund.connect(operator).deploy();
   await wait(
     simpleFund.deployTransaction.hash,
-    `\nDeploy fund contract => ${simpleFund}`
+    `\nDeploy fund contract => ${simpleFund.add}`
   );
 
   const bondOracle = await Oracle.connect(operator).deploy(
@@ -139,10 +139,12 @@ async function main() {
   tx = await simpleFund
     .connect(operator)
     .transferOperator(timelock.address, override);
+  await wait(tx.hash, 'fund.transferOperator');
 
   tx = await simpleFund
     .connect(operator)
     .transferOwnership(timelock.address, override);
+  await wait(tx.hash, 'fund.transferOwnership');
 
   tx = await newTreasury
     .connect(operator)
@@ -194,7 +196,10 @@ async function main() {
     treasury.address,
     0,
     'migrate(address)',
-    encodeParameters(['address'], [newTreasury.address]),
+    encodeParameters(
+      ['address'],
+      ['0xe5Fc22DB659b09A476622bea3a612c9252b27884']
+    ),
     eta,
   ];
   txHash = keccak256(
