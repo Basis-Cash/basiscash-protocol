@@ -56,6 +56,8 @@ Our only motivation is to bring the Basis Protocol into the world, and to serve 
 
 To chat with us & stay up to date, join our [Telegram](https://t.me/basiscash).
 
+Join us on [Discord](https://discord.gg/HhxrRVXy7W)
+
 Contribution guidelines are [here](./CONTRIBUTING.md)
 
 For security concerns, please submit an issue [here](https://github.com/Basis-Cash/basiscash-contracts/issues/new).
