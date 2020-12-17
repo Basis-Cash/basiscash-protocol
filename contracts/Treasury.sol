@@ -49,7 +49,7 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceCeiling;
     uint256 public bondDepletionFloor;
     uint256 private accumulatedSeigniorage = 0;
-    uint256 public fundAllocationRate = 0; // %
+    uint256 public fundAllocationRate = 2; // %
 
     /* ========== CONSTRUCTOR ========== */
 
