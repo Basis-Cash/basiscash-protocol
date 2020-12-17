@@ -32,25 +32,6 @@ function bigmin(a: BigNumber, b: BigNumber): BigNumberish {
   return a.lt(b) ? a : b;
 }
 
-async function swapToken(
-  provider: Provider,
-  router: Contract,
-  account: SignerWithAddress,
-  amount: BigNumber,
-  tokenA: Contract,
-  tokenB: Contract
-): Promise<void> {
-  await router
-    .connect(account)
-    .swapExactTokensForTokens(
-      amount,
-      ZERO,
-      [tokenA.address, tokenB.address],
-      account.address,
-      (await latestBlocktime(provider)) + 1800
-    );
-}
-
 describe('Treasury', () => {
   const { provider } = ethers;
 
@@ -272,7 +253,6 @@ describe('Treasury', () => {
             .sub(expectedFundReserve)
             .sub(expectedTreasuryReserve);
 
-          // await treasury.allocateSeigniorage();
           await expect(treasury.allocateSeigniorage())
             .to.emit(treasury, 'ContributionPoolFunded')
             .withArgs(await latestBlocktime(provider), expectedFundReserve)

@@ -49,7 +49,7 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceCeiling;
     uint256 public bondDepletionFloor;
     uint256 private accumulatedSeigniorage = 0;
-    uint256 public fundAllocationRate = 2; // %
+    uint256 public fundAllocationRate = 0; // %
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -161,12 +161,12 @@ contract Treasury is ContractGuard, Epoch {
 
     function setFund(address newFund) public onlyOperator {
         fund = newFund;
-        emit FundChanged(msg.sender, newFund);
+        emit ContributionPoolChanged(msg.sender, newFund);
     }
 
     function setFundAllocationRate(uint256 rate) public onlyOperator {
         fundAllocationRate = rate;
-        emit FundAllocationRateChanged(msg.sender, rate);
+        emit ContributionPoolRateChanged(msg.sender, rate);
     }
 
     /* ========== MUTABLE FUNCTIONS ========== */
@@ -254,7 +254,7 @@ contract Treasury is ContractGuard, Epoch {
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
         IBasisAsset(cash).mint(address(this), seigniorage);
 
-        // fund
+        // ======================== BIP-3
         uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
         if (fundReserve > 0) {
             IERC20(cash).safeApprove(fund, fundReserve);
@@ -268,7 +268,7 @@ contract Treasury is ContractGuard, Epoch {
 
         seigniorage = seigniorage.sub(fundReserve);
 
-        // treasury
+        // ======================== BIP-4
         uint256 treasuryReserve = Math.min(
             seigniorage,
             IERC20(bond).totalSupply().sub(accumulatedSeigniorage)
@@ -292,8 +292,11 @@ contract Treasury is ContractGuard, Epoch {
     // GOV
     event Initialized(address indexed executor, uint256 at);
     event Migration(address indexed target);
-    event FundChanged(address indexed operator, address newFund);
-    event FundAllocationRateChanged(address indexed operator, uint256 newRate);
+    event ContributionPoolChanged(address indexed operator, address newFund);
+    event ContributionPoolRateChanged(
+        address indexed operator,
+        uint256 newRate
+    );
 
     // CORE
     event RedeemedBonds(address indexed from, uint256 amount);
