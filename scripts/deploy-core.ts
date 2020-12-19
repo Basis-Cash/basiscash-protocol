@@ -7,7 +7,7 @@ import {
   TREASURY_START_DATE,
   UNI_FACTORY,
 } from '../deploy.config';
-import OLD from '../deployments/4-2.json';
+import OLD from '../deployments/4.json';
 import { wait } from './utils';
 
 const MINUTE = 60;
@@ -48,18 +48,7 @@ async function main() {
   const boardroom = await ethers.getContractAt('Boardroom', OLD.Boardroom);
 
   console.log('Deployments');
-  console.log(
-    JSON.stringify(
-      {
-        seigniorageOracle: seigniorageOracle.address,
-        timelock: timelock.address,
-        treasury: treasury.address,
-        boardroom: boardroom.address,
-      },
-      null,
-      2
-    )
-  );
+  console.log(JSON.stringify(OLD, null, 2));
 
   if (operator.address !== (await timelock.admin())) {
     throw new Error(`Invalid admin ${operator.address}`);
@@ -111,7 +100,7 @@ async function main() {
     bond.address,
     share.address,
     bondOracle.address,
-    seigniorageOracle.address, // seigniorage oracle
+    seigniorageOracle.address,
     boardroom.address,
     simpleFund.address,
     TREASURY_START_DATE,
@@ -160,12 +149,66 @@ async function main() {
 
   console.log('=> Migration\n');
 
-  const eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
-
+  let eta;
   let calldata;
   let txHash;
 
-  // boardroom
+  // 1. transfer operator to old treasury
+  eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
+  calldata = [
+    boardroom.address,
+    0,
+    'transferOperator(address)',
+    encodeParameters(['address'], [treasury.address]),
+    eta,
+  ];
+  txHash = keccak256(
+    encodeParameters(
+      ['address', 'uint256', 'string', 'bytes', 'uint256'],
+      calldata
+    )
+  );
+
+  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
+  await wait(
+    tx.hash,
+    `\n1. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
+  );
+  console.log(`Tx execution ETA: ${eta}`);
+
+  if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
+    throw new Error('wtf');
+  }
+
+  // 2. migrate treasury
+  eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
+  calldata = [
+    treasury.address,
+    0,
+    'migrate(address)',
+    encodeParameters(['address'], [newTreasury.address]),
+    eta,
+  ];
+  txHash = keccak256(
+    encodeParameters(
+      ['address', 'uint256', 'string', 'bytes', 'uint256'],
+      calldata
+    )
+  );
+
+  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
+  await wait(
+    tx.hash,
+    `\n2. timelock.queueTransaction (treasury.migrate) => txHash: ${txHash}`
+  );
+  console.log(`Tx execution ETA: ${eta}`);
+
+  if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
+    throw new Error('wtf');
+  }
+
+  // 3. transfer operator to new treasury
+  eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
   calldata = [
     boardroom.address,
     0,
@@ -183,36 +226,7 @@ async function main() {
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
     tx.hash,
-    `timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
-  );
-  console.log(`Tx execution ETA: ${eta}`);
-
-  if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
-    throw new Error('wtf');
-  }
-
-  // treasury
-  calldata = [
-    treasury.address,
-    0,
-    'migrate(address)',
-    encodeParameters(
-      ['address'],
-      ['0xe5Fc22DB659b09A476622bea3a612c9252b27884']
-    ),
-    eta,
-  ];
-  txHash = keccak256(
-    encodeParameters(
-      ['address', 'uint256', 'string', 'bytes', 'uint256'],
-      calldata
-    )
-  );
-
-  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
-  await wait(
-    tx.hash,
-    `timelock.queueTransaction (treasury.migrate) => txHash: ${txHash}`
+    `\n3. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
   );
   console.log(`Tx execution ETA: ${eta}`);
 
