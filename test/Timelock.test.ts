@@ -81,7 +81,9 @@ describe('Timelock', () => {
       bond.address,
       share.address,
       ZERO_ADDR,
+      ZERO_ADDR,
       boardroom.address,
+      ZERO_ADDR,
       (await latestBlocktime(provider)) + 5 * DAY
     );
 
@@ -93,8 +95,41 @@ describe('Timelock', () => {
     await treasury.connect(operator).transferOperator(timelock.address);
     await treasury.connect(operator).transferOwnership(timelock.address);
     await boardroom.connect(operator).transferOperator(treasury.address);
+    await boardroom.connect(operator).transferOwnership(timelock.address);
 
-    startTime = Number(await treasury.startTime());
+    startTime = Number(await treasury.getStartTime());
+  });
+
+  describe('#transferOperator', async () => {
+    it('should work correctly', async () => {
+      const eta = (await latestBlocktime(provider)) + 2 * DAY + 30;
+      const signature = 'transferOperator(address)';
+      const data = encodeParameters(['address'], [operator.address]);
+      const calldata = [boardroom.address, 0, signature, data, eta];
+      const txHash = ethers.utils.keccak256(
+        encodeParameters(
+          ['address', 'uint256', 'string', 'bytes', 'uint256'],
+          calldata
+        )
+      );
+
+      await expect(timelock.connect(operator).queueTransaction(...calldata))
+        .to.emit(timelock, 'QueueTransaction')
+        .withArgs(txHash, ...calldata);
+
+      await advanceTimeAndBlock(
+        provider,
+        eta - (await latestBlocktime(provider))
+      );
+
+      await expect(timelock.connect(operator).executeTransaction(...calldata))
+        .to.emit(timelock, 'ExecuteTransaction')
+        .withArgs(txHash, ...calldata)
+        .to.emit(boardroom, 'OperatorTransferred')
+        .withArgs(ZERO_ADDR, operator.address);
+
+      expect(await boardroom.operator()).to.eq(operator.address);
+    });
   });
 
   describe('#migrate', async () => {
@@ -106,7 +141,9 @@ describe('Timelock', () => {
         bond.address,
         share.address,
         ZERO_ADDR,
+        ZERO_ADDR,
         boardroom.address,
+        ZERO_ADDR,
         startTime
       );
     });

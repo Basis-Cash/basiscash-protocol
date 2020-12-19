@@ -1,0 +1,40 @@
+Gas Price: 35.4 gwei
+Deployments
+{
+  "seigniorageOracle": "0x8a573cB5234657c8bf054DA2eBe63B66FB1f9502",
+  "timelock": "0xD98Bc19FFc98E9009146524c8bD835F1BC5d0E6a",
+  "treasury": "0x4e153d084c28F20411D6EA01f7A18E0Ec45E19d3",
+  "boardroom": "0x4B182469337d46E6603ed7e26BA60c56930a342c"
+}
+Admin verified 0x68C3a95B35C45Db5dB67ed83c43305052FAD6e04
+
+===================================================
+
+=> Deploy
+
+Waiting tx 0xf126a6359c42395ea8bce451dbc5407238d0dcd8d991e22df3b016f3c0264e1f. action =
+Deploy new Treasury => 0x67a883D6f84A2D307D8F587B638e2f172Ef2117A
+
+===================================================
+
+=> RBAC
+
+Waiting tx 0x47a6919f17599750d5192467d00fd59981c652de4cf14b52a8ce8e10aa907233. action = treasury.transferOperator
+Waiting tx 0x2301a9ba2ca07e892f133ed70daa9a45f3be6727664461dbba0cc887cbb5d5ec. action = treasury.transferOwnership
+
+===================================================
+
+=> Migration
+
+Waiting tx 0x66e7dc6060e562bf62769b3749a9f53d1e2008330bed08b2220e41b81db3e5b8. action =
+1. timelock.queueTransaction (boardroom.transferOperator) => txHash: 0xec7e2eaaf24b6cfece39a744d40d673f49140f18fef1a462cbab771653609cc4
+Tx execution ETA: 1608594051
+Waiting tx 0xcb55c73bb58b796aa0d042cf0e0c04fbbc66a6a32f664f6c96b99dd2bac95f0d. action =
+2. timelock.queueTransaction (treasury.migrate) => txHash: 0x7bf40e61d28f4c090e43f227f20c4131a7d3d2cd8b64035318f4665668572797
+Tx execution ETA: 1608594063
+Waiting tx 0x99215b70a79701144e0fa4c75f96a8bad076dac01ea570273637b162bc3e4e88. action =
+3. timelock.queueTransaction (boardroom.transferOperator) => txHash: 0xe9989d869a169cf08db42fde9f2380035bc69dd12c7fdfe42d4ca5ba4b3b10ff
+Tx execution ETA: 1608594080
+OK!
+
+===================================================
