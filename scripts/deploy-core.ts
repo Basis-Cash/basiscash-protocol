@@ -69,7 +69,7 @@ async function main() {
   const simpleFund = await SimpleFund.connect(operator).deploy();
   await wait(
     simpleFund.deployTransaction.hash,
-    `\nDeploy fund contract => ${simpleFund.add}`
+    `\nDeploy fund contract => ${simpleFund.address}`
   );
 
   const bondOracle = await Oracle.connect(operator).deploy(
