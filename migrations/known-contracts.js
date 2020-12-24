@@ -26,4 +26,7 @@ module.exports = {
   yCRV: {
     mainnet: '0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8',
   },
+  YFI: {
+    mainnet: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+  },
 };

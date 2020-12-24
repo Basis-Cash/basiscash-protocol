@@ -62,11 +62,11 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract SUSDWrapper {
+contract YFIWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public SUSD;
+    IERC20 public YFI;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,17 +82,17 @@ contract SUSDWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        SUSD.safeTransferFrom(msg.sender, address(this), amount);
+        YFI.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        SUSD.safeTransfer(msg.sender, amount);
+        YFI.safeTransfer(msg.sender, amount);
     }
 }
 
-contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
+contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
@@ -112,16 +112,16 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
 
     constructor(
         address basisCash_,
-        address susd_,
+        address yfi_,
         uint256 starttime_
     ) public {
         basisCash = IERC20(basisCash_);
-        SUSD = IERC20(susd_);
+        YFI = IERC20(yfi_);
         starttime = starttime_;
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'BACSUSDPool: not start');
+        require(block.timestamp >= starttime, 'BACYFIPool: not start');
         _;
     }
 
@@ -168,11 +168,11 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACSUSDPool: Cannot stake 0');
+        require(amount > 0, 'BACYFIPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
         require(
             newDeposit <= 20000e18,
-            'BACSUSDPool: deposit amount exceeds maximum 20000'
+            'BACYFIPool: deposit amount exceeds maximum 20000'
         );
         deposits[msg.sender] = newDeposit;
         super.stake(amount);
@@ -185,7 +185,7 @@ contract BACSUSDPool is SUSDWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACSUSDPool: Cannot withdraw 0');
+        require(amount > 0, 'BACYFIPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);

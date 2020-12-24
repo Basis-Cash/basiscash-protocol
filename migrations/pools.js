@@ -3,14 +3,15 @@ const INITIAL_BAC_FOR_POOLS = 50000;
 const INITIAL_BAS_FOR_DAI_BAC = 750000;
 const INITIAL_BAS_FOR_DAI_BAS = 250000;
 
-const POOL_START_DATE = Date.parse('2020-11-30T00:00:00Z') / 1000;
+// const POOL_START_DATE = Date.parse('2020-11-30T00:00:00Z') / 1000;
+const POOL_START_DATE = Date.parse('2020-12-25T08:00:00Z') / 1000;
 
 const bacPools = [
   { contractName: 'BACDAIPool', token: 'DAI' },
-  { contractName: 'BACSUSDPool', token: 'SUSD' },
-  { contractName: 'BACUSDCPool', token: 'USDC' },
+  { contractName: 'BACYFIPool', token: 'YFI' },
+  // { contractName: 'BACUSDCPool', token: 'USDC' },
   { contractName: 'BACUSDTPool', token: 'USDT' },
-  { contractName: 'BACyCRVPool', token: 'yCRV' },
+  // { contractName: 'BACyCRVPool', token: 'yCRV' },
 ];
 
 const basPools = {
