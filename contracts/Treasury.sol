@@ -28,7 +28,7 @@ contract Treasury is ContractGuard, Operator {
 
     /* ========= CONSTANT VARIABLES ======== */
 
-    uint256 public constant PERIOD = 1 days;
+    uint256 public constant PERIOD = 2 hours;
 
     /* ========== STATE VARIABLES ========== */
 
