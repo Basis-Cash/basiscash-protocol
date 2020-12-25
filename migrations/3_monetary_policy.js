@@ -67,15 +67,17 @@ async function migration(deployer, network, accounts) {
   // Deploy boardroom
   await deployer.deploy(Boardroom, cash.address, share.address);
 
+  let startTime = POOL_START_DATE;
+
   // 2. Deploy oracle for the pair between bac and dai
   await deployer.deploy(
     Oracle,
     uniswap.address,
     cash.address,
     dai.address,
+    startTime,
   );
 
-  let startTime = POOL_START_DATE;
   if (network === 'mainnet') {
     startTime += 5 * DAY;
   }
