@@ -170,10 +170,7 @@ contract BACDAIPool is DAIWrapper, IRewardDistributionRecipient {
     {
         require(amount > 0, 'BACDAIPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
-        require(
-            newDeposit <= 20000e18,
-            'BACDAIPool: deposit amount exceeds maximum 20000'
-        );
+
         deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
