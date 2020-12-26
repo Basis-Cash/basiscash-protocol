@@ -62,11 +62,11 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract YFIWrapper {
+contract MITHWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public YFI;
+    IERC20 public usdc;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,17 +82,17 @@ contract YFIWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        YFI.safeTransferFrom(msg.sender, address(this), amount);
+        usdc.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        YFI.safeTransfer(msg.sender, amount);
+        usdc.safeTransfer(msg.sender, amount);
     }
 }
 
-contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
+contract MICMITHPool is MITHWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
@@ -112,16 +112,16 @@ contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
 
     constructor(
         address basisCash_,
-        address yfi_,
+        address usdc_,
         uint256 starttime_
     ) public {
         basisCash = IERC20(basisCash_);
-        YFI = IERC20(yfi_);
+        usdc = IERC20(usdc_);
         starttime = starttime_;
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'BACYFIPool: not start');
+        require(block.timestamp >= starttime, 'MICMITHPool: not start');
         _;
     }
 
@@ -168,7 +168,7 @@ contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACYFIPool: Cannot stake 0');
+        require(amount > 0, 'MICMITHPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
 
         deposits[msg.sender] = newDeposit;
@@ -182,7 +182,7 @@ contract BACYFIPool is YFIWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACYFIPool: Cannot withdraw 0');
+        require(amount > 0, 'MICMITHPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);

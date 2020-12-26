@@ -62,7 +62,7 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract yCRVWrapper {
+contract CRVWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -92,7 +92,7 @@ contract yCRVWrapper {
     }
 }
 
-contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
+contract MICCRVPool is CRVWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
@@ -121,7 +121,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'BACyCRVPool: not start');
+        require(block.timestamp >= starttime, 'MICCRVPool: not start');
         _;
     }
 
@@ -168,7 +168,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACyCRVPool: Cannot stake 0');
+        require(amount > 0, 'MICCRVPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
 
         deposits[msg.sender] = newDeposit;
@@ -182,7 +182,7 @@ contract BACyCRVPool is yCRVWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACyCRVPool: Cannot withdraw 0');
+        require(amount > 0, 'MICCRVPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);

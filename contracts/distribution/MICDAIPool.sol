@@ -62,11 +62,11 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract USDCWrapper {
+contract DAIWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdc;
+    IERC20 public dai;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,17 +82,17 @@ contract USDCWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        usdc.safeTransferFrom(msg.sender, address(this), amount);
+        dai.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        usdc.safeTransfer(msg.sender, amount);
+        dai.safeTransfer(msg.sender, amount);
     }
 }
 
-contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
+contract MICDAIPool is DAIWrapper, IRewardDistributionRecipient {
     IERC20 public basisCash;
     uint256 public DURATION = 5 days;
 
@@ -112,16 +112,16 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
 
     constructor(
         address basisCash_,
-        address usdc_,
+        address dai_,
         uint256 starttime_
     ) public {
         basisCash = IERC20(basisCash_);
-        usdc = IERC20(usdc_);
+        dai = IERC20(dai_);
         starttime = starttime_;
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'BACUSDCPool: not start');
+        require(block.timestamp >= starttime, 'MICDAIPool: not start');
         _;
     }
 
@@ -168,7 +168,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACUSDCPool: Cannot stake 0');
+        require(amount > 0, 'MICDAIPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
 
         deposits[msg.sender] = newDeposit;
@@ -182,7 +182,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'BACUSDCPool: Cannot withdraw 0');
+        require(amount > 0, 'MICDAIPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
