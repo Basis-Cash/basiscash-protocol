@@ -62,7 +62,7 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract USDTWrapper {
+contract SUSHIWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -92,7 +92,7 @@ contract USDTWrapper {
     }
 }
 
-contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
+contract MICSUSHIPool is SUSHIWrapper, IRewardDistributionRecipient {
     IERC20 public mithCash;
     uint256 public DURATION = 5 days;
 
@@ -121,7 +121,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'MICUSDTPool: not start');
+        require(block.timestamp >= starttime, 'MICSUSHIPool: not start');
         _;
     }
 
@@ -168,7 +168,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'MICUSDTPool: Cannot stake 0');
+        require(amount > 0, 'MICSUSHIPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
 
         deposits[msg.sender] = newDeposit;
@@ -182,7 +182,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'MICUSDTPool: Cannot withdraw 0');
+        require(amount > 0, 'MICSUSHIPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
