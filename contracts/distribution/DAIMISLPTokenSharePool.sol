@@ -62,39 +62,14 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract USDTWrapper {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+import '../token/LPTokenWrapper.sol';
 
-    IERC20 public usdt;
-
-    uint256 private _totalSupply;
-    mapping(address => uint256) private _balances;
-
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
-    }
-
-    function stake(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.add(amount);
-        _balances[msg.sender] = _balances[msg.sender].add(amount);
-        usdt.safeTransferFrom(msg.sender, address(this), amount);
-    }
-
-    function withdraw(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        usdt.safeTransfer(msg.sender, amount);
-    }
-}
-
-contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
-    IERC20 public mithCash;
-    uint256 public DURATION = 5 days;
+contract DAIMISLPTokenSharePool is
+    LPTokenWrapper,
+    IRewardDistributionRecipient
+{
+    IERC20 public mithShare;
+    uint256 public DURATION = 365 days;
 
     uint256 public starttime;
     uint256 public periodFinish = 0;
@@ -103,7 +78,6 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
-    mapping(address => uint256) public deposits;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -111,17 +85,20 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(
-        address mithCash_,
-        address usdt_,
+        address mithShare_,
+        address lptoken_,
         uint256 starttime_
     ) public {
-        mithCash = IERC20(mithCash_);
-        usdt = IERC20(usdt_);
+        mithShare = IERC20(mithShare_);
+        lpt = IERC20(lptoken_);
         starttime = starttime_;
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'MICUSDTPool: not start');
+        require(
+            block.timestamp >= starttime,
+            'DAIMISLPTokenSharePool: not start'
+        );
         _;
     }
 
@@ -168,10 +145,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'MICUSDTPool: Cannot stake 0');
-        uint256 newDeposit = deposits[msg.sender].add(amount);
-
-        deposits[msg.sender] = newDeposit;
+        require(amount > 0, 'DAIMISLPTokenSharePool: Cannot stake 0');
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -182,8 +156,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'MICUSDTPool: Cannot withdraw 0');
-        deposits[msg.sender] = deposits[msg.sender].sub(amount);
+        require(amount > 0, 'DAIMISLPTokenSharePool: Cannot withdraw 0');
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -197,7 +170,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            mithCash.safeTransfer(msg.sender, reward);
+            mithShare.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }

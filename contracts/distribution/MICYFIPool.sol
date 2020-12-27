@@ -62,23 +62,48 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-import '../token/LPTokenWrapper.sol';
+contract YFIWrapper {
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
-contract DAIBACLPTokenSharePool is
-    LPTokenWrapper,
-    IRewardDistributionRecipient
-{
-    IERC20 public basisShare;
-    uint256 public constant DURATION = 30 days;
+    IERC20 public YFI;
 
-    uint256 public initreward = 18479995 * 10**16; // 184,799.95 Shares
-    uint256 public starttime; // starttime TBD
+    uint256 private _totalSupply;
+    mapping(address => uint256) private _balances;
+
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
+    function stake(uint256 amount) public virtual {
+        _totalSupply = _totalSupply.add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
+        YFI.safeTransferFrom(msg.sender, address(this), amount);
+    }
+
+    function withdraw(uint256 amount) public virtual {
+        _totalSupply = _totalSupply.sub(amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        YFI.safeTransfer(msg.sender, amount);
+    }
+}
+
+contract MICYFIPool is YFIWrapper, IRewardDistributionRecipient {
+    IERC20 public mithCash;
+    uint256 public DURATION = 5 days;
+
+    uint256 public starttime;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => uint256) public deposits;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -86,13 +111,18 @@ contract DAIBACLPTokenSharePool is
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(
-        address basisShare_,
-        address lptoken_,
+        address mithCash_,
+        address yfi_,
         uint256 starttime_
     ) public {
-        basisShare = IERC20(basisShare_);
-        lpt = IERC20(lptoken_);
+        mithCash = IERC20(mithCash_);
+        YFI = IERC20(yfi_);
         starttime = starttime_;
+    }
+
+    modifier checkStart() {
+        require(block.timestamp >= starttime, 'MICYFIPool: not start');
+        _;
     }
 
     modifier updateReward(address account) {
@@ -136,10 +166,12 @@ contract DAIBACLPTokenSharePool is
         public
         override
         updateReward(msg.sender)
-        checkhalve
         checkStart
     {
-        require(amount > 0, 'Cannot stake 0');
+        require(amount > 0, 'MICYFIPool: Cannot stake 0');
+        uint256 newDeposit = deposits[msg.sender].add(amount);
+
+        deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -148,10 +180,10 @@ contract DAIBACLPTokenSharePool is
         public
         override
         updateReward(msg.sender)
-        checkhalve
         checkStart
     {
-        require(amount > 0, 'Cannot withdraw 0');
+        require(amount > 0, 'MICYFIPool: Cannot withdraw 0');
+        deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -161,29 +193,13 @@ contract DAIBACLPTokenSharePool is
         getReward();
     }
 
-    function getReward() public updateReward(msg.sender) checkhalve checkStart {
+    function getReward() public updateReward(msg.sender) checkStart {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            basisShare.safeTransfer(msg.sender, reward);
+            mithCash.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
-    }
-
-    modifier checkhalve() {
-        if (block.timestamp >= periodFinish) {
-            initreward = initreward.mul(75).div(100);
-
-            rewardRate = initreward.div(DURATION);
-            periodFinish = block.timestamp.add(DURATION);
-            emit RewardAdded(initreward);
-        }
-        _;
-    }
-
-    modifier checkStart() {
-        require(block.timestamp >= starttime, 'not start');
-        _;
     }
 
     function notifyRewardAmount(uint256 reward)
@@ -204,7 +220,7 @@ contract DAIBACLPTokenSharePool is
             periodFinish = block.timestamp.add(DURATION);
             emit RewardAdded(reward);
         } else {
-            rewardRate = initreward.div(DURATION);
+            rewardRate = reward.div(DURATION);
             lastUpdateTime = starttime;
             periodFinish = starttime.add(DURATION);
             emit RewardAdded(reward);

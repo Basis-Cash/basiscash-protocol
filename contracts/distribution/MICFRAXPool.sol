@@ -66,7 +66,7 @@ contract USDTWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdt;
+    IERC20 public frax;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,13 +82,13 @@ contract USDTWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        usdt.safeTransferFrom(msg.sender, address(this), amount);
+        frax.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        usdt.safeTransfer(msg.sender, amount);
+        frax.safeTransfer(msg.sender, amount);
     }
 }
 
@@ -112,11 +112,11 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
 
     constructor(
         address mithCash_,
-        address usdt_,
+        address frax_,
         uint256 starttime_
     ) public {
         mithCash = IERC20(mithCash_);
-        usdt = IERC20(usdt_);
+        frax = IERC20(frax_);
         starttime = starttime_;
     }
 

@@ -62,11 +62,11 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-contract USDTWrapper {
+contract BACWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdt;
+    IERC20 public bac;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,17 +82,17 @@ contract USDTWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        usdt.safeTransferFrom(msg.sender, address(this), amount);
+        bac.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        usdt.safeTransfer(msg.sender, amount);
+        bac.safeTransfer(msg.sender, amount);
     }
 }
 
-contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
+contract MICBACPool is BACWrapper, IRewardDistributionRecipient {
     IERC20 public mithCash;
     uint256 public DURATION = 5 days;
 
@@ -112,16 +112,16 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
 
     constructor(
         address mithCash_,
-        address usdt_,
+        address bac_,
         uint256 starttime_
     ) public {
         mithCash = IERC20(mithCash_);
-        usdt = IERC20(usdt_);
+        bac = IERC20(bac_);
         starttime = starttime_;
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'MICUSDTPool: not start');
+        require(block.timestamp >= starttime, 'MICBACPool: not start');
         _;
     }
 
@@ -168,7 +168,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'MICUSDTPool: Cannot stake 0');
+        require(amount > 0, 'MICBACPool: Cannot stake 0');
         uint256 newDeposit = deposits[msg.sender].add(amount);
 
         deposits[msg.sender] = newDeposit;
@@ -182,7 +182,7 @@ contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'MICUSDTPool: Cannot withdraw 0');
+        require(amount > 0, 'MICBACPool: Cannot withdraw 0');
         deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);

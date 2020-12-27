@@ -62,14 +62,39 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IRewardDistributionRecipient.sol';
 
-import '../token/LPTokenWrapper.sol';
+contract USDTWrapper {
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
-contract DAIBASLPTokenSharePool is
-    LPTokenWrapper,
-    IRewardDistributionRecipient
-{
-    IERC20 public basisShare;
-    uint256 public DURATION = 365 days;
+    IERC20 public usdt;
+
+    uint256 private _totalSupply;
+    mapping(address => uint256) private _balances;
+
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
+    function stake(uint256 amount) public virtual {
+        _totalSupply = _totalSupply.add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
+        usdt.safeTransferFrom(msg.sender, address(this), amount);
+    }
+
+    function withdraw(uint256 amount) public virtual {
+        _totalSupply = _totalSupply.sub(amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        usdt.safeTransfer(msg.sender, amount);
+    }
+}
+
+contract MICUSDTPool is USDTWrapper, IRewardDistributionRecipient {
+    IERC20 public mithCash;
+    uint256 public DURATION = 5 days;
 
     uint256 public starttime;
     uint256 public periodFinish = 0;
@@ -78,6 +103,7 @@ contract DAIBASLPTokenSharePool is
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => uint256) public deposits;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -85,20 +111,17 @@ contract DAIBASLPTokenSharePool is
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(
-        address basisShare_,
-        address lptoken_,
+        address mithCash_,
+        address usdt_,
         uint256 starttime_
     ) public {
-        basisShare = IERC20(basisShare_);
-        lpt = IERC20(lptoken_);
+        mithCash = IERC20(mithCash_);
+        usdt = IERC20(usdt_);
         starttime = starttime_;
     }
 
     modifier checkStart() {
-        require(
-            block.timestamp >= starttime,
-            'DAIBASLPTokenSharePool: not start'
-        );
+        require(block.timestamp >= starttime, 'MICUSDTPool: not start');
         _;
     }
 
@@ -145,7 +168,10 @@ contract DAIBASLPTokenSharePool is
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'DAIBASLPTokenSharePool: Cannot stake 0');
+        require(amount > 0, 'MICUSDTPool: Cannot stake 0');
+        uint256 newDeposit = deposits[msg.sender].add(amount);
+
+        deposits[msg.sender] = newDeposit;
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -156,7 +182,8 @@ contract DAIBASLPTokenSharePool is
         updateReward(msg.sender)
         checkStart
     {
-        require(amount > 0, 'DAIBASLPTokenSharePool: Cannot withdraw 0');
+        require(amount > 0, 'MICUSDTPool: Cannot withdraw 0');
+        deposits[msg.sender] = deposits[msg.sender].sub(amount);
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -170,7 +197,7 @@ contract DAIBASLPTokenSharePool is
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            basisShare.safeTransfer(msg.sender, reward);
+            mithCash.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }

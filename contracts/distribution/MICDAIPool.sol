@@ -93,7 +93,7 @@ contract DAIWrapper {
 }
 
 contract MICDAIPool is DAIWrapper, IRewardDistributionRecipient {
-    IERC20 public basisCash;
+    IERC20 public mithCash;
     uint256 public DURATION = 5 days;
 
     uint256 public starttime;
@@ -111,11 +111,11 @@ contract MICDAIPool is DAIWrapper, IRewardDistributionRecipient {
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(
-        address basisCash_,
+        address mithCash_,
         address dai_,
         uint256 starttime_
     ) public {
-        basisCash = IERC20(basisCash_);
+        mithCash = IERC20(mithCash_);
         dai = IERC20(dai_);
         starttime = starttime_;
     }
@@ -197,7 +197,7 @@ contract MICDAIPool is DAIWrapper, IRewardDistributionRecipient {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            basisCash.safeTransfer(msg.sender, reward);
+            mithCash.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }

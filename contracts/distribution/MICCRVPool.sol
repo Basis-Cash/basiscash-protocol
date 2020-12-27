@@ -66,7 +66,7 @@ contract CRVWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public ycrv;
+    IERC20 public crv;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,18 +82,18 @@ contract CRVWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        ycrv.safeTransferFrom(msg.sender, address(this), amount);
+        crv.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        ycrv.safeTransfer(msg.sender, amount);
+        crv.safeTransfer(msg.sender, amount);
     }
 }
 
 contract MICCRVPool is CRVWrapper, IRewardDistributionRecipient {
-    IERC20 public basisCash;
+    IERC20 public mithCash;
     uint256 public DURATION = 5 days;
 
     uint256 public starttime;
@@ -111,12 +111,12 @@ contract MICCRVPool is CRVWrapper, IRewardDistributionRecipient {
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(
-        address basisCash_,
-        address ycrv_,
+        address mithCash_,
+        address crv_,
         uint256 starttime_
     ) public {
-        basisCash = IERC20(basisCash_);
-        ycrv = IERC20(ycrv_);
+        mithCash = IERC20(mithCash_);
+        crv = IERC20(crv_);
         starttime = starttime_;
     }
 
@@ -197,7 +197,7 @@ contract MICCRVPool is CRVWrapper, IRewardDistributionRecipient {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            basisCash.safeTransfer(msg.sender, reward);
+            mithCash.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }

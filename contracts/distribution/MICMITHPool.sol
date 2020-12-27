@@ -66,7 +66,7 @@ contract MITHWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public usdc;
+    IERC20 public mith;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
@@ -82,18 +82,18 @@ contract MITHWrapper {
     function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        usdc.safeTransferFrom(msg.sender, address(this), amount);
+        mith.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        usdc.safeTransfer(msg.sender, amount);
+        mith.safeTransfer(msg.sender, amount);
     }
 }
 
 contract MICMITHPool is MITHWrapper, IRewardDistributionRecipient {
-    IERC20 public basisCash;
+    IERC20 public mithCash;
     uint256 public DURATION = 5 days;
 
     uint256 public starttime;
@@ -111,12 +111,12 @@ contract MICMITHPool is MITHWrapper, IRewardDistributionRecipient {
     event RewardPaid(address indexed user, uint256 reward);
 
     constructor(
-        address basisCash_,
-        address usdc_,
+        address mithCash_,
+        address mith_,
         uint256 starttime_
     ) public {
-        basisCash = IERC20(basisCash_);
-        usdc = IERC20(usdc_);
+        mithCash = IERC20(mithCash_);
+        mith = IERC20(mith_);
         starttime = starttime_;
     }
 
@@ -197,7 +197,7 @@ contract MICMITHPool is MITHWrapper, IRewardDistributionRecipient {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            basisCash.safeTransfer(msg.sender, reward);
+            mithCash.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
