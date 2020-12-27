@@ -1,10 +1,20 @@
 pragma solidity ^0.6.0;
 
-import '../distribution/BACDAIPool.sol';
-import '../distribution/BACSYFIPool.sol';
-import '../distribution/BACUSDCPool.sol';
-import '../distribution/BACUSDTPool.sol';
-import '../distribution/BACyCRVPool.sol';
+import '../distribution/MICDAIPool.sol';
+import '../distribution/MICUSDTPool.sol';
+import '../distribution/MICESDPool.sol';
+import '../distribution/MICBACPool.sol';
+import '../distribution/MICMITHPool.sol';
+import '../distribution/MICCREAMPool.sol';
+import '../distribution/MICFRAXPool.sol';
+import '../distribution/MICYFIPool.sol';
+import '../distribution/MICCRVPool.sol';
+import '../distribution/MICBUSDPool.sol';
+import '../distribution/MICLINKPool.sol';
+import '../distribution/MICCOMPPool.sol';
+import '../distribution/MICAAVEPool.sol';
+import '../distribution/MICUSDCPool.sol';
+import '../distribution/MICSUSHIPool.sol';
 import '../interfaces/IDistributor.sol';
 
 contract InitialCashDistributor is IDistributor {
