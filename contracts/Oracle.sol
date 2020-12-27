@@ -17,7 +17,7 @@ contract Oracle {
 
     /* ========= CONSTANT VARIABLES ======== */
 
-    uint256 public constant PERIOD = 2 hours;
+    uint256 public constant PERIOD = 1 days;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -79,7 +79,7 @@ contract Oracle {
 
     /* ========== MUTABLE FUNCTIONS ========== */
 
-    /** @dev Updates 2-hour EMA price from Uniswap.  */
+    /** @dev Updates 1-day EMA price from Uniswap.  */
     function update() external checkEpoch {
         (
             uint256 price0Cumulative,
