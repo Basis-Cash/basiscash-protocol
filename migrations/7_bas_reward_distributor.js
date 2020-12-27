@@ -19,8 +19,8 @@ async function migration(deployer, network, accounts) {
 
   const share = await Share.deployed();
 
-  const lpPoolDAIBAC = artifacts.require(basPools.DAIBAC.contractName);
-  const lpPoolDAIBAS = artifacts.require(basPools.DAIBAS.contractName);
+  const lpPoolDAIBAC = artifacts.require(basPools.DAIMIC.contractName);
+  const lpPoolDAIBAS = artifacts.require(basPools.DAIMIS.contractName);
 
   await deployer.deploy(
     InitialShareDistributor,
