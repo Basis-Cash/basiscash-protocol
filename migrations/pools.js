@@ -1,5 +1,5 @@
 // https://docs.basis.cash/mechanisms/yield-farming
-const INITIAL_BAC_FOR_POOLS = 50000;
+const INITIAL_BAC_FOR_POOLS = 150000;
 const INITIAL_BAS_FOR_DAI_BAC = 750000;
 const INITIAL_BAS_FOR_DAI_BAS = 250000;
 
@@ -8,15 +8,25 @@ const POOL_START_DATE = Date.parse('2020-12-25T08:00:00Z') / 1000; // plus 8 hou
 
 const bacPools = [
   { contractName: 'MICDAIPool', token: 'DAI' },
-  { contractName: 'MICYFIPool', token: 'YFI' },
-  { contractName: 'MICMITHPool', token: 'MITH' },
   { contractName: 'MICUSDTPool', token: 'USDT' },
+  { contractName: 'MICESDPool', token: 'ESD' },
+  { contractName: 'MICBACPool', token: 'BAC' },
+  { contractName: 'MICMITHPool', token: 'MITH' },
+  { contractName: 'MICCREAMPool', token: 'CREAM' },
+  { contractName: 'MICFRAXPool', token: 'FRAX' },
+  { contractName: 'MICYFIPool', token: 'YFI' },
   { contractName: 'MICCRVPool', token: 'CRV' },
+  { contractName: 'MICBUSDPool', token: 'BUSD' },
+  { contractName: 'MICLINKPool', token: 'LINK' },
+  { contractName: 'MICCOMPPool', token: 'COMP' },
+  { contractName: 'MICAAVEPool', token: 'AAVE' },
+  { contractName: 'MICUSDCPool', token: 'USDC' },
+  { contractName: 'MICSUSHIPool', token: 'SUSHI' },
 ];
 
 const basPools = {
-  DAIBAC: { contractName: 'DAIBACLPTokenSharePool', token: 'DAI_BAC-LPv2' },
-  DAIBAS: { contractName: 'DAIBASLPTokenSharePool', token: 'DAI_BAS-LPv2' },
+  DAIMIC: { contractName: 'DAIMICLPTokenSharePool', token: 'DAI_MIC-LPv2' },
+  DAIMIS: { contractName: 'DAIMISLPTokenSharePool', token: 'DAI_MIS-LPv2' },
 }
 
 module.exports = {
