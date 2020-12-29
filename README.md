@@ -4,6 +4,10 @@
 yarn node
 
 yarn deploy:dev
+```
+
+```
+yarn compile
 
 yarn deploy:ropsten
 ```
