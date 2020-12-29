@@ -60,8 +60,11 @@ module.exports = {
       },
       blockGasLimit: 7612388,
       network_id: 3,
-      gas: 7612388,
+      gas: 7500000,
       gasPrice: 20000000000,
+      gasLimit: 7500000,
+      networkCheckTimeout: 1000000,
+      timeoutBlocks: 200,
       from: "0x6E7B883fce40AA7AC9F2052665C209fbf739A62B"
     }
     // Another network with more advanced options...

@@ -9,18 +9,32 @@ const DAY = 86400;
 
 module.exports = async (deployer, network, accounts) => {
   const cash = await Cash.deployed();
+  console.log("cash address is: ",cash.address);
+  
   const share = await Share.deployed();
+  console.log("share address is: ",share.address);
+
   const bond = await Bond.deployed();
-  const treasury = await Treasury.deployed();
+  console.log("bond address is: ",bond.address);
+
   const boardroom = await Boardroom.deployed();
+  console.log("boardroom address is: ",boardroom.address);
+
+  const treasury = await Treasury.deployed();
+  console.log("treasury address is: ",treasury.address);
+
   const timelock = await deployer.deploy(Timelock, accounts[0], 2 * DAY);
 
-  for await (const contract of [ cash, share, bond ]) {
-    await contract.transferOperator(treasury.address);
-    await contract.transferOwnership(treasury.address);
-  }
-  await boardroom.transferOperator(treasury.address);
-  await boardroom.transferOwnership(timelock.address);
+
+  // for await (const contract of [ cash, share, bond ]) {
+  //   console.log("transferOperator");
+  //   console.log(contract.address);
+  //   await contract.transferOperator(treasury.address);
+  //   console.log("transferOwnership");
+  //   await contract.transferOwnership(treasury.address);
+  // }
+  // await boardroom.transferOperator(treasury.address);
+  // await boardroom.transferOwnership(timelock.address);
   await treasury.transferOperator(timelock.address);
   await treasury.transferOwnership(timelock.address);
 
