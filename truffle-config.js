@@ -25,7 +25,8 @@
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-const mnemonic = "vicious patient purse paper black runway afraid length run air gaze fancy";
+
+const mnemonic = "secret";
 const INFURA_API_KEY="65ea3ed956c44aca8c46cb48a782712b";
 
 
