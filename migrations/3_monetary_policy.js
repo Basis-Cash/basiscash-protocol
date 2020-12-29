@@ -1,6 +1,7 @@
 const contract = require('@truffle/contract');
 const { POOL_START_DATE } = require('./pools');
 const knownContracts = require('./known-contracts');
+// const { artifacts } = require('hardhat/config');
 
 const Cash = artifacts.require('Cash');
 const Bond = artifacts.require('Bond');
@@ -8,9 +9,13 @@ const Share = artifacts.require('Share');
 const IERC20 = artifacts.require('IERC20');
 const MockDai = artifacts.require('MockDai');
 
-const Oracle = artifacts.require('Oracle')
-const Boardroom = artifacts.require('Boardroom')
-const Treasury = artifacts.require('Treasury')
+const Oracle = artifacts.require('Oracle');
+const Boardroom = artifacts.require('Boardroom');
+const Treasury = artifacts.require('Treasury');
+// const SimpleERCFund = artifacts.require('SimpleERCFund');
+
+
+
 
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
@@ -20,6 +25,7 @@ const DAY = 86400;
 async function migration(deployer, network, accounts) {
   let uniswap, uniswapRouter;
   if (['dev'].includes(network)) {
+    console.log('Deploying uniswap on dev network.');
     console.log('Deploying uniswap on dev network.');
     await deployer.deploy(UniswapV2Factory, accounts[0]);
     uniswap = await UniswapV2Factory.deployed();
@@ -39,10 +45,13 @@ async function migration(deployer, network, accounts) {
   // if you don't provide liquidity to BAC-DAI and BAS-DAI pair after step 1 and before step 3,
   //  creating Oracle will fail with NO_RESERVES error.
   const unit = web3.utils.toBN(10 ** 18).toString();
+  console.log(unit.toString());
   const max = web3.utils.toBN(10 ** 18).muln(10000).toString();
+  console.log(max.toString());
 
   const cash = await Cash.deployed();
   const share = await Share.deployed();
+  // const fund = await SimpleERCFund.deployed();
 
   console.log('Approving Uniswap on tokens for liquidity');
   await Promise.all([
@@ -65,14 +74,20 @@ async function migration(deployer, network, accounts) {
   console.log(`DAI-BAS pair address: ${await uniswap.getPair(dai.address, share.address)}`);
 
   // Deploy boardroom
+  console.log("deployer.deploy(Boardroom, cash.address, share.address);");
+
   await deployer.deploy(Boardroom, cash.address, share.address);
 
+  
+  console.log("await deployer.deploy Oracle");
   // 2. Deploy oracle for the pair between bac and dai
   await deployer.deploy(
     Oracle,
     uniswap.address,
     cash.address,
     dai.address,
+    DAY,
+    POOL_START_DATE
   );
 
   let startTime = POOL_START_DATE;
@@ -86,7 +101,9 @@ async function migration(deployer, network, accounts) {
     Bond.address,
     Share.address,
     Oracle.address,
+    Oracle.address,
     Boardroom.address,
+    cash.address,
     startTime,
   );
 }

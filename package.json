@@ -38,7 +38,7 @@
     "ethereumjs-util": "^7.0.7",
     "ethers": "^5.0.19",
     "ganache-cli": "^6.12.1",
-    "hardhat": "^2.0.3",
+    "hardhat": "^2.0.6",
     "hardhat-gas-reporter": "^1.0.1",
     "mocha": "^8.2.1",
     "prettier": "^2.1.2",
@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "3.2.0",
-    "@uniswap/v2-core": "^1.0.1"
+    "@uniswap/v2-core": "^1.0.1",
+    "dotenv": "^8.2.0"
   }
 }

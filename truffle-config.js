@@ -23,6 +23,19 @@
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
+require("dotenv").config();
+
+const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
+const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
+const KOVAN_PRIVATE_KEY_SECONDARY = process.env.KOVAN_PRIVATE_KEY_SECONDARY || "";
+const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || "";
+const RINKEBY_PRIVATE_KEY_SECONDARY = process.env.RINKEBY_PRIVATE_KEY_SECONDARY || "";
+const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "";
+const MAINNET_PRIVATE_KEY_SECONDARY = process.env.MAINNET_PRIVATE_KEY_SECONDARY || "";
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
+const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || "";
+const ROPSTEN_PRIVATE_KEY = process.env.ROPSTEN_PRIVATE_KEY || "";
+const ROPSTEN_PRIVATE_KEY_SECONDARY = process.env.ROPSTEN_PRIVATE_KEY_SECONDARY || "";
 
 module.exports = {
   /**
@@ -42,13 +55,25 @@ module.exports = {
     // tab if you use this network and you must also set the `host`, `port` and `network_id`
     // options below to some value.
     //
-    development: {
+    dev: {
       host: '127.0.0.1', // Localhost (default: none)
       port: 8545, // Standard Ethereum port (default: none)
-      network_id: '5777',
+      network_id: '31337',
       gasPrice: 50000000000,
       gas: 6721975, // Any network (default: none)
     },
+    ropsten: {
+      url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,
+      blockGasLimit: 7612388,
+      network_id: 3,
+      gas: 7612388,
+      gasPrice: 20000000000,
+      // accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
+      accounts: [
+        ROPSTEN_PRIVATE_KEY,
+        ROPSTEN_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item !== "")
+    }
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
