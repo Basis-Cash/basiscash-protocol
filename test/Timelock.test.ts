@@ -4,7 +4,7 @@ import { solidity } from 'ethereum-waffle';
 import { Contract, ContractFactory, BigNumber, utils } from 'ethers';
 import { Provider } from '@ethersproject/providers';
 
-import { advanceTimeAndBlock } from './shared/utilities';
+import { advanceTimeAndBlock, latestBlocktime } from './shared/utilities';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import { ParamType } from 'ethers/lib/utils';
 
@@ -13,11 +13,6 @@ chai.use(solidity);
 const DAY = 86400;
 const ETH = utils.parseEther('1');
 const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
-
-async function latestBlocktime(provider: Provider): Promise<number> {
-  const { timestamp } = await provider.getBlock('latest');
-  return timestamp;
-}
 
 function encodeParameters(
   types: Array<string | ParamType>,
