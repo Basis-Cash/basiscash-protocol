@@ -5,14 +5,6 @@ import { network, ethers } from 'hardhat';
 import deployments from '../deployments/5.json';
 import { wait } from './utils';
 
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
-
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;

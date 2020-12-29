@@ -3,15 +3,7 @@ import { keccak256, ParamType } from 'ethers/lib/utils';
 import { network, ethers } from 'hardhat';
 
 import deployments from '../deployments/5.json';
-import { wait } from './utils';
-
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
+import { encodeParameters, wait } from './utils';
 
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
