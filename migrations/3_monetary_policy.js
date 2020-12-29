@@ -8,14 +8,17 @@ const Share = artifacts.require('Share');
 const IERC20 = artifacts.require('IERC20');
 const MockDai = artifacts.require('MockDai');
 
-const Oracle = artifacts.require('Oracle')
+const seigniorageOracle = artifacts.require('Oracle')
+const bondOracle = artifacts.require('Oracle')
 const Boardroom = artifacts.require('Boardroom')
 const Treasury = artifacts.require('Treasury')
+const ERCFund = artifacts.require('SimpleERCFund')
 
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
 
 const DAY = 86400;
+const HOUR = 3600;
 
 async function migration(deployer, network, accounts) {
   let uniswap, uniswapRouter;
@@ -31,14 +34,17 @@ async function migration(deployer, network, accounts) {
     uniswapRouter = await UniswapV2Router02.at(knownContracts.UniswapV2Router02[network]);
   }
 
-  const dai = network === 'mainnet'
-    ? await IERC20.at(knownContracts.DAI[network])
-    : await MockDai.deployed();
+  // const dai = network === 'mainnet'
+  //   ? await IERC20.at(knownContracts.USDT[network]) // important change to USDT
+  //   : await MockDai.deployed();
+
+    const dai = IERC20.at(knownContracts.USDT[network])
 
   // 2. provide liquidity to BAC-DAI and BAS-DAI pair
   // if you don't provide liquidity to BAC-DAI and BAS-DAI pair after step 1 and before step 3,
   //  creating Oracle will fail with NO_RESERVES error.
   const unit = web3.utils.toBN(10 ** 18).toString();
+  const unit6 = web3.utils.toBN(10 ** 6).toString();
   const max = web3.utils.toBN(10 ** 18).muln(10000).toString();
 
   const cash = await Cash.deployed();
@@ -55,30 +61,44 @@ async function migration(deployer, network, accounts) {
   // otherwise transaction will revert
   console.log('Adding liquidity to pools');
   await uniswapRouter.addLiquidity(
-    cash.address, dai.address, unit, unit, unit, unit, accounts[0], deadline(),
+    cash.address, dai.address, unit, unit6, unit, unit6, accounts[0], deadline(),
   );
   await uniswapRouter.addLiquidity(
-    share.address, dai.address, unit, unit, unit, unit, accounts[0],  deadline(),
+    share.address, dai.address, unit, unit6, unit, unit6, accounts[0],  deadline(),
   );
 
-  console.log(`DAI-BAC pair address: ${await uniswap.getPair(dai.address, cash.address)}`);
-  console.log(`DAI-BAS pair address: ${await uniswap.getPair(dai.address, share.address)}`);
+  console.log(`USDT-BAC pair address: ${await uniswap.getPair(dai.address, cash.address)}`);
+  console.log(`USDT-BAS pair address: ${await uniswap.getPair(dai.address, share.address)}`);
 
   // Deploy boardroom
   await deployer.deploy(Boardroom, cash.address, share.address);
 
   let startTime = POOL_START_DATE;
 
-  // 2. Deploy oracle for the pair between bac and dai
+  // 2. Deploy seigniorage oracle for the pair between bac and dai
   await deployer.deploy(
-    Oracle,
+    seigniorageOracle,
     uniswap.address,
     cash.address,
     dai.address,
+    1 * DAY,
     startTime,
   );
 
-  if (network === 'mainnet') {
+  // 3. Deploy bond oracle for the pair between bac and dai
+  await deployer.deploy(
+    bondOracle,
+    uniswap.address,
+    cash.address,
+    dai.address,
+    1 * HOUR,
+    startTime,
+  );
+
+  // Deploy ERCFund
+  await deployer.deploy(ERCFund);
+
+  if (network === 'mainnet' | network === 'mainnet-fork') {
     startTime += 5 * DAY;
   }
 
@@ -87,8 +107,10 @@ async function migration(deployer, network, accounts) {
     cash.address,
     Bond.address,
     Share.address,
-    Oracle.address,
+    bondOracle.address,
+    seigniorageOracle.address,
     Boardroom.address,
+    ERCFund.address,
     startTime,
   );
 }
