@@ -56,5 +56,7 @@ module.exports = {
   SUSHI: {
     mainnet: '0x6B3595068778DD592e39A122f4f5a5cF09C90fE2',
   },
-
+  SUSD: {
+    mainnet: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51',
+  },
 };

@@ -22,6 +22,7 @@ const bacPools = [
   { contractName: 'MICAAVEPool', token: 'AAVE' },
   { contractName: 'MICUSDCPool', token: 'USDC' },
   { contractName: 'MICSUSHIPool', token: 'SUSHI' },
+  { contractName: 'MICSUSDIPool', token: 'SUSD' },
 ];
 
 const basPools = {
