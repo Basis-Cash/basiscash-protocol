@@ -27,6 +27,7 @@ async function main() {
     0,
     'migrate(address)',
     encodeParameters(
+      ethers,
       ['address'],
       ['0xe5Fc22DB659b09A476622bea3a612c9252b27884']
     ),
@@ -34,6 +35,7 @@ async function main() {
   ];
   const txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )

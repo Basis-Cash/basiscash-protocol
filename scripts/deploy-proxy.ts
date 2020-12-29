@@ -1,5 +1,5 @@
 import { network, ethers } from 'hardhat';
-import { Boardroom, Timelock } from '../deployments/4-2.json';
+import { Boardroom, Timelock } from '../deployments/5.json';
 import { wait } from './utils';
 
 async function main() {

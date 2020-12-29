@@ -1,7 +1,7 @@
 import { ParamType } from 'ethers/lib/utils';
-import { ethers } from 'hardhat';
 
 export function encodeParameters(
+  ethers: any,
   types: Array<string | ParamType>,
   values: Array<any>
 ) {
@@ -10,6 +10,7 @@ export function encodeParameters(
 }
 
 export async function wait(
+  ethers: any,
   hash: string,
   desc?: string,
   confirmation: number = 1

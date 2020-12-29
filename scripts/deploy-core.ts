@@ -8,19 +8,11 @@ import {
   UNI_FACTORY,
 } from '../deploy.config';
 import OLD from '../deployments/4.json';
-import { wait } from './utils';
+import { encodeParameters, wait } from './utils';
 
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
-
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
 
 async function main() {
   if (network.name !== 'mainnet') {
@@ -159,11 +151,12 @@ async function main() {
     boardroom.address,
     0,
     'transferOperator(address)',
-    encodeParameters(['address'], [treasury.address]),
+    encodeParameters(ethers, ['address'], [treasury.address]),
     eta,
   ];
   txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
@@ -186,11 +179,12 @@ async function main() {
     treasury.address,
     0,
     'migrate(address)',
-    encodeParameters(['address'], [newTreasury.address]),
+    encodeParameters(ethers, ['address'], [newTreasury.address]),
     eta,
   ];
   txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
@@ -213,11 +207,12 @@ async function main() {
     boardroom.address,
     0,
     'transferOperator(address)',
-    encodeParameters(['address'], [newTreasury.address]),
+    encodeParameters(ethers, ['address'], [newTreasury.address]),
     eta,
   ];
   txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
