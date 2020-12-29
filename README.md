@@ -3,7 +3,7 @@
 ```
 yarn node
 
-yarn console:dev
+yarn deploy:dev
 ```
 
 
