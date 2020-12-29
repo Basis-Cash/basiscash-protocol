@@ -7,6 +7,8 @@ yarn deploy:dev
 ```
 
 ```
+rm -rf build
+
 yarn compile
 
 yarn deploy:ropsten
