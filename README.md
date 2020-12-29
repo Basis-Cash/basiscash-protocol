@@ -1,3 +1,12 @@
+# Deploy & Test
+
+```
+yarn node
+
+yarn console:dev
+```
+
+
 # Basis Cash
 
 ![Background Image](./assets/bg.jpeg)
