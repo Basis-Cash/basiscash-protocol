@@ -23,19 +23,11 @@
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
-require("dotenv").config();
 
-const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
-const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
-const KOVAN_PRIVATE_KEY_SECONDARY = process.env.KOVAN_PRIVATE_KEY_SECONDARY || "";
-const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || "";
-const RINKEBY_PRIVATE_KEY_SECONDARY = process.env.RINKEBY_PRIVATE_KEY_SECONDARY || "";
-const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "";
-const MAINNET_PRIVATE_KEY_SECONDARY = process.env.MAINNET_PRIVATE_KEY_SECONDARY || "";
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || "";
-const ROPSTEN_PRIVATE_KEY = process.env.ROPSTEN_PRIVATE_KEY || "";
-const ROPSTEN_PRIVATE_KEY_SECONDARY = process.env.ROPSTEN_PRIVATE_KEY_SECONDARY || "";
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+const mnemonic = "vicious patient purse paper black runway afraid length run air gaze fancy";
+const INFURA_API_KEY="65ea3ed956c44aca8c46cb48a782712b";
+
 
 module.exports = {
   /**
@@ -63,16 +55,14 @@ module.exports = {
       gas: 6721975, // Any network (default: none)
     },
     ropsten: {
-      url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/"+INFURA_API_KEY)
+      },
       blockGasLimit: 7612388,
       network_id: 3,
       gas: 7612388,
       gasPrice: 20000000000,
-      // accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
-      accounts: [
-        ROPSTEN_PRIVATE_KEY,
-        ROPSTEN_PRIVATE_KEY_SECONDARY
-      ].filter((item) => item !== "")
+      from: "0x6E7B883fce40AA7AC9F2052665C209fbf739A62B"
     }
     // Another network with more advanced options...
     // advanced: {
