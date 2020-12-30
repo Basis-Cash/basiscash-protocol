@@ -26,7 +26,7 @@
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
-const mnemonic = "secret";
+const mnemonic = "";
 const INFURA_API_KEY="65ea3ed956c44aca8c46cb48a782712b";
 
 
@@ -66,6 +66,20 @@ module.exports = {
       gasLimit: 7500000,
       networkCheckTimeout: 1000000,
       timeoutBlocks: 200,
+      from: "0x6E7B883fce40AA7AC9F2052665C209fbf739A62B"
+    },
+    huobitest: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "https://http-testnet.hecochain.com")
+      },
+      blockGasLimit: 7612388,
+      network_id: 256,
+      gas: 7500000,
+      gasPrice: 20000000000,
+      gasLimit: 7500000,
+      networkCheckTimeout: 1000000,
+      timeoutBlocks: 200,
+      confirmations: 2,
       from: "0x6E7B883fce40AA7AC9F2052665C209fbf739A62B"
     }
     // Another network with more advanced options...

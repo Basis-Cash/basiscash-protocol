@@ -12,7 +12,7 @@ const DAIBASLPToken_BASPool = artifacts.require('DAIBASLPTokenSharePool')
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 
 module.exports = async (deployer, network, accounts) => {
-  const uniswapFactory = ['dev'].includes(network)
+  const uniswapFactory = ['huobitest'].includes(network)
     ? await UniswapV2Factory.deployed()
     : await UniswapV2Factory.at(knownContracts.UniswapV2Factory[network]);
   const dai = network === 'mainnet'
