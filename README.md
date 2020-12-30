@@ -4,8 +4,16 @@
 yarn node
 
 yarn deploy:dev
+```
+
+```
+rm -rf build
+
+yarn compile
 
 yarn deploy:ropsten
+
+yarn deploy:huobitest
 ```
 
 
