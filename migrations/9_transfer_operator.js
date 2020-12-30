@@ -26,15 +26,15 @@ module.exports = async (deployer, network, accounts) => {
   const timelock = await deployer.deploy(Timelock, accounts[0], 2 * DAY);
 
 
-  // for await (const contract of [ cash, share, bond ]) {
-  //   console.log("transferOperator");
-  //   console.log(contract.address);
-  //   await contract.transferOperator(treasury.address);
-  //   console.log("transferOwnership");
-  //   await contract.transferOwnership(treasury.address);
-  // }
-  // await boardroom.transferOperator(treasury.address);
-  // await boardroom.transferOwnership(timelock.address);
+  for await (const contract of [ cash, share, bond ]) {
+    console.log("transferOperator");
+    console.log(contract.address);
+    await contract.transferOperator(treasury.address);
+    console.log("transferOwnership");
+    await contract.transferOwnership(treasury.address);
+  }
+  await boardroom.transferOperator(treasury.address);
+  await boardroom.transferOwnership(timelock.address);
   await treasury.transferOperator(timelock.address);
   await treasury.transferOwnership(timelock.address);
 
