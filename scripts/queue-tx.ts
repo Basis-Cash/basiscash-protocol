@@ -44,7 +44,7 @@ async function main() {
   const tx = await timelock
     .connect(operator)
     .queueTransaction(...calldata, override);
-  await wait(tx.hash, `timelock.queueTransaction => txHash: ${txHash}`);
+  await wait(ethers, tx.hash, `timelock.queueTransaction => txHash: ${txHash}`);
   console.log(`Tx execution ETA: ${eta}`);
 
   if (!(await timelock.connect(operator).queuedTransactions(txHash))) {

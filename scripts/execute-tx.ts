@@ -59,11 +59,11 @@ async function main() {
     const tx = await timelock
       .connect(operator)
       .queueTransaction(...queue.calldata, override);
-    await wait(tx.hash, `\ntimelock.queueTransaction => ${queue.desc}`);
+    await wait(ethers, tx.hash, `\ntimelock.queueTransaction => ${queue.desc}`);
   }
 
   const tx = await treasury.connect(operator).initialize();
-  await wait(tx.hash, 'treasury.initialize');
+  await wait(ethers, tx.hash, 'treasury.initialize');
 }
 
 main()

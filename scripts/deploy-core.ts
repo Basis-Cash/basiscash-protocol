@@ -60,6 +60,7 @@ async function main() {
 
   const simpleFund = await SimpleFund.connect(operator).deploy();
   await wait(
+    ethers,
     simpleFund.deployTransaction.hash,
     `\nDeploy fund contract => ${simpleFund.address}`
   );
@@ -73,6 +74,7 @@ async function main() {
     override
   );
   await wait(
+    ethers,
     bondOracle.deployTransaction.hash,
     `\nDeploy new Oracle => ${bondOracle.address}`
   );
@@ -83,6 +85,7 @@ async function main() {
   //   override
   // );
   // await wait(
+  //   ethers,
   //   newBoardroom.deployTransaction.hash,
   //   `\nDeploy new Boardroom => ${newBoardroom.address}`
   // );
@@ -99,6 +102,7 @@ async function main() {
     override
   );
   await wait(
+    ethers,
     newTreasury.deployTransaction.hash,
     `\nDeploy new Treasury => ${newTreasury.address}`
   );
@@ -120,22 +124,22 @@ async function main() {
   tx = await simpleFund
     .connect(operator)
     .transferOperator(timelock.address, override);
-  await wait(tx.hash, 'fund.transferOperator');
+  await wait(ethers, tx.hash, 'fund.transferOperator');
 
   tx = await simpleFund
     .connect(operator)
     .transferOwnership(timelock.address, override);
-  await wait(tx.hash, 'fund.transferOwnership');
+  await wait(ethers, tx.hash, 'fund.transferOwnership');
 
   tx = await newTreasury
     .connect(operator)
     .transferOperator(timelock.address, override);
-  await wait(tx.hash, 'treasury.transferOperator');
+  await wait(ethers, tx.hash, 'treasury.transferOperator');
 
   tx = await newTreasury
     .connect(operator)
     .transferOwnership(timelock.address, override);
-  await wait(tx.hash, 'treasury.transferOwnership');
+  await wait(ethers, tx.hash, 'treasury.transferOwnership');
 
   console.log('\n===================================================\n');
 
@@ -164,6 +168,7 @@ async function main() {
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
+    ethers,
     tx.hash,
     `\n1. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
   );
@@ -192,6 +197,7 @@ async function main() {
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
+    ethers,
     tx.hash,
     `\n2. timelock.queueTransaction (treasury.migrate) => txHash: ${txHash}`
   );
@@ -220,6 +226,7 @@ async function main() {
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
+    ethers,
     tx.hash,
     `\n3. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
   );

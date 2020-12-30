@@ -33,6 +33,7 @@ async function main() {
     { gasPrice }
   );
   await wait(
+    ethers,
     voteProxy.deployTransaction.hash,
     `\nDeploy vote proxy => ${voteProxy.address}`
   );
@@ -46,12 +47,12 @@ async function main() {
   tx = await voteProxy
     .connect(operator)
     .transferOperator(timelock.address, { gasPrice });
-  await wait(tx.hash, 'voteProxy.transferOperator');
+  await wait(ethers, tx.hash, 'voteProxy.transferOperator');
 
   tx = await voteProxy
     .connect(operator)
     .transferOwner(timelock.address, { gasPrice });
-  await wait(tx.hash, 'voteProxy.transferOwnership');
+  await wait(ethers, tx.hash, 'voteProxy.transferOwnership');
 
   console.log('OK!');
 
