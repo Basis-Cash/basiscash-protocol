@@ -38,7 +38,7 @@ contract ShareWrapper {
             directorShare >= amount,
             'Boardroom: withdraw request greater than staked amount'
         );
-        _totalSupply = _totalSupply.sub(amount);        
+        _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = directorShare.sub(amount);
         share.safeTransfer(msg.sender, amount);
     }
@@ -58,7 +58,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     struct BoardSnapshot {
-        uint256 timestamp;
+        uint256 time;
         uint256 rewardReceived;
         uint256 rewardPerShare;
     }
@@ -76,7 +76,11 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         cash = _cash;
         share = _share;
 
-        BoardSnapshot memory genesisSnapshot = BoardSnapshot(now, 0, 0);
+        BoardSnapshot memory genesisSnapshot = BoardSnapshot({
+            time: block.number,
+            rewardReceived: 0,
+            rewardPerShare: 0
+        });
         boardHistory.push(genesisSnapshot);
     }
 
@@ -90,11 +94,10 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     modifier updateReward(address director) {
-        uint256 currentIndex = latestSnapshotIndex();
         if (director != address(0)) {
             Boardseat memory seat = directors[director];
             seat.rewardEarned = earned(director);
-            seat.lastSnapshotIndex = currentIndex;
+            seat.lastSnapshotIndex = latestSnapshotIndex();
             directors[director] = seat;
         }
         _;
@@ -120,7 +123,6 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         return directors[director].lastSnapshotIndex;
     }
 
-    
     function getLastSnapshotOf(address director)
         internal
         view
@@ -140,7 +142,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 storedRPS = getLastSnapshotOf(director).rewardPerShare;
 
         return
-            balanceOf(director).mul(latestRPS.sub(storedRPS)).add(
+            balanceOf(director).mul(latestRPS.sub(storedRPS)).div(1e18).add(
                 directors[director].rewardEarned
             );
     }
@@ -153,9 +155,9 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         onlyOneBlock
         updateReward(msg.sender)
     {
-          require(amount > 0, 'Boardroom: Cannot stake 0');
-          super.stake(amount);
-          emit Staked(msg.sender, amount);
+        require(amount > 0, 'Boardroom: Cannot stake 0');
+        super.stake(amount);
+        emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount)
@@ -190,14 +192,17 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         onlyOperator
     {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
-        require(totalSupply() > 0, 'Boardroom: Cannot allocate when totalSupply is 0');        
+        require(
+            totalSupply() > 0,
+            'Boardroom: Cannot allocate when totalSupply is 0'
+        );
 
         // Create & add new snapshot
         uint256 prevRPS = getLatestSnapshot().rewardPerShare;
-        uint256 nextRPS = prevRPS.add(amount.div(totalSupply()));
+        uint256 nextRPS = prevRPS.add(amount.mul(1e18).div(totalSupply()));
 
         BoardSnapshot memory newSnapshot = BoardSnapshot({
-            timestamp: now,
+            time: block.number,
             rewardReceived: amount,
             rewardPerShare: nextRPS
         });
