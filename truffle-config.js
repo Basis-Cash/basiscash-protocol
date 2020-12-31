@@ -24,10 +24,12 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
+require("dotenv").config();
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
-const mnemonic = "secret";
-const INFURA_API_KEY="65ea3ed956c44aca8c46cb48a782712b";
+const mnemonic = process.env.MNEMONIC || "";
+const MMaddress = process.env.MM_ADDRESS || "";
+const INFURA_API_KEY=process.env.INFURA_API_KEY || "";
 
 
 module.exports = {
@@ -67,7 +69,7 @@ module.exports = {
       networkCheckTimeout: 1000000,
       timeoutBlocks: 200,
       confirmations: 2,
-      from: "0x6E7B883fce40AA7AC9F2052665C209fbf739A62B"
+      from: MMaddress
     },
     huobitest: {
       provider: function() {
@@ -81,7 +83,7 @@ module.exports = {
       networkCheckTimeout: 1000000,
       timeoutBlocks: 200,
       confirmations: 2,
-      from: "0x6E7B883fce40AA7AC9F2052665C209fbf739A62B"
+      from: MMaddress
     }
     // Another network with more advanced options...
     // advanced: {
