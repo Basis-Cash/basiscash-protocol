@@ -15,6 +15,7 @@ import '../distribution/MICCOMPPool.sol';
 import '../distribution/MICAAVEPool.sol';
 import '../distribution/MICUSDCPool.sol';
 import '../distribution/MICSUSHIPool.sol';
+import '../distribution/MICSUSDPool.sol';
 import '../interfaces/IDistributor.sol';
 
 contract InitialCashDistributor is IDistributor {
