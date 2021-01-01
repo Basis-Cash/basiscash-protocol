@@ -5,14 +5,6 @@ import { network, ethers } from 'hardhat';
 import deployments from '../deployments/5.json';
 import { wait } from './utils';
 
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
-
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
@@ -67,11 +59,11 @@ async function main() {
     const tx = await timelock
       .connect(operator)
       .queueTransaction(...queue.calldata, override);
-    await wait(tx.hash, `\ntimelock.queueTransaction => ${queue.desc}`);
+    await wait(ethers, tx.hash, `\ntimelock.queueTransaction => ${queue.desc}`);
   }
 
   const tx = await treasury.connect(operator).initialize();
-  await wait(tx.hash, 'treasury.initialize');
+  await wait(ethers, tx.hash, 'treasury.initialize');
 }
 
 main()

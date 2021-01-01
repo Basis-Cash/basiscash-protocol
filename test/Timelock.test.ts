@@ -7,20 +7,13 @@ import { Provider } from '@ethersproject/providers';
 import { advanceTimeAndBlock, latestBlocktime } from './shared/utilities';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import { ParamType } from 'ethers/lib/utils';
+import { encodeParameters } from '../scripts/utils';
 
 chai.use(solidity);
 
 const DAY = 86400;
 const ETH = utils.parseEther('1');
 const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
-
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
 
 describe('Timelock', () => {
   const { provider } = ethers;
@@ -99,10 +92,11 @@ describe('Timelock', () => {
     it('should work correctly', async () => {
       const eta = (await latestBlocktime(provider)) + 2 * DAY + 30;
       const signature = 'transferOperator(address)';
-      const data = encodeParameters(['address'], [operator.address]);
+      const data = encodeParameters(ethers, ['address'], [operator.address]);
       const calldata = [boardroom.address, 0, signature, data, eta];
       const txHash = ethers.utils.keccak256(
         encodeParameters(
+          ethers,
           ['address', 'uint256', 'string', 'bytes', 'uint256'],
           calldata
         )
@@ -146,10 +140,11 @@ describe('Timelock', () => {
     it('should work correctly', async () => {
       const eta = (await latestBlocktime(provider)) + 2 * DAY + 30;
       const signature = 'migrate(address)';
-      const data = encodeParameters(['address'], [newTreasury.address]);
+      const data = encodeParameters(ethers, ['address'], [newTreasury.address]);
       const calldata = [treasury.address, 0, signature, data, eta];
       const txHash = ethers.utils.keccak256(
         encodeParameters(
+          ethers,
           ['address', 'uint256', 'string', 'bytes', 'uint256'],
           calldata
         )
