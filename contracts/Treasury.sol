@@ -48,7 +48,12 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceOne;
     uint256 public cashPriceCeiling;
     uint256 public bondDepletionFloor;
+
     uint256 private accumulatedSeigniorage = 0;
+    uint256 private storedCashPrice;
+    uint256 private lastBondOracleEpoch = 0;
+    uint256 private cashConversionLimit = 0;
+    uint256 private accumulatedCashConversion = 0;
     uint256 public fundAllocationRate = 2; // %
 
     /* ========== CONSTRUCTOR ========== */
@@ -103,6 +108,10 @@ contract Treasury is ContractGuard, Epoch {
     // budget
     function getReserve() public view returns (uint256) {
         return accumulatedSeigniorage;
+    }
+
+    function circulatingSupply() public view returns (uint256) {
+        return IERC20(cash).totalSupply().sub(accumulatedSeigniorage);
     }
 
     // oracle
@@ -171,9 +180,25 @@ contract Treasury is ContractGuard, Epoch {
 
     /* ========== MUTABLE FUNCTIONS ========== */
 
+    function _updateBondLimit(uint256 targetPrice) internal {
+        uint256 currentEpoch = Epoch(bondOracle).getCurrentEpoch();
+        if (lastBondOracleEpoch != currentEpoch) {
+            _updateCashPrice();
+            uint256 cashPrice = _getCashPrice(bondOracle);
+            require(cashPrice == targetPrice, 'Treasury: cash price moved');
+            if (cashPrice < cashPriceOne) {
+                uint256 percentage = cashPriceOne.sub(cashPrice);
+                cashConversionLimit = circulatingSupply().mul(percentage).div(
+                    1e18
+                );
+                accumulatedCashConversion = 0;
+            }
+        }
+    }
+
     function _updateCashPrice() internal {
-        try IOracle(bondOracle).update()  {} catch {}
-        try IOracle(seigniorageOracle).update()  {} catch {}
+        try IOracle(bondOracle).update() {} catch {}
+        try IOracle(seigniorageOracle).update() {} catch {}
     }
 
     function buyBonds(uint256 amount, uint256 targetPrice)
@@ -190,6 +215,13 @@ contract Treasury is ContractGuard, Epoch {
         require(
             cashPrice < cashPriceOne, // price < $1
             'Treasury: cashPrice not eligible for bond purchase'
+        );
+        _updateBondLimit(targetPrice);
+
+        // swap exact limit
+        amount = Math.min(
+            amount,
+            cashConversionLimit.sub(accumulatedCashConversion)
         );
 
         uint256 bondPrice = cashPrice;
@@ -247,11 +279,8 @@ contract Treasury is ContractGuard, Epoch {
         }
 
         // circulating supply
-        uint256 cashSupply = IERC20(cash).totalSupply().sub(
-            accumulatedSeigniorage
-        );
         uint256 percentage = cashPrice.sub(cashPriceOne);
-        uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
+        uint256 seigniorage = circulatingSupply().mul(percentage).div(1e18);
         IBasisAsset(cash).mint(address(this), seigniorage);
 
         // ======================== BIP-3
@@ -269,10 +298,11 @@ contract Treasury is ContractGuard, Epoch {
         seigniorage = seigniorage.sub(fundReserve);
 
         // ======================== BIP-4
-        uint256 treasuryReserve = Math.min(
-            seigniorage,
-            IERC20(bond).totalSupply().sub(accumulatedSeigniorage)
-        );
+        uint256 treasuryReserve =
+            Math.min(
+                seigniorage,
+                IERC20(bond).totalSupply().sub(accumulatedSeigniorage)
+            );
         if (treasuryReserve > 0) {
             accumulatedSeigniorage = accumulatedSeigniorage.add(
                 treasuryReserve
