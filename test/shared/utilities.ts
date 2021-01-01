@@ -1,4 +1,19 @@
-import { Block, JsonRpcProvider } from '@ethersproject/providers';
+import { Block, JsonRpcProvider, Provider } from '@ethersproject/providers';
+import { ethers } from 'hardhat';
+import { ParamType } from 'ethers/lib/utils';
+
+export function encodeParameters(
+  types: Array<string | ParamType>,
+  values: Array<any>
+) {
+  const abi = new ethers.utils.AbiCoder();
+  return abi.encode(types, values);
+}
+
+export async function latestBlocktime(provider: Provider): Promise<number> {
+  const { timestamp } = await provider.getBlock('latest');
+  return timestamp;
+}
 
 export async function advanceTime(
   provider: JsonRpcProvider,
