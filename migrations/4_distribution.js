@@ -10,11 +10,12 @@ const MockDai = artifacts.require('MockDai');
 module.exports = async (deployer, network, accounts) => {
   for await (const { contractName, token } of bacPools) {
     const tokenAddress = knownContracts[token][network] || MockDai.address;
+    console.log(contractName);
+    console.log(tokenAddress);
     if (!tokenAddress) {
       // network is mainnet, so MockDai is not available
       throw new Error(`Address of ${token} is not registered on migrations/known-contracts.js!`);
     }
-
     const contract = artifacts.require(contractName);
     await deployer.deploy(contract, Cash.address, tokenAddress, POOL_START_DATE);
   }

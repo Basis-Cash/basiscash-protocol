@@ -62,10 +62,11 @@ async function migration(deployer, network, accounts) {
 
   // WARNING: msg.sender must hold enough DAI to add liquidity to BAC-DAI & BAS-DAI pools
   // otherwise transaction will revert
-  console.log('Adding liquidity to pools');
+  console.log('Adding liquidity to pools BAC to DAI');
   await uniswapRouter.addLiquidity(
     cash.address, dai.address, unit, unit, unit, unit, accounts[0], deadline(),
   );
+  console.log('Adding liquidity to pools BAS to DAI');
   await uniswapRouter.addLiquidity(
     share.address, dai.address, unit, unit, unit, unit, accounts[0],  deadline(),
   );
