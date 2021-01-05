@@ -397,6 +397,7 @@ describe('Treasury', () => {
         it('should work if cash price below $1', async () => {
           const cashPrice = ETH.mul(99).div(100); // $0.99
           await oracle.setPrice(cashPrice);
+          await oracle.setEpoch(1);
           await cash.connect(operator).transfer(ant.address, ETH);
           await cash.connect(ant).approve(treasury.address, ETH);
 
