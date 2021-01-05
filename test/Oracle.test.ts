@@ -8,14 +8,9 @@ import UniswapV2Router from '@uniswap/v2-periphery/build/UniswapV2Router02.json'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import { Provider } from '@ethersproject/providers';
 
-import { advanceTimeAndBlock } from './shared/utilities';
+import { advanceTimeAndBlock, latestBlocktime } from './shared/utilities';
 
 chai.use(solidity);
-
-async function latestBlocktime(provider: Provider): Promise<number> {
-  const { timestamp } = await provider.getBlock('latest');
-  return timestamp;
-}
 
 async function addLiquidity(
   provider: Provider,
@@ -122,7 +117,7 @@ describe('Oracle', () => {
       );
 
       // epoch 0
-      await expect(oracle.update()).to.revertedWith('Epoch: not allowed');
+      await expect(oracle.update()).to.revertedWith('Epoch: not started yet');
       expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime);
       expect(await oracle.getCurrentEpoch()).to.eq(BigNumber.from(0));
 
@@ -132,7 +127,7 @@ describe('Oracle', () => {
       await expect(oracle.update()).to.emit(oracle, 'Updated');
 
       expect(await oracle.nextEpochPoint()).to.eq(oracleStartTime.add(DAY));
-      expect(await oracle.getCurrentEpoch()).to.eq(BigNumber.from(1));
+      expect(await oracle.getCurrentEpoch()).to.eq(BigNumber.from(0));
       // check double update
       await expect(oracle.update()).to.revertedWith('Epoch: not allowed');
     });
