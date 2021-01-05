@@ -47,7 +47,6 @@ contract Treasury is ContractGuard, Epoch {
     // ========== PARAMS
     uint256 public cashPriceOne;
     uint256 public cashPriceCeiling;
-    uint256 public bondDepletionFloor;
 
     uint256 private accumulatedSeigniorage = 0;
     uint256 private lastBondOracleEpoch = 0;
@@ -78,8 +77,6 @@ contract Treasury is ContractGuard, Epoch {
 
         cashPriceOne = 10**18;
         cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
-
-        bondDepletionFloor = uint256(1000).mul(cashPriceOne);
     }
 
     /* =================== Modifier =================== */
@@ -132,6 +129,7 @@ contract Treasury is ContractGuard, Epoch {
 
     /* ========== GOVERNANCE ========== */
 
+    // MIGRATION
     function initialize() public checkOperator {
         require(!initialized, 'Treasury: initialized');
 
@@ -167,14 +165,37 @@ contract Treasury is ContractGuard, Epoch {
         emit Migration(target);
     }
 
+    // FUND
     function setFund(address newFund) public onlyOperator {
+        address oldFund = fund;
         fund = newFund;
-        emit ContributionPoolChanged(msg.sender, newFund);
+        emit ContributionPoolChanged(msg.sender, oldFund, newFund);
     }
 
-    function setFundAllocationRate(uint256 rate) public onlyOperator {
-        fundAllocationRate = rate;
-        emit ContributionPoolRateChanged(msg.sender, rate);
+    function setFundAllocationRate(uint256 newRate) public onlyOperator {
+        uint256 oldRate = fundAllocationRate;
+        fundAllocationRate = newRate;
+        emit ContributionPoolRateChanged(msg.sender, oldRate, newRate);
+    }
+
+    // ORACLE
+    function setBondOracle(address newOracle) public onlyOperator {
+        address oldOracle = bondOracle;
+        bondOracle = newOracle;
+        emit BondOracleChanged(msg.sender, oldOracle, newOracle);
+    }
+
+    function setSeigniorageOracle(address newOracle) public onlyOperator {
+        address oldOracle = seigniorageOracle;
+        seigniorageOracle = newOracle;
+        emit SeigniorageOracleChanged(msg.sender, oldOracle, newOracle);
+    }
+
+    // TWEAK
+    function setCashPriceCeiling(uint256 newCeiling) public onlyOperator {
+        uint256 oldCeiling = cashPriceCeiling;
+        cashPriceCeiling = newCeiling;
+        emit CashPriceCeilingChanged(msg.sender, oldCeiling, newCeiling);
     }
 
     /* ========== MUTABLE FUNCTIONS ========== */
@@ -318,13 +339,35 @@ contract Treasury is ContractGuard, Epoch {
         }
     }
 
+    /* ========== EVENTS ========== */
+
     // GOV
     event Initialized(address indexed executor, uint256 at);
     event Migration(address indexed target);
-    event ContributionPoolChanged(address indexed operator, address newFund);
+    event ContributionPoolChanged(
+        address indexed operator,
+        address oldFund,
+        address newFund
+    );
     event ContributionPoolRateChanged(
         address indexed operator,
+        uint256 oldRate,
         uint256 newRate
+    );
+    event BondOracleChanged(
+        address indexed operator,
+        address oldOracle,
+        address newOracle
+    );
+    event SeigniorageOracleChanged(
+        address indexed operator,
+        address oldOracle,
+        address newOracle
+    );
+    event CashPriceCeilingChanged(
+        address indexed operator,
+        uint256 oldCeiling,
+        uint256 newCeiling
     );
 
     // CORE
