@@ -200,10 +200,9 @@ contract Treasury is ContractGuard, Epoch {
 
     /* ========== MUTABLE FUNCTIONS ========== */
 
-    function _updateBondLimit() internal {
+    function _updateBondLimit(uint256 cashPrice) internal {
         uint256 currentEpoch = Epoch(bondOracle).getCurrentEpoch();
         if (lastBondOracleEpoch != currentEpoch) {
-            uint256 cashPrice = _getCashPrice(bondOracle);
             if (cashPrice < cashPriceOne) {
                 uint256 percentage = cashPriceOne.sub(cashPrice);
                 cashConversionLimit = circulatingSupply().mul(percentage).div(
@@ -234,7 +233,7 @@ contract Treasury is ContractGuard, Epoch {
             cashPrice < cashPriceOne, // price < $1
             'Treasury: cashPrice not eligible for bond purchase'
         );
-        _updateBondLimit();
+        _updateBondLimit(cashPrice);
 
         // swap exact limit
         amount = Math.min(
