@@ -50,7 +50,6 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public bondDepletionFloor;
 
     uint256 private accumulatedSeigniorage = 0;
-    uint256 private storedCashPrice;
     uint256 private lastBondOracleEpoch = 0;
     uint256 private cashConversionLimit = 0;
     uint256 private accumulatedCashConversion = 0;
