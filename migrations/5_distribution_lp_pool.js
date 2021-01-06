@@ -21,9 +21,13 @@ module.exports = async (deployer, network, accounts) => {
 
   const oracle = await Oracle.deployed();
 
+  console.log("uniswapFactory address is: ",uniswapFactory.address);
+
   const dai_bac_lpt = await oracle.pairFor(uniswapFactory.address, Cash.address, dai.address);
   const dai_bas_lpt = await oracle.pairFor(uniswapFactory.address, Share.address, dai.address);
 
+  console.log("deploy DAI-BAC LP")
   await deployer.deploy(DAIBACLPToken_BASPool, Share.address, dai_bac_lpt, POOL_START_DATE);
+  console.log("deploy DAI-BAS LP")
   await deployer.deploy(DAIBASLPToken_BASPool, Share.address, dai_bas_lpt, POOL_START_DATE);
 };

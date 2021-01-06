@@ -25,10 +25,16 @@ module.exports = async (deployer, network, accounts) => {
   console.log(`Setting distributor to InitialCashDistributor (${distributor.address})`);
   for await (const poolInfo of pools) {
     const pool = await poolInfo.deployed()
+    console.log(pool.contractName);
+    console.log(pool.address);
     await pool.setRewardDistribution(distributor.address);
   }
 
+  console.log("cash.mint distributor.address: ",distributor.address);
+  console.log("cash.mint initialCashAmount",initialCashAmount);
+  
   await cash.mint(distributor.address, initialCashAmount);
+
   console.log(`Deposited ${INITIAL_BAC_FOR_POOLS} BAC to InitialCashDistributor.`);
 
   await distributor.distribute();
