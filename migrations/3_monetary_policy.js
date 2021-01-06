@@ -24,7 +24,7 @@ const DAY = 86400;
 
 async function migration(deployer, network, accounts) {
   let uniswap, uniswapRouter;
-  if (['ropsten'].includes(network))  {
+  if (['dev'].includes(network))  {
     console.log('Deploying uniswap on ropsten network.');
     console.log('Deploying uniswap on ropsten network.');
     await deployer.deploy(UniswapV2Factory, accounts[0]);
@@ -34,7 +34,10 @@ async function migration(deployer, network, accounts) {
     uniswapRouter = await UniswapV2Router02.deployed();
   } else {
     uniswap = await UniswapV2Factory.at(knownContracts.UniswapV2Factory[network]);
+    console.log("uniswap address is: ",uniswap.address);
+
     uniswapRouter = await UniswapV2Router02.at(knownContracts.UniswapV2Router02[network]);
+    console.log("UniswapV2Router02 address is: ",uniswapRouter.address);
   }
 
   const dai = network === 'mainnet'

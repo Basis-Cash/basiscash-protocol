@@ -68,7 +68,7 @@ module.exports = {
       gasLimit: 7500000,
       networkCheckTimeout: 1000000,
       timeoutBlocks: 200,
-      confirmations: 2,
+      confirmations: 1,
       from: MMaddress
     },
     huobitest: {
@@ -82,7 +82,7 @@ module.exports = {
       gasLimit: 7500000,
       networkCheckTimeout: 1000000,
       timeoutBlocks: 200,
-      confirmations: 2,
+      confirmations: 1,
       from: MMaddress
     }
     // Another network with more advanced options...
