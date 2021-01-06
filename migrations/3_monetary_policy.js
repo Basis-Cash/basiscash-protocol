@@ -8,14 +8,18 @@ const Share = artifacts.require('Share');
 const IERC20 = artifacts.require('IERC20');
 const MockDai = artifacts.require('MockDai');
 
-const Oracle = artifacts.require('Oracle')
+const BondOracle = artifacts.require('Oracle')
+const SeigniorageOracle = artifacts.require('Oracle')
 const Boardroom = artifacts.require('Boardroom')
 const Treasury = artifacts.require('Treasury')
+const SimpleFund = artifacts.require('SimpleERCFund')
 
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
 
+const HOUR = 60 * 60;
 const DAY = 86400;
+const ORACLE_START_DATE = Date.parse('2021-01-19T00:00:00Z') / 1000;
 
 async function migration(deployer, network, accounts) {
   let uniswap, uniswapRouter;
@@ -67,12 +71,25 @@ async function migration(deployer, network, accounts) {
   // Deploy boardroom
   await deployer.deploy(Boardroom, cash.address, share.address);
 
+  // Deploy simpleFund
+  await deployer.deploy(SimpleFund);
+
   // 2. Deploy oracle for the pair between bac and dai
   await deployer.deploy(
-    Oracle,
+    BondOracle,
     uniswap.address,
     cash.address,
     dai.address,
+    HOUR,
+    ORACLE_START_DATE
+  );
+  await deployer.deploy(
+    SeigniorageOracle,
+    uniswap.address,
+    cash.address,
+    dai.address,
+    DAY,
+    ORACLE_START_DATE
   );
 
   let startTime = POOL_START_DATE;
@@ -85,8 +102,10 @@ async function migration(deployer, network, accounts) {
     cash.address,
     Bond.address,
     Share.address,
-    Oracle.address,
+    BondOracle.address,
+    SeigniorageOracle.address,
     Boardroom.address,
+    SimpleFund.address,
     startTime,
   );
 }
