@@ -8,19 +8,11 @@ import {
   UNI_FACTORY,
 } from '../deploy.config';
 import OLD from '../deployments/4.json';
-import { wait } from './utils';
+import { encodeParameters, wait } from './utils';
 
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
-
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
 
 async function main() {
   if (network.name !== 'mainnet') {
@@ -68,6 +60,7 @@ async function main() {
 
   const simpleFund = await SimpleFund.connect(operator).deploy();
   await wait(
+    ethers,
     simpleFund.deployTransaction.hash,
     `\nDeploy fund contract => ${simpleFund.address}`
   );
@@ -81,6 +74,7 @@ async function main() {
     override
   );
   await wait(
+    ethers,
     bondOracle.deployTransaction.hash,
     `\nDeploy new Oracle => ${bondOracle.address}`
   );
@@ -91,6 +85,7 @@ async function main() {
   //   override
   // );
   // await wait(
+  //   ethers,
   //   newBoardroom.deployTransaction.hash,
   //   `\nDeploy new Boardroom => ${newBoardroom.address}`
   // );
@@ -107,6 +102,7 @@ async function main() {
     override
   );
   await wait(
+    ethers,
     newTreasury.deployTransaction.hash,
     `\nDeploy new Treasury => ${newTreasury.address}`
   );
@@ -128,22 +124,22 @@ async function main() {
   tx = await simpleFund
     .connect(operator)
     .transferOperator(timelock.address, override);
-  await wait(tx.hash, 'fund.transferOperator');
+  await wait(ethers, tx.hash, 'fund.transferOperator');
 
   tx = await simpleFund
     .connect(operator)
     .transferOwnership(timelock.address, override);
-  await wait(tx.hash, 'fund.transferOwnership');
+  await wait(ethers, tx.hash, 'fund.transferOwnership');
 
   tx = await newTreasury
     .connect(operator)
     .transferOperator(timelock.address, override);
-  await wait(tx.hash, 'treasury.transferOperator');
+  await wait(ethers, tx.hash, 'treasury.transferOperator');
 
   tx = await newTreasury
     .connect(operator)
     .transferOwnership(timelock.address, override);
-  await wait(tx.hash, 'treasury.transferOwnership');
+  await wait(ethers, tx.hash, 'treasury.transferOwnership');
 
   console.log('\n===================================================\n');
 
@@ -159,11 +155,12 @@ async function main() {
     boardroom.address,
     0,
     'transferOperator(address)',
-    encodeParameters(['address'], [treasury.address]),
+    encodeParameters(ethers, ['address'], [treasury.address]),
     eta,
   ];
   txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
@@ -171,6 +168,7 @@ async function main() {
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
+    ethers,
     tx.hash,
     `\n1. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
   );
@@ -186,11 +184,12 @@ async function main() {
     treasury.address,
     0,
     'migrate(address)',
-    encodeParameters(['address'], [newTreasury.address]),
+    encodeParameters(ethers, ['address'], [newTreasury.address]),
     eta,
   ];
   txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
@@ -198,6 +197,7 @@ async function main() {
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
+    ethers,
     tx.hash,
     `\n2. timelock.queueTransaction (treasury.migrate) => txHash: ${txHash}`
   );
@@ -213,11 +213,12 @@ async function main() {
     boardroom.address,
     0,
     'transferOperator(address)',
-    encodeParameters(['address'], [newTreasury.address]),
+    encodeParameters(ethers, ['address'], [newTreasury.address]),
     eta,
   ];
   txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
@@ -225,6 +226,7 @@ async function main() {
 
   tx = await timelock.connect(operator).queueTransaction(...calldata, override);
   await wait(
+    ethers,
     tx.hash,
     `\n3. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
   );

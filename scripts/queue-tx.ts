@@ -3,15 +3,7 @@ import { keccak256, ParamType } from 'ethers/lib/utils';
 import { network, ethers } from 'hardhat';
 
 import deployments from '../deployments/5.json';
-import { wait } from './utils';
-
-function encodeParameters(
-  types: Array<string | ParamType>,
-  values: Array<any>
-) {
-  const abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
+import { encodeParameters, wait } from './utils';
 
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
@@ -35,6 +27,7 @@ async function main() {
     0,
     'migrate(address)',
     encodeParameters(
+      ethers,
       ['address'],
       ['0xe5Fc22DB659b09A476622bea3a612c9252b27884']
     ),
@@ -42,6 +35,7 @@ async function main() {
   ];
   const txHash = keccak256(
     encodeParameters(
+      ethers,
       ['address', 'uint256', 'string', 'bytes', 'uint256'],
       calldata
     )
@@ -50,7 +44,7 @@ async function main() {
   const tx = await timelock
     .connect(operator)
     .queueTransaction(...calldata, override);
-  await wait(tx.hash, `timelock.queueTransaction => txHash: ${txHash}`);
+  await wait(ethers, tx.hash, `timelock.queueTransaction => txHash: ${txHash}`);
   console.log(`Tx execution ETA: ${eta}`);
 
   if (!(await timelock.connect(operator).queuedTransactions(txHash))) {

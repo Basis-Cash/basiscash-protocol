@@ -11,7 +11,7 @@ import {
 import { Provider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
-import { advanceTimeAndBlock } from './shared/utilities';
+import { advanceTimeAndBlock, latestBlocktime } from './shared/utilities';
 
 chai.use(solidity);
 
@@ -22,11 +22,6 @@ const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 const INITIAL_BAC_AMOUNT = utils.parseEther('50000');
 const INITIAL_BAS_AMOUNT = utils.parseEther('10000');
 const INITIAL_BAB_AMOUNT = utils.parseEther('50000');
-
-async function latestBlocktime(provider: Provider): Promise<number> {
-  const { timestamp } = await provider.getBlock('latest');
-  return timestamp;
-}
 
 function bigmin(a: BigNumber, b: BigNumber): BigNumber {
   return a.lt(b) ? a : b;
@@ -105,7 +100,7 @@ describe('Treasury', () => {
         oracle.address,
         boardroom.address,
         fund.address,
-        await latestBlocktime(provider)
+        BigNumber.from(await latestBlocktime(provider)).add(DAY)
       );
 
       for await (const token of [cash, bond, share]) {
@@ -301,11 +296,13 @@ describe('Treasury', () => {
           const cashPrice1 = ETH.mul(106).div(100);
           await oracle.setPrice(cashPrice1);
 
-          expect(await treasury.getCurrentEpoch()).to.eq(BigNumber.from(0));
+          expect(await treasury.getNextEpoch()).to.eq(0);
+          expect(await treasury.getLastEpoch()).to.eq(0);
           expect(await treasury.nextEpochPoint()).to.eq(startTime);
 
           await treasury.allocateSeigniorage();
-          expect(await treasury.getCurrentEpoch()).to.eq(BigNumber.from(1));
+          expect(await treasury.getNextEpoch()).to.eq(1);
+          expect(await treasury.getLastEpoch()).to.eq(0);
           expect(await treasury.nextEpochPoint()).to.eq(startTime.add(DAY));
 
           await advanceTimeAndBlock(
@@ -318,7 +315,8 @@ describe('Treasury', () => {
           await oracle.setPrice(cashPrice2);
 
           await treasury.allocateSeigniorage();
-          expect(await treasury.getCurrentEpoch()).to.eq(BigNumber.from(2));
+          expect(await treasury.getNextEpoch()).to.eq(2);
+          expect(await treasury.getLastEpoch()).to.eq(1);
           expect(await treasury.nextEpochPoint()).to.eq(startTime.add(DAY * 2));
         });
 
