@@ -17,6 +17,10 @@ yarn deploy:huobitest
 ```
 
 ```
+rm -rf build
+
+yarn compile
+
 truffle migrate -f 1 --to 1 --network ropsten --skip-dry-run
 ```
 
