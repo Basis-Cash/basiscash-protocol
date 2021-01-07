@@ -99,6 +99,12 @@ contract Treasury is ContractGuard, Epoch {
         _;
     }
 
+    modifier updatePrice {
+        _;
+
+        _updateCashPrice();
+    }
+
     /* ========== VIEW FUNCTIONS ========== */
 
     // budget
@@ -210,6 +216,8 @@ contract Treasury is ContractGuard, Epoch {
                 );
                 accumulatedCashConversion = 0;
             }
+
+            lastBondOracleEpoch = currentEpoch;
         }
     }
 
@@ -224,6 +232,7 @@ contract Treasury is ContractGuard, Epoch {
         checkMigration
         checkStartTime
         checkOperator
+        updatePrice
     {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
@@ -240,12 +249,16 @@ contract Treasury is ContractGuard, Epoch {
             amount,
             cashConversionLimit.sub(accumulatedCashConversion)
         );
+        accumulatedCashConversion = accumulatedCashConversion.add(amount);
+
+        if (amount == 0) {
+            return;
+        }
 
         uint256 bondPrice = cashPrice;
 
         IBasisAsset(cash).burnFrom(msg.sender, amount);
         IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
-        _updateCashPrice();
 
         emit BoughtBonds(msg.sender, amount);
     }
@@ -256,6 +269,7 @@ contract Treasury is ContractGuard, Epoch {
         checkMigration
         checkStartTime
         checkOperator
+        updatePrice
     {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
@@ -276,7 +290,6 @@ contract Treasury is ContractGuard, Epoch {
 
         IBasisAsset(bond).burnFrom(msg.sender, amount);
         IERC20(cash).safeTransfer(msg.sender, amount);
-        _updateCashPrice();
 
         emit RedeemedBonds(msg.sender, amount);
     }
