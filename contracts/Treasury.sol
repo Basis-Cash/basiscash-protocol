@@ -5,7 +5,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
-import {ICurve} from './curves/Curve.sol';
+import {ICurve} from './curve/Curve.sol';
 import {IOracle} from './interfaces/IOracle.sol';
 import {IBoardroom} from './interfaces/IBoardroom.sol';
 import {IBasisAsset} from './interfaces/IBasisAsset.sol';
