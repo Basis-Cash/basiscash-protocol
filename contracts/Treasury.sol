@@ -5,16 +5,17 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
-import './interfaces/IOracle.sol';
-import './interfaces/IBoardroom.sol';
-import './interfaces/IBasisAsset.sol';
-import './interfaces/ISimpleERCFund.sol';
-import './lib/Babylonian.sol';
-import './lib/FixedPoint.sol';
-import './lib/Safe112.sol';
-import './owner/Operator.sol';
-import './utils/Epoch.sol';
-import './utils/ContractGuard.sol';
+import {ICurve} from './curves/Curve.sol';
+import {IOracle} from './interfaces/IOracle.sol';
+import {IBoardroom} from './interfaces/IBoardroom.sol';
+import {IBasisAsset} from './interfaces/IBasisAsset.sol';
+import {ISimpleERCFund} from './interfaces/ISimpleERCFund.sol';
+import {Babylonian} from './lib/Babylonian.sol';
+import {FixedPoint} from './lib/FixedPoint.sol';
+import {Safe112} from './lib/Safe112.sol';
+import {Operator} from './owner/Operator.sol';
+import {Epoch} from './utils/Epoch.sol';
+import {ContractGuard} from './utils/ContractGuard.sol';
 
 /**
  * @title Basis Cash Treasury contract
@@ -39,6 +40,7 @@ contract Treasury is ContractGuard, Epoch {
     address public cash;
     address public bond;
     address public share;
+    address public curve;
     address public boardroom;
 
     address public bondOracle;
@@ -46,7 +48,6 @@ contract Treasury is ContractGuard, Epoch {
 
     // ========== PARAMS
     uint256 public cashPriceOne;
-    uint256 public cashPriceCeiling;
 
     uint256 private accumulatedSeigniorage = 0;
     uint256 private lastBondOracleEpoch = 0;
@@ -64,11 +65,13 @@ contract Treasury is ContractGuard, Epoch {
         address _seigniorageOracle,
         address _boardroom,
         address _fund,
+        address _curve,
         uint256 _startTime
     ) public Epoch(1 days, _startTime, 0) {
         cash = _cash;
         bond = _bond;
         share = _share;
+        curve = _curve;
         bondOracle = _bondOracle;
         seigniorageOracle = _seigniorageOracle;
 
@@ -76,7 +79,6 @@ contract Treasury is ContractGuard, Epoch {
         fund = _fund;
 
         cashPriceOne = 10**18;
-        cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
     }
 
     /* =================== Modifier =================== */
@@ -139,9 +141,6 @@ contract Treasury is ContractGuard, Epoch {
     function initialize() public checkOperator {
         require(!initialized, 'Treasury: initialized');
 
-        // burn all of it's balance
-        IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
-
         // set accumulatedSeigniorage to it's balance
         accumulatedSeigniorage = IERC20(cash).balanceOf(address(this));
 
@@ -198,10 +197,10 @@ contract Treasury is ContractGuard, Epoch {
     }
 
     // TWEAK
-    function setCashPriceCeiling(uint256 newCeiling) public onlyOperator {
-        uint256 oldCeiling = cashPriceCeiling;
-        cashPriceCeiling = newCeiling;
-        emit CashPriceCeilingChanged(msg.sender, oldCeiling, newCeiling);
+    function setCeilingCurve(address newCurve) public onlyOperator {
+        address oldCurve = newCurve;
+        curve = newCurve;
+        emit CeilingCurveChanged(msg.sender, oldCurve, newCurve);
     }
 
     /* ========== MUTABLE FUNCTIONS ========== */
@@ -276,7 +275,7 @@ contract Treasury is ContractGuard, Epoch {
         uint256 cashPrice = _getCashPrice(bondOracle);
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         require(
-            cashPrice > cashPriceCeiling, // price > $1.05
+            cashPrice > ICurve(curve).calcCeiling(circulatingSupply()), // price > $1.05
             'Treasury: cashPrice not eligible for bond purchase'
         );
         require(
@@ -304,7 +303,7 @@ contract Treasury is ContractGuard, Epoch {
     {
         _updateCashPrice();
         uint256 cashPrice = _getCashPrice(seigniorageOracle);
-        if (cashPrice <= cashPriceCeiling) {
+        if (cashPrice <= ICurve(curve).calcCeiling(circulatingSupply())) {
             return; // just advance epoch instead revert
         }
 
@@ -374,10 +373,10 @@ contract Treasury is ContractGuard, Epoch {
         address oldOracle,
         address newOracle
     );
-    event CashPriceCeilingChanged(
+    event CeilingCurveChanged(
         address indexed operator,
-        uint256 oldCeiling,
-        uint256 newCeiling
+        address oldCurve,
+        address newCurve
     );
 
     // CORE
