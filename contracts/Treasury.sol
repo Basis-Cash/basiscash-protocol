@@ -49,7 +49,7 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceCeiling;
     uint256 public bondDepletionFloor;
     uint256 private accumulatedSeigniorage = 0;
-    uint256 public fundAllocationRate = 2; // %
+    uint256 public fundAllocationRate = 1; // %
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -255,18 +255,18 @@ contract Treasury is ContractGuard, Epoch {
         IBasisAsset(cash).mint(address(this), seigniorage);
 
         // ======================== BIP-3
-        // uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
-        // if (fundReserve > 0) {
-        //     IERC20(cash).safeApprove(fund, fundReserve);
-        //     ISimpleERCFund(fund).deposit(
-        //         cash,
-        //         fundReserve,
-        //         'Treasury: Seigniorage Allocation'
-        //     );
-        //     emit ContributionPoolFunded(now, fundReserve);
-        // }
+        uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
+        if (fundReserve > 0) {
+            IERC20(cash).safeApprove(fund, fundReserve);
+            ISimpleERCFund(fund).deposit(
+                cash,
+                fundReserve,
+                'Treasury: Seigniorage Allocation'
+            );
+            emit ContributionPoolFunded(now, fundReserve);
+        }
 
-        // seigniorage = seigniorage.sub(fundReserve);
+        seigniorage = seigniorage.sub(fundReserve);
 
         // ======================== BIP-4
         uint256 treasuryReserve = Math.min(
