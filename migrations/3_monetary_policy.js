@@ -8,8 +8,7 @@ const Share = artifacts.require('Share');
 const IERC20 = artifacts.require('IERC20');
 const MockDai = artifacts.require('MockDai');
 
-const BondOracle = artifacts.require('Oracle')
-const SeigniorageOracle = artifacts.require('Oracle')
+const Oracle = artifacts.require('Oracle')
 const Boardroom = artifacts.require('Boardroom')
 const Treasury = artifacts.require('Treasury')
 const SimpleFund = artifacts.require('SimpleERCFund')
@@ -75,16 +74,16 @@ async function migration(deployer, network, accounts) {
   await deployer.deploy(SimpleFund);
 
   // 2. Deploy oracle for the pair between bac and dai
-  await deployer.deploy(
-    BondOracle,
+  const BondOracle = await deployer.deploy(
+    Oracle,
     uniswap.address,
     cash.address,
     dai.address,
     HOUR,
     ORACLE_START_DATE
   );
-  await deployer.deploy(
-    SeigniorageOracle,
+  const SeigniorageOracle = await deployer.deploy(
+    Oracle,
     uniswap.address,
     cash.address,
     dai.address,
