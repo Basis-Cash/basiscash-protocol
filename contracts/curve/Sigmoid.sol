@@ -1,5 +1,6 @@
 pragma solidity ^0.6.0;
 
+import {Math} from '@openzeppelin/contracts/math/Math.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 
 import {Operator} from '../owner/Operator.sol';
@@ -26,8 +27,8 @@ contract SigmoidThreshold is Operator, Curve {
         maxCeiling = _maxCeiling;
 
         slots[0] = 1000000000000000000;
-        slots[1] = 993307149075715268;
-        slots[2] = 989013057369406812;
+        slots[1] = 994907149075715143;
+        slots[2] = 988513057369406817;
         slots[3] = 982013790037908452;
         slots[4] = 970687769248643639;
         slots[5] = 952574126822433143;
@@ -45,8 +46,8 @@ contract SigmoidThreshold is Operator, Curve {
         slots[17] = 47425873177566788;
         slots[18] = 29312230751356326;
         slots[19] = 17986209962091562;
-        slots[20] = 10986942630593183;
-        slots[21] = 6692850924284857;
+        slots[20] = 11486942630593183;
+        slots[21] = 5092850924284857;
         slots[22] = 0;
     }
 
@@ -66,13 +67,22 @@ contract SigmoidThreshold is Operator, Curve {
         }
 
         uint256 slotWidth = maxSupply.sub(minSupply).div(slots.length);
-        uint256 pointA = _supply.sub(minSupply).div(slotWidth);
-        uint256 pointB = pointA.add(1);
+        uint256 xa = _supply.sub(minSupply).div(slotWidth);
+        uint256 xb = Math.min(xa.add(1), slots.length.sub(1));
 
-        uint256 slope =
-            slotWidth.mul(1e18).div(slots[pointA].sub(slots[pointB]));
-        uint256 ceiling = maxCeiling.sub(slope.mul(_supply));
+        uint256 slope = slots[xa].sub(slots[xb]).mul(1e18).div(slotWidth);
+        uint256 wy = slots[xa].add(slope.mul(slotWidth.mul(xa)).div(1e18));
 
-        return ceiling;
+        uint256 percentage = 0;
+        if (wy > slope.mul(_supply).div(1e18)) {
+            percentage = wy.sub(slope.mul(_supply).div(1e18));
+        } else {
+            percentage = slope.mul(_supply).div(1e18).sub(wy);
+        }
+
+        return
+            minCeiling.add(
+                maxCeiling.sub(minCeiling).mul(percentage).div(1e18)
+            );
     }
 }

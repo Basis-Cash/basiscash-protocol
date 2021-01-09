@@ -56,16 +56,17 @@ contract LinearThreshold is Operator, Curve {
         override
         returns (uint256)
     {
-        if (_supply < minSupply) {
+        if (_supply <= minSupply) {
             return maxCeiling;
         }
-        if (_supply > maxSupply) {
+        if (_supply >= maxSupply) {
             return minCeiling;
         }
 
         uint256 slope =
             maxCeiling.sub(minCeiling).mul(1e18).div(maxSupply.sub(minSupply));
-        uint256 ceiling = maxCeiling.sub(slope.mul(_supply));
+        uint256 ceiling =
+            maxCeiling.sub(slope.mul(_supply.sub(minSupply)).div(1e18));
 
         return ceiling;
     }
