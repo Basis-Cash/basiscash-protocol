@@ -73,7 +73,7 @@ contract Treasury is ContractGuard, Epoch {
         fund = _fund;
 
         cashPriceOne = 10**18;
-        cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
+        cashPriceCeiling = uint256(101).mul(cashPriceOne).div(10**2);
 
         bondDepletionFloor = uint256(1000).mul(cashPriceOne);
     }
@@ -213,7 +213,7 @@ contract Treasury is ContractGuard, Epoch {
         uint256 cashPrice = _getCashPrice(bondOracle);
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         require(
-            cashPrice > cashPriceCeiling, // price > $1.05
+            cashPrice > cashPriceCeiling, // price > $1.01
             'Treasury: cashPrice not eligible for bond purchase'
         );
         require(
