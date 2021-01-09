@@ -240,7 +240,7 @@ contract Treasury is ContractGuard, Epoch {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
         uint256 cashPrice = _getCashPrice(bondOracle);
-        require(cashPrice == targetPrice, 'Treasury: cash price moved');
+        require(cashPrice <= targetPrice, 'Treasury: cash price moved');
         require(
             cashPrice < cashPriceOne, // price < $1
             'Treasury: cashPrice not eligible for bond purchase'
@@ -266,7 +266,7 @@ contract Treasury is ContractGuard, Epoch {
         emit BoughtBonds(msg.sender, amount);
     }
 
-    function redeemBonds(uint256 amount, uint256 targetPrice)
+    function redeemBonds(uint256 amount)
         external
         onlyOneBlock
         checkMigration
@@ -277,7 +277,6 @@ contract Treasury is ContractGuard, Epoch {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
         uint256 cashPrice = _getCashPrice(bondOracle);
-        require(cashPrice == targetPrice, 'Treasury: cash price moved');
         require(
             cashPrice > getCeilingPrice(), // price > $1.05
             'Treasury: cashPrice not eligible for bond purchase'

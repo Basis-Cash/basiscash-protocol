@@ -378,7 +378,7 @@ describe('Treasury', () => {
         await expect(treasury.buyBonds(ETH, ETH)).to.revertedWith(
           'Treasury: migrated'
         );
-        await expect(treasury.redeemBonds(ETH, ETH)).to.revertedWith(
+        await expect(treasury.redeemBonds(ETH)).to.revertedWith(
           'Treasury: migrated'
         );
       });
@@ -389,7 +389,7 @@ describe('Treasury', () => {
         await expect(treasury.buyBonds(ETH, ETH)).to.revertedWith(
           'Epoch: not started yet'
         );
-        await expect(treasury.redeemBonds(ETH, ETH)).to.revertedWith(
+        await expect(treasury.redeemBonds(ETH)).to.revertedWith(
           'Epoch: not started yet'
         );
       });
@@ -442,7 +442,7 @@ describe('Treasury', () => {
           await cash.connect(ant).approve(treasury.address, ETH);
 
           await expect(
-            treasury.connect(ant).buyBonds(ETH, ETH)
+            treasury.connect(ant).buyBonds(ETH, ETH.mul(98).div(100))
           ).to.revertedWith('Treasury: cash price moved');
         });
 
@@ -473,7 +473,7 @@ describe('Treasury', () => {
 
           await bond.connect(operator).transfer(ant.address, ETH);
           await bond.connect(ant).approve(treasury.address, ETH);
-          await expect(treasury.connect(ant).redeemBonds(ETH, cashPrice))
+          await expect(treasury.connect(ant).redeemBonds(ETH))
             .to.emit(treasury, 'RedeemedBonds')
             .withArgs(ant.address, ETH);
 
@@ -490,30 +490,19 @@ describe('Treasury', () => {
           const treasuryBalance = await cash.balanceOf(treasury.address);
           await bond.connect(operator).transfer(ant.address, treasuryBalance);
           await bond.connect(ant).approve(treasury.address, treasuryBalance);
-          await treasury.connect(ant).redeemBonds(treasuryBalance, cashPrice);
+          await treasury.connect(ant).redeemBonds(treasuryBalance);
 
           expect(await bond.balanceOf(ant.address)).to.eq(ZERO);
           expect(await cash.balanceOf(ant.address)).to.eq(treasuryBalance); // 1:1
-        });
-
-        it('should fail if price changed', async () => {
-          const cashPrice = ETH.mul(106).div(100);
-          await oracle.setPrice(cashPrice);
-
-          await bond.connect(operator).transfer(ant.address, ETH);
-          await bond.connect(ant).approve(treasury.address, ETH);
-          await expect(
-            treasury.connect(ant).redeemBonds(ETH, ETH)
-          ).to.revertedWith('Treasury: cash price moved');
         });
 
         it('should fail if redeem bonds with zero amount', async () => {
           const cashPrice = ETH.mul(106).div(100);
           await oracle.setPrice(cashPrice);
 
-          await expect(
-            treasury.connect(ant).redeemBonds(ZERO, cashPrice)
-          ).to.revertedWith('Treasury: cannot redeem bonds with zero amount');
+          await expect(treasury.connect(ant).redeemBonds(ZERO)).to.revertedWith(
+            'Treasury: cannot redeem bonds with zero amount'
+          );
         });
 
         it('should fail if cash price is below $1+ε', async () => {
@@ -522,9 +511,7 @@ describe('Treasury', () => {
 
           await bond.connect(operator).transfer(ant.address, ETH);
           await bond.connect(ant).approve(treasury.address, ETH);
-          await expect(
-            treasury.connect(ant).redeemBonds(ETH, cashPrice)
-          ).to.revertedWith(
+          await expect(treasury.connect(ant).redeemBonds(ETH)).to.revertedWith(
             'Treasury: cashPrice not eligible for bond purchase'
           );
         });
@@ -539,7 +526,7 @@ describe('Treasury', () => {
           await bond.connect(ant).approve(treasury.address, redeemAmount);
 
           await expect(
-            treasury.connect(ant).redeemBonds(redeemAmount, cashPrice)
+            treasury.connect(ant).redeemBonds(redeemAmount)
           ).to.revertedWith('Treasury: treasury has no more budget');
         });
       });
