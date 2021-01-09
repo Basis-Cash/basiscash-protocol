@@ -9,8 +9,8 @@ chai.use(solidity);
 describe('LinearThreshold', () => {
   const { provider } = ethers;
 
-  const MIN_SUPPLY = utils.parseEther('1000');
-  const MAX_SUPPLY = utils.parseEther('2000');
+  const MIN_SUPPLY = BigNumber.from(0);
+  const MAX_SUPPLY = utils.parseEther('250000000');
   const MIN_CEILING = utils.parseEther('1.01');
   const MAX_CEILING = utils.parseEther('1.05');
 
@@ -48,7 +48,7 @@ describe('LinearThreshold', () => {
   });
 
   it('should return max ceiling (supply <= min supply)', async () => {
-    const ceiling = await linear.calcCeiling(MIN_SUPPLY.sub(1));
+    const ceiling = await linear.calcCeiling(MIN_SUPPLY);
     expect(ceiling).to.eq(MAX_CEILING);
   });
 
