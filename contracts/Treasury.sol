@@ -118,6 +118,10 @@ contract Treasury is ContractGuard, Epoch {
         return IERC20(cash).totalSupply().sub(accumulatedSeigniorage);
     }
 
+    function getCeilingPrice() public view returns (uint256) {
+        return ICurve(curve).calcCeiling(circulatingSupply());
+    }
+
     // oracle
     function getBondOraclePrice() public view returns (uint256) {
         return _getCashPrice(bondOracle);
@@ -275,7 +279,7 @@ contract Treasury is ContractGuard, Epoch {
         uint256 cashPrice = _getCashPrice(bondOracle);
         require(cashPrice == targetPrice, 'Treasury: cash price moved');
         require(
-            cashPrice > ICurve(curve).calcCeiling(circulatingSupply()), // price > $1.05
+            cashPrice > getCeilingPrice(), // price > $1.05
             'Treasury: cashPrice not eligible for bond purchase'
         );
         require(
@@ -303,7 +307,7 @@ contract Treasury is ContractGuard, Epoch {
     {
         _updateCashPrice();
         uint256 cashPrice = _getCashPrice(seigniorageOracle);
-        if (cashPrice <= ICurve(curve).calcCeiling(circulatingSupply())) {
+        if (cashPrice <= getCeilingPrice()) {
             return; // just advance epoch instead revert
         }
 
