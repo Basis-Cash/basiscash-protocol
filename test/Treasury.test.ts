@@ -43,6 +43,7 @@ describe('Treasury', () => {
   let Share: ContractFactory;
   let Treasury: ContractFactory;
   let SimpleFund: ContractFactory;
+  let MockCurve: ContractFactory;
   let MockOracle: ContractFactory;
   let MockBoardroom: ContractFactory;
 
@@ -52,6 +53,7 @@ describe('Treasury', () => {
     Share = await ethers.getContractFactory('Share');
     Treasury = await ethers.getContractFactory('Treasury');
     SimpleFund = await ethers.getContractFactory('SimpleERCFund');
+    MockCurve = await ethers.getContractFactory('MockCurve');
     MockOracle = await ethers.getContractFactory('MockOracle');
     MockBoardroom = await ethers.getContractFactory('MockBoardroom');
   });
@@ -59,6 +61,7 @@ describe('Treasury', () => {
   let bond: Contract;
   let cash: Contract;
   let share: Contract;
+  let curve: Contract;
   let oracle: Contract;
   let treasury: Contract;
   let boardroom: Contract;
@@ -70,6 +73,13 @@ describe('Treasury', () => {
     cash = await Cash.connect(operator).deploy();
     bond = await Bond.connect(operator).deploy();
     share = await Share.connect(operator).deploy();
+    curve = await MockCurve.connect(operator).deploy(
+      utils.parseEther('1.05'),
+      0,
+      0,
+      0,
+      0
+    );
     oracle = await MockOracle.connect(operator).deploy();
     boardroom = await MockBoardroom.connect(operator).deploy(cash.address);
     fund = await SimpleFund.connect(operator).deploy();
@@ -83,6 +93,7 @@ describe('Treasury', () => {
       oracle.address,
       boardroom.address,
       fund.address,
+      curve.address,
       startTime
     );
     await fund.connect(operator).transferOperator(treasury.address);
@@ -100,6 +111,7 @@ describe('Treasury', () => {
         oracle.address,
         boardroom.address,
         fund.address,
+        curve.address,
         BigNumber.from(await latestBlocktime(provider)).add(DAY)
       );
 
@@ -116,13 +128,12 @@ describe('Treasury', () => {
         await treasury.connect(operator).migrate(newTreasury.address);
         await boardroom.connect(operator).transferOperator(newTreasury.address);
 
-        await expect(newTreasury.initialize())
-          .to.emit(newTreasury, 'Initialized')
-          .to.emit(cash, 'Transfer')
-          .withArgs(newTreasury.address, ZERO_ADDR, ETH)
-          .to.emit(cash, 'Transfer');
+        await expect(newTreasury.initialize()).to.emit(
+          newTreasury,
+          'Initialized'
+        );
 
-        expect(await newTreasury.getReserve()).to.eq(ZERO);
+        expect(await newTreasury.getReserve()).to.eq(ETH);
       });
 
       it('should fail if newTreasury is not the operator of core contracts', async () => {
