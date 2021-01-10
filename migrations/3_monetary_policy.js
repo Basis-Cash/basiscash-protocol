@@ -85,6 +85,7 @@ async function migration(deployer, network, accounts) {
   
   console.log("await deployer.deploy Oracle");
   // 2. Deploy oracle for the pair between bac and dai
+  console.log('bac-dai Oracle')
   await deployer.deploy(
     Oracle,
     uniswap.address,

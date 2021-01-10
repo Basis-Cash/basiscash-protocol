@@ -59,7 +59,7 @@ module.exports = {
     },
     ropsten: {
       provider: function() {
-        return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/"+INFURA_API_KEY)
+        return new HDWalletProvider(mnemonic, "wss://ropsten.infura.io/ws/v3/"+INFURA_API_KEY)
       },
       blockGasLimit: 7612388,
       network_id: 3,
@@ -69,6 +69,7 @@ module.exports = {
       networkCheckTimeout: 1000000,
       timeoutBlocks: 200,
       confirmations: 1,
+      websockets: true,
       from: MMaddress
     },
     huobitest: {
