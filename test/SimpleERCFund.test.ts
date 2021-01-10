@@ -86,7 +86,10 @@ describe('SimpleERCFund', () => {
         eta - (await latestBlocktime(provider))
       );
 
-      await expect(timelock.connect(operator).executeTransaction(...calldata))
+      const tx = await timelock
+        .connect(operator)
+        .executeTransaction(...calldata);
+      await expect(new Promise((resolve) => resolve(tx)))
         .to.emit(timelock, 'ExecuteTransaction')
         .withArgs(txHash, ...calldata)
         .to.emit(fund, 'Withdrawal')
