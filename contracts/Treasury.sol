@@ -49,10 +49,10 @@ contract Treasury is ContractGuard, Epoch {
     // ========== PARAMS
     uint256 public cashPriceOne;
 
-    uint256 private accumulatedSeigniorage = 0;
-    uint256 private lastBondOracleEpoch = 0;
-    uint256 private cashConversionLimit = 0;
-    uint256 private accumulatedCashConversion = 0;
+    uint256 public lastBondOracleEpoch = 0;
+    uint256 public cashConversionLimit = 0;
+    uint256 public accumulatedSeigniorage = 0;
+    uint256 public accumulatedCashConversion = 0;
     uint256 public fundAllocationRate = 2; // %
 
     /* ========== CONSTRUCTOR ========== */
@@ -210,15 +210,11 @@ contract Treasury is ContractGuard, Epoch {
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _updateConversionLimit(uint256 cashPrice) internal {
-        uint256 currentEpoch = Epoch(bondOracle).getCurrentEpoch();
+        uint256 currentEpoch = Epoch(bondOracle).getLastEpoch(); // lastest update time
         if (lastBondOracleEpoch != currentEpoch) {
-            if (cashPrice < cashPriceOne) {
-                uint256 percentage = cashPriceOne.sub(cashPrice);
-                cashConversionLimit = circulatingSupply().mul(percentage).div(
-                    1e18
-                );
-                accumulatedCashConversion = 0;
-            }
+            uint256 percentage = cashPriceOne.sub(cashPrice);
+            cashConversionLimit = circulatingSupply().mul(percentage).div(1e18);
+            accumulatedCashConversion = 0;
 
             lastBondOracleEpoch = currentEpoch;
         }

@@ -454,6 +454,85 @@ describe('Treasury', () => {
             treasury.connect(ant).buyBonds(ZERO, cashPrice)
           ).to.revertedWith('Treasury: cannot purchase bonds with zero amount');
         });
+
+        it('should update conversion limit', async () => {
+          const cashPrice = ETH.mul(99).div(100);
+          await oracle.setPrice(cashPrice);
+          await oracle.setEpoch(1);
+
+          await cash.connect(operator).transfer(ant.address, ETH);
+          await cash.connect(ant).approve(treasury.address, ETH);
+
+          const getStatus = async () => ({
+            eph: await treasury.lastBondOracleEpoch(),
+            lim: await treasury.cashConversionLimit(),
+            acc: await treasury.accumulatedCashConversion(),
+          });
+
+          let status;
+
+          status = await getStatus();
+          expect(status.eph).to.eq(0);
+          expect(status.lim).to.eq(0);
+          expect(status.acc).to.eq(0);
+
+          const circulatingSupply = await treasury.circulatingSupply();
+          await treasury.connect(ant).buyBonds(ETH, cashPrice);
+
+          status = await getStatus();
+          expect(status.eph).to.eq(1);
+          expect(status.lim).to.eq(
+            circulatingSupply.mul(ETH.sub(cashPrice)).div(ETH)
+          );
+          expect(status.acc).to.eq(ETH);
+        });
+
+        it('should not purchase over conversion limit', async () => {
+          const cashPrice = ETH.mul(99).div(100);
+          await oracle.setPrice(cashPrice);
+          await oracle.setEpoch(1);
+
+          const circulatingSupply = await treasury.circulatingSupply();
+          const limit = circulatingSupply.mul(ETH.sub(cashPrice)).div(ETH);
+
+          await cash.connect(operator).transfer(ant.address, limit.add(1));
+          await cash.connect(ant).approve(treasury.address, limit.add(1));
+
+          await treasury.connect(ant).buyBonds(limit.add(1), cashPrice);
+
+          expect(await cash.balanceOf(ant.address)).to.eq(1);
+          expect(await bond.balanceOf(ant.address)).to.eq(
+            limit.mul(ETH).div(cashPrice)
+          );
+        });
+
+        it('should not update conversion limit if storedEpoch = lastEpoch', async () => {
+          const cashPrice = ETH.mul(99).div(100);
+          await oracle.setPrice(cashPrice);
+
+          await cash.connect(operator).transfer(ant.address, ETH);
+          await cash.connect(ant).approve(treasury.address, ETH);
+
+          const getStatus = async () => ({
+            eph: await treasury.lastBondOracleEpoch(),
+            lim: await treasury.cashConversionLimit(),
+            acc: await treasury.accumulatedCashConversion(),
+          });
+
+          let status;
+
+          status = await getStatus();
+          expect(status.eph).to.eq(0);
+          expect(status.lim).to.eq(0);
+          expect(status.acc).to.eq(0);
+
+          await treasury.connect(ant).buyBonds(ETH, cashPrice);
+
+          status = await getStatus();
+          expect(status.eph).to.eq(0);
+          expect(status.lim).to.eq(0);
+          expect(status.acc).to.eq(0);
+        });
       });
       describe('#redeemBonds', () => {
         beforeEach('allocate seigniorage to treasury', async () => {
