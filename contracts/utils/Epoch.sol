@@ -35,7 +35,7 @@ contract Epoch is Operator {
 
     modifier checkEpoch {
         require(now > startTime, 'Epoch: not started yet');
-        require(getCurrentEpoch() >= getNextEpoch(), 'Epoch: not allowed');
+        require(callable(), 'Epoch: not allowed');
 
         _;
 
@@ -43,6 +43,10 @@ contract Epoch is Operator {
     }
 
     /* ========== VIEW FUNCTIONS ========== */
+
+    function callable() public view returns (bool) {
+        return getCurrentEpoch() >= getNextEpoch();
+    }
 
     // epoch
     function getLastEpoch() public view returns (uint256) {

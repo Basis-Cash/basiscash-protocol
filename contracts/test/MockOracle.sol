@@ -20,6 +20,10 @@ contract MockOracle is IOracle {
     }
 
     // epoch
+    function callable() public pure returns (bool) {
+        return true;
+    }
+
     function setEpoch(uint256 _epoch) public {
         epoch = _epoch;
     }

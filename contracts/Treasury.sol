@@ -221,8 +221,12 @@ contract Treasury is ContractGuard, Epoch {
     }
 
     function _updateCashPrice() internal {
-        try IOracle(bondOracle).update() {} catch {}
-        try IOracle(seigniorageOracle).update() {} catch {}
+        if (Epoch(bondOracle).callable()) {
+            try IOracle(bondOracle).update() {} catch {}
+        }
+        if (Epoch(seigniorageOracle).callable()) {
+            try IOracle(seigniorageOracle).update() {} catch {}
+        }
     }
 
     function buyBonds(uint256 amount, uint256 targetPrice)
