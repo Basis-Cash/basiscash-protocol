@@ -1,0 +1,62 @@
+Gas Price: 240.0 gwei
+Deployments
+{
+  "Cash": "0x3449FC1Cd036255BA1EB19d65fF4BA2b8903A69a",
+  "Bond": "0xC36824905dfF2eAAEE7EcC09fCC63abc0af5Abc5",
+  "Share": "0xa7ED29B253D8B4E3109ce07c80fc570f81B63696",
+  "Timelock": "0xD98Bc19FFc98E9009146524c8bD835F1BC5d0E6a",
+  "BondOracle": "0x3e233a85535d32De0FDeA8510D460c0Aef7fDFeC",
+  "SeigniorageOracle": "0x8a573cB5234657c8bf054DA2eBe63B66FB1f9502",
+  "ContributionPool": "0x7B075B3aA2F1143775101986B52E32DA9d98fE22",
+  "Treasury": "0x67a883D6f84A2D307D8F587B638e2f172Ef2117A",
+  "Boardroom": "0x4B182469337d46E6603ed7e26BA60c56930a342c"
+}
+Admin verified 0x68C3a95B35C45Db5dB67ed83c43305052FAD6e04
+
+===================================================
+
+=> Deploy
+
+Waiting tx 0x78aefaf9a1a68c52455b739293ba96f0c02208c3e3aa0616ca9349340807629b. action =
+Deploy new Bond Oracle => 0xE4EFD87ad34360932E5325D77A0a6e39147DEbFa
+Waiting tx 0x3a5b47dd8c839651e7acc26c721463089c984d6583e848ed65e6221cda41ebfa. action =
+Deploy new Seigniorage Oracle => 0x6a86184349Aab530a0cb3e978F3f812E3030fF44
+
+Waiting tx 0x05e143e48e10e1439af0904acdb2d8b906ad99e9dfd0b3c8a0eaa01903051933. action =
+Deploy new linear curve => 0xCdBae6dE88C7525369D6826AE1cDCaB415120B11
+Waiting tx 0x5a1d28c03be2a717cc3e3f7c0d718a81633375a74e91ca6b6b7b7c92063f5f06. action =
+Deploy new sigmoid curve => 0xa728721394084eA78F10ceBB192323f50407F7f3
+
+Waiting tx 0xe43a50c331ceaf69ae6185fa9d03e593e692c764891c6ce5211c1b5a722e1207. action =
+Deploy new Treasury => 0x02957ae53173F58Dc9989C4a09853f9528C877f5
+
+===================================================
+
+=> RBAC
+
+Waiting tx 0xf8319e98b8aea6bd96a8a09e9fe6d2ed43ac2100092246cd04bd38a08c4b6892. action = bondOracle.transferOperator
+Waiting tx 0xaeaf0468c88e8cd1258ba1818c685451acda56eff2df169821cbeb0b2e6bc752. action = bondOracle.transferOwnership
+Waiting tx 0x60afdddce533e93dc05ed8ec9ea7fb639b9ff641d940828efbccc9c6eec5ab0a. action = seigniorageOracle.transferOperator
+Waiting tx 0xf8d40127d97e676204f05f9b523e44064d82afa78a5bec2585eeed14cbc8034b. action = seigniorageOracle.transferOwnership
+
+Waiting tx 0x127136809c2ce112f3a00f29d21b85965743c9a969435857d6599e98e69a5e31. action = linear.transferOperator
+Waiting tx 0x38955f0b8a47c77f477049b93ee1c5a1c9ddccd8adfbc0142be327a35e48ddd6. action = linear.transferOwnership
+Waiting tx 0x93bc4724d8552e8dc4a5bdc6c9250c0df0a580fc0437a9847ec01a27303c6005. action = sigmoid.transferOperator
+Waiting tx 0x37d05b73a7580fc6d7573c92a499575a787498cba0b62d3e1b08c131d9710087. action = sigmoid.transferOwnership
+
+Waiting tx 0xf204c1b4748c1538871c264410bb0d46255d008e71b4fc07313dee8b8f63296e. action = treasury.transferOperator
+Waiting tx 0xffbba4a2dd5256c726f29984af415ee421e64b05ac1a1bd00f14738c86758ac5. action = treasury.transferOwnership
+
+===================================================
+
+=> Migration
+
+Waiting tx 0x2056ff719018472ff5b0f65f0d6fe253375c0b167e8c5787598a6314d5e486e1. action =
+2. timelock.queueTransaction (treasury.migrate) => txHash: 0x5175778f864fc119cda83fc806bd29bd415130b371e74210d19516d552aa1d6b
+Tx execution ETA: 1610487634
+Waiting tx 0x29676b151a776a1cee1331e3cc8b34cbbf0b0f6d852421097c8c13efd0e16537. action =
+3. timelock.queueTransaction (boardroom.transferOperator) => txHash: 0xb8ee72da69ae73a667b782351ec0bf2f25f5531e4349ac0462995e31af3eec2e
+Tx execution ETA: 1610487654
+OK!
+
+===================================================
