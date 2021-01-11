@@ -26,23 +26,27 @@ describe('Boardroom', () => {
   let Cash: ContractFactory;
   let Share: ContractFactory;
   let Boardroom: ContractFactory;
+  let TokenStore: ContractFactory;
 
   before('fetch contract factories', async () => {
     Cash = await ethers.getContractFactory('Cash');
     Share = await ethers.getContractFactory('Share');
     Boardroom = await ethers.getContractFactory('Boardroom');
+    TokenStore = await ethers.getContractFactory('TokenStore');
   });
 
   let cash: Contract;
   let share: Contract;
   let boardroom: Contract;
+  let tokenStore: Contract;
 
   beforeEach('deploy contracts', async () => {
     cash = await Cash.connect(operator).deploy();
     share = await Share.connect(operator).deploy();
+    tokenStore = await TokenStore.connect(operator).deploy(share.address);
     boardroom = await Boardroom.connect(operator).deploy(
-      cash.address,
-      share.address
+      tokenStore.address,
+      cash.address
     );
   });
 

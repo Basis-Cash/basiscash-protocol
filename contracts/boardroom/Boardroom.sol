@@ -1,54 +1,22 @@
 pragma solidity ^0.6.0;
-//pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import './lib/Safe112.sol';
-import './owner/Operator.sol';
-import './utils/ContractGuard.sol';
-import './interfaces/IBasisAsset.sol';
+import {TokenStoreProxy} from './TokenStore.sol';
+import {Operator} from '../owner/Operator.sol';
 
-contract ShareWrapper {
+contract Boardroom is Operator, TokenStoreProxy {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public share;
+    /* ========== EVENTS ========== */
 
-    uint256 private _totalSupply;
-    mapping(address => uint256) private _balances;
-
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
-    }
-
-    function stake(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.add(amount);
-        _balances[msg.sender] = _balances[msg.sender].add(amount);
-        share.safeTransferFrom(msg.sender, address(this), amount);
-    }
-
-    function withdraw(uint256 amount) public virtual {
-        uint256 directorShare = _balances[msg.sender];
-        require(
-            directorShare >= amount,
-            'Boardroom: withdraw request greater than staked amount'
-        );
-        _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = directorShare.sub(amount);
-        share.safeTransfer(msg.sender, amount);
-    }
-}
-
-contract Boardroom is ShareWrapper, ContractGuard, Operator {
-    using SafeERC20 for IERC20;
-    using Address for address;
-    using SafeMath for uint256;
-    using Safe112 for uint112;
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
+    event RewardAdded(address indexed user, uint256 reward);
 
     /* ========== DATA STRUCTURES ========== */
 
@@ -58,33 +26,27 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     }
 
     struct BoardSnapshot {
-        uint256 time;
+        uint256 timestamp;
         uint256 rewardReceived;
         uint256 rewardPerShare;
     }
 
     /* ========== STATE VARIABLES ========== */
 
-    IERC20 private cash;
+    address private cash;
 
     mapping(address => Boardseat) private directors;
     BoardSnapshot[] private boardHistory;
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(IERC20 _cash, IERC20 _share) public {
+    constructor(address _tokenStore, address _cash) public {
+        tokenStore = _tokenStore;
         cash = _cash;
-        share = _share;
-
-        BoardSnapshot memory genesisSnapshot = BoardSnapshot({
-            time: block.number,
-            rewardReceived: 0,
-            rewardPerShare: 0
-        });
-        boardHistory.push(genesisSnapshot);
     }
 
     /* ========== Modifiers =============== */
+
     modifier directorExists {
         require(
             balanceOf(msg.sender) > 0,
@@ -149,21 +111,15 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function stake(uint256 amount)
-        public
-        override
-        onlyOneBlock
-        updateReward(msg.sender)
-    {
+    function stake(uint256 amount) public updateReward(msg.sender) {
         require(amount > 0, 'Boardroom: Cannot stake 0');
-        super.stake(amount);
+        super.deposit(amount);
         emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount)
         public
         override
-        onlyOneBlock
         directorExists
         updateReward(msg.sender)
     {
@@ -181,16 +137,12 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 reward = directors[msg.sender].rewardEarned;
         if (reward > 0) {
             directors[msg.sender].rewardEarned = 0;
-            cash.safeTransfer(msg.sender, reward);
+            IERC20(cash).safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
 
-    function allocateSeigniorage(uint256 amount)
-        external
-        onlyOneBlock
-        onlyOperator
-    {
+    function allocateSeigniorage(uint256 amount) external onlyOperator {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
         require(
             totalSupply() > 0,
@@ -201,21 +153,15 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         uint256 prevRPS = getLatestSnapshot().rewardPerShare;
         uint256 nextRPS = prevRPS.add(amount.mul(1e18).div(totalSupply()));
 
-        BoardSnapshot memory newSnapshot = BoardSnapshot({
-            time: block.number,
-            rewardReceived: amount,
-            rewardPerShare: nextRPS
-        });
+        BoardSnapshot memory newSnapshot =
+            BoardSnapshot({
+                timestamp: block.number,
+                rewardReceived: amount,
+                rewardPerShare: nextRPS
+            });
         boardHistory.push(newSnapshot);
 
-        cash.safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(cash).safeTransferFrom(msg.sender, address(this), amount);
         emit RewardAdded(msg.sender, amount);
     }
-
-    /* ========== EVENTS ========== */
-
-    event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
-    event RewardAdded(address indexed user, uint256 reward);
 }
