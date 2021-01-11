@@ -127,8 +127,8 @@ contract Treasury is ContractGuard, Epoch {
     function initialize() public checkOperator {
         require(!initialized, 'Treasury: initialized');
 
-        // burn all of it's balance
-        IBasisAsset(cash).burn(IERC20(cash).balanceOf(address(this)));
+        // hard code to mint burned MICs
+        IBasisAsset(cash).mint(address(this), 414699670131382104590737);
 
         // set accumulatedSeigniorage to it's balance
         accumulatedSeigniorage = IERC20(cash).balanceOf(address(this));
