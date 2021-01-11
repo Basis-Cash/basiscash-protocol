@@ -60,7 +60,7 @@ module.exports = async (deployer, network, accounts) => {
   // console.log("boardroom.withdraw: ",oneETH);
 
   // it send tx
-  await boardroom.claimReward();
-  console.log("boardroom.claimReward");
+  // await boardroom.claimReward();
+  // console.log("boardroom.claimReward");
 
 }

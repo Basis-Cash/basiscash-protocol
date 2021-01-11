@@ -18,6 +18,10 @@
     "deploy:huobitest": "truffle migrate --network huobitest --skip-dry-run"
   },
   "devDependencies": {
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
     "@ethersproject/address": "^5.0.0-beta",
     "@ethersproject/contracts": "^5.0.0-beta",
     "@ethersproject/networks": "^5.0.0-beta",
@@ -27,17 +31,18 @@
     "@nomiclabs/hardhat-etherscan": "^2.1.0",
     "@truffle/artifactor": "^4.0.84",
     "@truffle/contract": "^4.2.25",
-    "@truffle/hdwallet-provider": "^1.1.0",
+    "@truffle/hdwallet-provider": "^1.2.1",
     "@types/chai": "^4.2.14",
     "@types/ethereumjs-util": "^6.1.0",
     "@types/mocha": "^8.0.4",
     "@types/node": "^14.14.8",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "babel-preset-stage-0": "^6.24.1",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.0",
     "ethereumjs-util": "^7.0.7",
-    "ethers": "^5.0.19",
+    "ethers": "^5.0.25",
     "ganache-cli": "^6.12.1",
     "hardhat": "^2.0.6",
     "hardhat-gas-reporter": "^1.0.1",
@@ -53,6 +58,9 @@
   "dependencies": {
     "@openzeppelin/contracts": "3.2.0",
     "@uniswap/v2-core": "^1.0.1",
-    "dotenv": "^8.2.0"
+    "Babel": "0.0.1",
+    "babel-polyfill": "^6.26.0",
+    "dotenv": "^8.2.0",
+    "ethers-utils": "^2.1.11"
   }
 }
