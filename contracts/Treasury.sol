@@ -127,9 +127,6 @@ contract Treasury is ContractGuard, Epoch {
     function initialize() public checkOperator {
         require(!initialized, 'Treasury: initialized');
 
-        // hard code to mint burned MICs
-        IBasisAsset(cash).mint(address(this), 414699670131382104590737);
-
         // set accumulatedSeigniorage to it's balance
         accumulatedSeigniorage = IERC20(cash).balanceOf(address(this));
 
@@ -274,6 +271,9 @@ contract Treasury is ContractGuard, Epoch {
             IERC20(bond).totalSupply().sub(accumulatedSeigniorage)
         );
         if (treasuryReserve > 0) {
+            if (treasuryReserve == seigniorage) {
+                treasuryReserve = treasuryReserve.mul(80).div(100);
+            }
             accumulatedSeigniorage = accumulatedSeigniorage.add(
                 treasuryReserve
             );
