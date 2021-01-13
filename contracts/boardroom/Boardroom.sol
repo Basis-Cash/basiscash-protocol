@@ -1,12 +1,15 @@
 pragma solidity ^0.6.0;
 
+import {Math} from '@openzeppelin/contracts/math/Math.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import {TokenStoreProxy} from './TokenStore.sol';
+import {TokenStoreProxy} from './TokenStoreProxy.sol';
 import {Operator} from '../owner/Operator.sol';
 
+/// @title Boardroom contract
+/// @author Jerry Smith
 contract Boardroom is Operator, TokenStoreProxy {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -27,7 +30,6 @@ contract Boardroom is Operator, TokenStoreProxy {
 
     struct BoardSnapshot {
         uint256 timestamp;
-        uint256 rewardReceived;
         uint256 rewardPerShare;
     }
 
@@ -35,11 +37,17 @@ contract Boardroom is Operator, TokenStoreProxy {
 
     address private cash;
 
+    uint256 public rewardRate = 0;
+    uint256 public periodFinish = 0;
+
     mapping(address => Boardseat) private directors;
     BoardSnapshot[] private boardHistory;
 
     /* ========== CONSTRUCTOR ========== */
 
+    /// @notice Contract constructor
+    /// @param _tokenStore TokenStore address
+    /// @param _cash BAC address
     constructor(address _tokenStore, address _cash) public {
         tokenStore = _tokenStore;
         cash = _cash;
@@ -47,6 +55,7 @@ contract Boardroom is Operator, TokenStoreProxy {
 
     /* ========== Modifiers =============== */
 
+    /// @dev Check if msg.sender is registered director
     modifier directorExists {
         require(
             balanceOf(msg.sender) > 0,
@@ -56,6 +65,13 @@ contract Boardroom is Operator, TokenStoreProxy {
     }
 
     modifier updateReward(address director) {
+        uint256 rewardPerShare = rewardPerShare();
+        boardHistory.push(
+            BoardSnapshot({
+                timestamp: block.timestamp,
+                rewardPerShare: rewardPerShare
+            })
+        );
         if (director != address(0)) {
             Boardseat memory seat = directors[director];
             seat.rewardEarned = earned(director);
@@ -95,8 +111,23 @@ contract Boardroom is Operator, TokenStoreProxy {
 
     // =========== Director getters
 
+    function lastTimeRewardApplicable() public view returns (uint256) {
+        return Math.min(block.timestamp, periodFinish);
+    }
+
     function rewardPerShare() public view returns (uint256) {
-        return getLatestSnapshot().rewardPerShare;
+        BoardSnapshot memory snapshot = getLatestSnapshot();
+        if (totalSupply() == 0) {
+            return snapshot.rewardPerShare;
+        }
+        return
+            snapshot.rewardPerShare.add(
+                lastTimeRewardApplicable()
+                    .sub(Math.min(periodFinish, block.timestamp))
+                    .mul(rewardRate)
+                    .mul(1e18)
+                    .div(totalSupply())
+            );
     }
 
     function earned(address director) public view returns (uint256) {
@@ -111,9 +142,10 @@ contract Boardroom is Operator, TokenStoreProxy {
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function stake(uint256 amount) public updateReward(msg.sender) {
+    // logic
+    function stake(uint256 amount) public override updateReward(msg.sender) {
         require(amount > 0, 'Boardroom: Cannot stake 0');
-        super.deposit(amount);
+        super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
@@ -142,7 +174,8 @@ contract Boardroom is Operator, TokenStoreProxy {
         }
     }
 
-    function allocateSeigniorage(uint256 amount) external onlyOperator {
+    // reward
+    function notifyInstantReward(uint256 amount) public {
         require(amount > 0, 'Boardroom: Cannot allocate 0');
         require(
             totalSupply() > 0,
@@ -150,16 +183,52 @@ contract Boardroom is Operator, TokenStoreProxy {
         );
 
         // Create & add new snapshot
-        uint256 prevRPS = getLatestSnapshot().rewardPerShare;
-        uint256 nextRPS = prevRPS.add(amount.mul(1e18).div(totalSupply()));
+        uint256 prevRewardPerShare = getLatestSnapshot().rewardPerShare;
+        uint256 nextRewardPerShare =
+            prevRewardPerShare.add(amount.mul(1e18).div(totalSupply()));
 
-        BoardSnapshot memory newSnapshot =
+        boardHistory.push(
             BoardSnapshot({
                 timestamp: block.number,
-                rewardReceived: amount,
-                rewardPerShare: nextRPS
-            });
-        boardHistory.push(newSnapshot);
+                rewardPerShare: nextRewardPerShare
+            })
+        );
+
+        IERC20(cash).safeTransferFrom(msg.sender, address(this), amount);
+        emit RewardAdded(msg.sender, amount);
+    }
+
+    function notifyDelayedReward(uint256 amount)
+        external
+        updateReward(address(0x0))
+    {
+        require(
+            periodFinish != 0,
+            'Boardroom: need to call after at least one allocation'
+        );
+        require(
+            block.timestamp < periodFinish,
+            'Boardroom: need to call before finish'
+        );
+        uint256 remaining = periodFinish.sub(block.timestamp);
+        rewardRate = rewardRate.add(amount.div(remaining));
+
+        IERC20(cash).safeTransferFrom(msg.sender, address(this), amount);
+        emit RewardAdded(msg.sender, amount);
+    }
+
+    function allocateSeigniorage(uint256 amount, uint256 nextPeriodFinish)
+        external
+        onlyOperator
+        updateReward(address(0x0))
+    {
+        uint256 remaining =
+            periodFinish.sub(Math.min(periodFinish, block.timestamp));
+        uint256 leftover = remaining.mul(rewardRate);
+        uint256 duration = nextPeriodFinish.sub(block.timestamp);
+
+        rewardRate = amount.add(leftover).div(duration);
+        periodFinish = nextPeriodFinish;
 
         IERC20(cash).safeTransferFrom(msg.sender, address(this), amount);
         emit RewardAdded(msg.sender, amount);

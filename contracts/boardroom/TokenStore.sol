@@ -6,16 +6,7 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 
 import {Operator} from '../owner/Operator.sol';
-
-interface ITokenStore {
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address account) external view returns (uint256);
-
-    function deposit(uint256 amount) external;
-
-    function withdraw(uint256 amount) external;
-}
+import {ITokenStore} from './ITokenStore.sol';
 
 contract TokenStore is ITokenStore, Operator {
     using SafeMath for uint256;
@@ -62,7 +53,7 @@ contract TokenStore is ITokenStore, Operator {
     }
 
     // logic
-    function deposit(uint256 amount) public override {
+    function stake(uint256 amount) public override {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
@@ -77,55 +68,5 @@ contract TokenStore is ITokenStore, Operator {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = balance.sub(amount);
         IERC20(token).safeTransfer(msg.sender, amount);
-    }
-}
-
-abstract contract TokenStoreProxy is ITokenStore {
-    /* ========== EVENTS ========== */
-
-    event TokenStoreChanged(
-        address indexed operator,
-        address oldTokenStore,
-        address newTokenStore
-    );
-
-    /* ========== STATE VARIABLES ========== */
-
-    address public tokenStore;
-
-    /* ========== VIEW FUNCTIONS ========== */
-
-    function totalSupply() public view override returns (uint256) {
-        return TokenStore(tokenStore).totalSupply();
-    }
-
-    function balanceOf(address account) public view override returns (uint256) {
-        return TokenStore(tokenStore).balanceOf(account);
-    }
-
-    /* ========== MUTATIVE FUNCTIONS ========== */
-
-    // gov
-    function setTokenStore(address newTokenStore) public virtual {
-        address oldTokenStore = tokenStore;
-        tokenStore = newTokenStore;
-        emit TokenStoreChanged(msg.sender, oldTokenStore, newTokenStore);
-    }
-
-    // logic
-    function deposit(uint256 amount) public virtual override {
-        (bool success, bytes memory reason) =
-            tokenStore.delegatecall(
-                abi.encodeWithSignature('deposit(uint256)', amount)
-            );
-        require(success, string(reason));
-    }
-
-    function withdraw(uint256 amount) public virtual override {
-        (bool success, bytes memory reason) =
-            tokenStore.delegatecall(
-                abi.encodeWithSignature('withdraw(uint256)', amount)
-            );
-        require(success, string(reason));
     }
 }
