@@ -50,9 +50,8 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceOne;
 
     uint256 public lastBondOracleEpoch = 0;
-    uint256 public cashConversionLimit = 0;
+    uint256 public bondCap = 0;
     uint256 public accumulatedSeigniorage = 0;
-    uint256 public accumulatedCashConversion = 0;
     uint256 public fundAllocationRate = 2; // %
 
     /* ========== CONSTRUCTOR ========== */
@@ -213,8 +212,10 @@ contract Treasury is ContractGuard, Epoch {
         uint256 currentEpoch = Epoch(bondOracle).getLastEpoch(); // lastest update time
         if (lastBondOracleEpoch != currentEpoch) {
             uint256 percentage = cashPriceOne.sub(cashPrice);
-            cashConversionLimit = circulatingSupply().mul(percentage).div(1e18);
-            accumulatedCashConversion = 0;
+            uint256 bondSupply = IERC20(bond).totalSupply();
+
+            bondCap = circulatingSupply().mul(percentage).div(1e18);
+            bondCap = bondCap.sub(Math.min(bondCap, bondSupply));
 
             lastBondOracleEpoch = currentEpoch;
         }
@@ -247,21 +248,11 @@ contract Treasury is ContractGuard, Epoch {
         );
         _updateConversionLimit(cashPrice);
 
-        // swap exact limit
-        amount = Math.min(
-            amount,
-            cashConversionLimit.sub(accumulatedCashConversion)
-        );
-        accumulatedCashConversion = accumulatedCashConversion.add(amount);
-
-        if (amount == 0) {
-            return;
-        }
-
-        uint256 bondPrice = cashPrice;
+        amount = Math.min(amount, bondCap.mul(cashPrice).div(1e18));
+        require(amount > 0, 'Treasury: amount exceeds bond cap');
 
         IBasisAsset(cash).burnFrom(msg.sender, amount);
-        IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
+        IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(cashPrice));
 
         emit BoughtBonds(msg.sender, amount);
     }
@@ -336,6 +327,9 @@ contract Treasury is ContractGuard, Epoch {
                 IERC20(bond).totalSupply().sub(accumulatedSeigniorage)
             );
         if (treasuryReserve > 0) {
+            if (treasuryReserve == seigniorage) {
+                treasuryReserve = treasuryReserve.mul(80).div(100);
+            }
             accumulatedSeigniorage = accumulatedSeigniorage.add(
                 treasuryReserve
             );
