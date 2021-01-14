@@ -1,4 +1,4 @@
-export const TREASURY_START_DATE = Date.parse('2021-01-15T00:00:00Z') / 1000;
+export const TREASURY_START_DATE = Date.parse('2021-01-17T00:00:00Z') / 1000;
 export const ORACLE_START_DATE = Date.parse('2021-01-11T00:00:00Z') / 1000;
 export const CURVE_MIN_SUPPLY = '0';
 export const CURVE_MAX_SUPPLY = '250000000';

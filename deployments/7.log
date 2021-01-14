@@ -1,4 +1,4 @@
-Gas Price: 129.0 gwei
+Gas Price: 99.0 gwei
 Deployments
 {
   "Cash": "0x3449FC1Cd036255BA1EB19d65fF4BA2b8903A69a",
@@ -19,26 +19,26 @@ Admin verified 0x68C3a95B35C45Db5dB67ed83c43305052FAD6e04
 
 => Deploy
 
-Waiting tx 0x3ad3033a761f823dec190f49d3e12b484f35ccbbf6d09fed59891ee16decd3ea. action =
-Deploy new Treasury => 0x0f5ecb70896fd26e595e81dac3d881fbf8e0f7b3
+Waiting tx 0xb797a31ca4183155dcf04c978ffb9a5daadfef7f5d98f00cd99d54a15d182465. action =
+Deploy new Treasury => 0xf8aCEaAe0Dfb5D917086e052eF257E9DA9d72deA
 
 ===================================================
 
 => RBAC
 
-Waiting tx 0xcb3c01e63b54bde60f3c02797f4726b500c4547cdfa8e6d3194b3cd731ead3b6. action = treasury.transferOperator
-Waiting tx 0x00dde2fd0222e8a6343be9cf466fb2ba188b56b23a13855649350aa3f1f6f0de. action = treasury.transferOwnership
+Waiting tx 0xc6439d527e545a43cfd9ce87ca88e5c0428cae9f9e1f7700b53655ea3bbe0d74. action = treasury.transferOperator
+Waiting tx 0x47d8b0b260bcb3cbf763e9fb607eccc63e91b5d08856f2c508d4ce1d3de160c0. action = treasury.transferOwnership
 
 ===================================================
 
 => Migration
 
-Waiting tx 0xd92ac05f7b466dc2020d097a728d10e1c47f0af2d148f4311710e8180c041d97. action =
-2. timelock.queueTransaction (treasury.migrate) => txHash: 0x2fa468211ee3cc098969e62631ec3d9bee56d6902296287a0182a04fb9245513
-Tx execution ETA: 1610816826
-Waiting tx 0x24f181c806437cc8f0429aa91ff474fd9842e8965cb80684d8e35afbae57838b. action =
-3. timelock.queueTransaction (boardroom.transferOperator) => txHash: 0xac2b23b0f9189fff993ba59b2f3cbf5930afe0b8d28a2a3726696914ea30bc39
-Tx execution ETA: 1610816846
+Waiting tx 0x0cd9b7511e8a7e4db3e83c8b1eb85f89afd6792131bd5a0dea3e9aec012cdcfa. action =
+1. timelock.queueTransaction (treasury.migrate) => txHash: 0xcb53d0a22b1c79ee3914fad0d8adb0b2cfa3af447e76ff6c54df2eee517d6e1c
+Tx execution ETA: 1610818143
+Waiting tx 0x94fd76aa5f03b11654a94f6593a6ec595af81cc422c1e771807c01d9a9199d0d. action =
+2. timelock.queueTransaction (boardroom.transferOperator) => txHash: 0x6c2e96e49304f05ce891f6876fd9678ade7ea8f1eda1c4d78ac35aee57c01db0
+Tx execution ETA: 1610818156
 OK!
 
 ===================================================
