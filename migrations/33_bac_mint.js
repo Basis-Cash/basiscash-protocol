@@ -9,11 +9,12 @@ const Cash = artifacts.require('Cash')
 
 module.exports = async (deployer, network, accounts) => {
   const unit = web3.utils.toBN(10 ** 18);
-  const initialCashAmount = unit.muln(INITIAL_BAC_FOR_POOLS).toString();
+  const initial_amount = INITIAL_BAC_FOR_POOLS*100;
+  const initialCashAmount = unit.muln(initial_amount).toString();
 
   const cash = await Cash.deployed();  
   await cash.mint(accounts[0], initialCashAmount);
 
-  console.log(`Deposited ${INITIAL_BAC_FOR_POOLS} BAC to `,accounts[0]);
+  console.log(`Deposited ${initial_amount} BAC to `,accounts[0]);
 
 }
