@@ -56,6 +56,4 @@ module.exports = async (deployer, network, accounts) => {
   // await treasury.transferOperator(timelock.address);
   // console.log("treasury address ",treasury.address, " transferOwnership to ",timelock.address);
   // await treasury.transferOwnership(timelock.address);
-
-  console.log(`Transferred the operator role from the deployer (${accounts[0]}) to Treasury (${Treasury.address})`);
 }

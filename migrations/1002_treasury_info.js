@@ -88,54 +88,8 @@ module.exports = async (deployer, network, accounts) => {
 
 
 
-
+  // send tx
   // await treasury.buyBonds(amount,price);
 
-
-
-  // -------------- begin bac minted 10000 and allocateSeigniorage -----------------------
-  // const cash = await Cash.deployed();
-  // console.log("cash address is: ",cash.address);
-
-  // const treasury = await Treasury.deployed();
-  // console.log("treasury address is: ",treasury.address);
-
-  // const timelock = await Timelock.deployed();
-  // console.log("timelock address is: ",timelock.address);
-
-  // console.log("cash minted ",SEIGNIORAGE_AMOUNT);
-  // await cash.mint(treasury.address, SEIGNIORAGE_AMOUNT);
-  // await cash.approve(boardroom.address, SEIGNIORAGE_AMOUNT);
-
-  // console.log("booardroom allocateSeigniorage");
-  // await boardroom.allocateSeigniorage(SEIGNIORAGE_AMOUNT)
-  // -------------- end bac minted 10000 and allocateSeigniorage -----------------------
-
-
-  // const latestSnapshotIndex = await boardroom.latestSnapshotIndex()
-  // console.log("latestSnapshotIndex: ",latestSnapshotIndex.toString());
-
-  // const address0 = accounts[0];
-  // const getLastSnapshotIndexOf = await boardroom.getLastSnapshotIndexOf(address0);
-  // console.log("getLastSnapshotIndexOf: ",getLastSnapshotIndexOf.toString());
-
-
-  // const rewardPerShare = await boardroom.rewardPerShare()
-  // console.log("rewardPerShare: ",rewardPerShare.toString());
-
-  // const earned = await boardroom.earned(address0);
-  // console.log("earned: ",earned.toString());
-
-  // it send tx
-  // await boardroom.stake(oneETH);
-  // console.log("boardroom.staked: ",oneETH);
-
-  // it send tx
-  // await boardroom.withdraw(oneETH);
-  // console.log("boardroom.withdraw: ",oneETH);
-
-  // it send tx
-  // await boardroom.claimReward();
-  // console.log("boardroom.claimReward");
 
 }

@@ -18,10 +18,6 @@
     "deploy:huobitest": "truffle migrate --network huobitest --skip-dry-run"
   },
   "devDependencies": {
-    "@babel/cli": "^7.12.10",
-    "@babel/core": "^7.12.10",
-    "@babel/node": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
     "@ethersproject/address": "^5.0.0-beta",
     "@ethersproject/contracts": "^5.0.0-beta",
     "@ethersproject/networks": "^5.0.0-beta",
@@ -38,7 +34,6 @@
     "@types/node": "^14.14.8",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
-    "babel-preset-stage-0": "^6.24.1",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.0",
     "ethereumjs-util": "^7.0.7",
@@ -58,8 +53,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "3.2.0",
     "@uniswap/v2-core": "^1.0.1",
-    "Babel": "0.0.1",
-    "babel-polyfill": "^6.26.0",
     "dotenv": "^8.2.0",
     "ethers-utils": "^2.1.11"
   }
