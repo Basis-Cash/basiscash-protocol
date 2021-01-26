@@ -50,6 +50,8 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public bondDepletionFloor;
     uint256 private accumulatedSeigniorage = 0;
     uint256 public fundAllocationRate = 2; // %
+    // add inflationPercentCeil
+    uint256 public inflationPercentCeil;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -74,6 +76,9 @@ contract Treasury is ContractGuard, Epoch {
 
         cashPriceOne = 10**18;
         cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
+
+        // inflation at most 4%
+        inflationPercentCeil = uint256(4).mul(cashPriceOne).div(10**2);
 
         bondDepletionFloor = uint256(1000).mul(cashPriceOne);
     }
@@ -169,6 +174,13 @@ contract Treasury is ContractGuard, Epoch {
         emit ContributionPoolRateChanged(msg.sender, rate);
     }
 
+    function setInflationPercentCeil(uint256 inflationPercentCeil_)
+        public
+        onlyOperator
+    {
+        inflationPercentCeil = inflationPercentCeil_;
+    }
+
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _updateCashPrice() internal {
@@ -250,7 +262,12 @@ contract Treasury is ContractGuard, Epoch {
         uint256 cashSupply = IERC20(cash).totalSupply().sub(
             accumulatedSeigniorage
         );
-        uint256 percentage = cashPrice.sub(cashPriceOne);
+
+        // Note: we change cashPriceOne to cashPriceCeiling
+        uint256 percentage = cashPrice.sub(cashPriceCeiling);
+        // add inflation as maximum = 4%
+        percentage = Math.min(percentage, inflationPercentCeil);
+
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
         IBasisAsset(cash).mint(address(this), seigniorage);
 

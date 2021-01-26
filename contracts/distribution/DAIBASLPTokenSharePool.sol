@@ -69,6 +69,11 @@ contract DAIBASLPTokenSharePool is
     IRewardDistributionRecipient
 {
     IERC20 public basisShare;
+
+    // add address FoundationA
+    address public foundationA;
+    uint256 public basAllocationPercentage = 10;
+
     uint256 public DURATION = 365 days;
 
     uint256 public starttime;
@@ -87,10 +92,12 @@ contract DAIBASLPTokenSharePool is
     constructor(
         address basisShare_,
         address lptoken_,
+        address foundationA_,
         uint256 starttime_
     ) public {
         basisShare = IERC20(basisShare_);
         lpt = IERC20(lptoken_);
+        foundationA = foundationA_;
         starttime = starttime_;
     }
 
@@ -170,7 +177,10 @@ contract DAIBASLPTokenSharePool is
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            basisShare.safeTransfer(msg.sender, reward);
+            basisShare.safeTransfer(msg.sender, reward.mul(100-basAllocationPercentage).div(100));
+            uint256 totalFee = reward.mul(basAllocationPercentage).div(100);
+            basisShare.safeTransfer(foundationA, totalFee);
+            
             emit RewardPaid(msg.sender, reward);
         }
     }
