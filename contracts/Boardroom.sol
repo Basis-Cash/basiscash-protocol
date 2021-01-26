@@ -50,11 +50,19 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     using SafeMath for uint256;
     using Safe112 for uint112;
 
+    	
+    /* ========== PARAMETERS =============== */
+    uint256 public withdrawLockupEpochs = 4;
+    uint256 public rewardLockupEpochs = 0;
+    uint256 public epochAlignTimestamp = 1608883200;
+    uint256 public epochPeriod = 28800;
+
     /* ========== DATA STRUCTURES ========== */
 
     struct Boardseat {
         uint256 lastSnapshotIndex;
         uint256 rewardEarned;
+        uint256 epochTimerStart;
     }
 
     struct BoardSnapshot {
@@ -131,6 +139,31 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         return boardHistory[getLastSnapshotIndexOf(director)];
     }
 
+    function getCurrentEpochTimestamp() public view returns(uint256) {
+        return epochAlignTimestamp.add(
+                block.timestamp
+                .sub(epochAlignTimestamp)
+                .div(epochPeriod)
+                .mul(epochPeriod)
+            );
+    }
+    function getCanWithdrawTime(address director) public view returns(uint256) {
+        return directors[director].epochTimerStart.add(
+                    withdrawLockupEpochs.mul(epochPeriod)
+                );
+    }
+    function getCanClaimTime(address director) public view returns(uint256) {
+        return directors[director].epochTimerStart.add(
+                    rewardLockupEpochs.mul(epochPeriod)
+                );
+    }
+    function canWithdraw(address director) public view returns (bool) {
+        return getCanWithdrawTime(director) <= getCurrentEpochTimestamp();
+    }
+    function canClaimReward(address director) public view returns (bool) {
+        return getCanClaimTime(director) <= getCurrentEpochTimestamp();
+    }
+
     // =========== Director getters
 
     function rewardPerShare() public view returns (uint256) {
@@ -147,6 +180,33 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
             );
     }
 
+    /* ========== GOVERNANCE ================== */
+    function setLockUp(
+        uint256 _withdrawLockupEpochs, 
+        uint256 _rewardLockupEpochs,
+        uint256 _epochAlignTimestamp, 
+        uint256 _epochPeriod
+    ) 
+        external 
+        onlyOperator 
+    {
+        require(
+            _withdrawLockupEpochs >= _rewardLockupEpochs 
+            && _withdrawLockupEpochs <= 21, 
+            "LockupEpochs: out of range"
+        );
+        require(_epochPeriod <= 1 days, "EpochPeriod: out of range");
+        require(
+            _epochAlignTimestamp.add(_epochPeriod.mul(2)) < block.timestamp, 
+            "EpochAlignTimestamp: too late"
+        ); 
+        withdrawLockupEpochs = _withdrawLockupEpochs;
+        rewardLockupEpochs = _rewardLockupEpochs;
+        epochAlignTimestamp = _epochAlignTimestamp;
+        epochPeriod = _epochPeriod;
+    }
+
+
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function stake(uint256 amount)
@@ -157,6 +217,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     {
         require(amount > 0, 'Boardroom: Cannot stake 0');
         super.stake(amount);
+        directors[msg.sender].epochTimerStart = getCurrentEpochTimestamp();
         emit Staked(msg.sender, amount);
     }
 
@@ -168,6 +229,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
         updateReward(msg.sender)
     {
         require(amount > 0, 'Boardroom: Cannot withdraw 0');
+        require(canWithdraw(msg.sender), "Boardroom: still in withdraw lockup");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -180,6 +242,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     function claimReward() public updateReward(msg.sender) {
         uint256 reward = directors[msg.sender].rewardEarned;
         if (reward > 0) {
+            require(canClaimReward(msg.sender), "Boardroom: still in claimReward lockup");
             directors[msg.sender].rewardEarned = 0;
             cash.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);

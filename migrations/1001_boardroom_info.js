@@ -18,6 +18,19 @@ module.exports = async (deployer, network, accounts) => {
   const boardroom = await Boardroom.deployed();
   console.log("boardroom address is: ",boardroom.address);
 
+  // console.log("---- setupLockup ---");
+  // const withdrawLockupEpochs_NewValue = 5;
+  // const rewardLockupEpochs_NewValue = 3;
+  // const epochAlignTimestamp_NewValue = 1608883200;
+  // const epochPeriod_NewValue = 300;
+
+  // await boardroom.setLockUp(withdrawLockupEpochs_NewValue
+  //   ,rewardLockupEpochs_NewValue
+  //   ,epochAlignTimestamp_NewValue
+  //   ,epochPeriod_NewValue
+  //   );
+  // console.log("---- end of setupLockup ---");
+
   // -------------- begin bac minted 10000 and allocateSeigniorage -----------------------
   // const cash = await Cash.deployed();
   // console.log("cash address is: ",cash.address);
@@ -50,6 +63,43 @@ module.exports = async (deployer, network, accounts) => {
 
   const earned = await boardroom.earned(address0);
   console.log("earned: ",earned.toString());
+
+
+
+
+  const canWithdraw = await boardroom.canWithdraw(address0);
+  console.log ("canWithdraw: ",canWithdraw.toString());
+
+  const canClaimReward = await boardroom.canClaimReward(address0);
+  console.log ("canClaimReward: ",canClaimReward.toString());
+
+  const getCurrentEpochTimestamp = await boardroom.getCurrentEpochTimestamp.call();
+  console.log("getCurrentEpochTimestamp-------: ",getCurrentEpochTimestamp.toString());
+
+  const getCanWithdrawTime = await boardroom.getCanWithdrawTime(address0);
+  console.log("getCanWithdrawTime-------------: ",getCanWithdrawTime.toString());
+
+  const getCanClaimTime = await boardroom.getCanClaimTime(address0);
+  console.log("getCanClaimTime----------------: ",getCanClaimTime.toString());
+
+  console.log("----------- Parameters -------------- ");
+  const withdrawLockupEpochs = await boardroom.withdrawLockupEpochs.call();
+  console.log ("withdrawLockupEpochs: ",withdrawLockupEpochs.toString());
+
+  const rewardLockupEpochs = await boardroom.rewardLockupEpochs.call();
+  console.log ("rewardLockupEpochs: ",rewardLockupEpochs.toString());
+
+  const epochAlignTimestamp = await boardroom.epochAlignTimestamp.call();
+  console.log ("epochAlignTimestamp: ",epochAlignTimestamp.toString());
+
+  const epochPeriod = await boardroom.epochPeriod.call();
+  console.log ("epochPeriod: ",epochPeriod.toString());
+
+  console.log("----------- End of Parameters -------------- ");
+
+
+
+
 
   // it send tx
   // await boardroom.stake(oneETH);
