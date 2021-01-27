@@ -108,7 +108,7 @@ async function migration(deployer, network, accounts) {
     Oracle.address,
     Oracle.address,
     Boardroom.address,
-    cash.address,
+    accounts[1],
     startTime,
   );
 }

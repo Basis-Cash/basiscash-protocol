@@ -7,7 +7,7 @@ contract Cash is ERC20Burnable, Operator {
     /**
      * @notice Constructs the Basis Cash ERC-20 contract.
      */
-    constructor() public ERC20('BAC', 'BAC') {
+    constructor() public ERC20('BDC', 'BDC') {
         // Mints 1 Basis Cash to contract creator for initial Uniswap oracle deployment.
         // Will be burned after oracle deployment
         _mint(msg.sender, 1 * 10**18);

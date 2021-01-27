@@ -19,10 +19,10 @@ module.exports = async (deployer, network, accounts) => {
   console.log("boardroom address is: ",boardroom.address);
 
   // console.log("---- setupLockup ---");
-  // const withdrawLockupEpochs_NewValue = 5;
-  // const rewardLockupEpochs_NewValue = 3;
+  // const withdrawLockupEpochs_NewValue = 6;
+  // const rewardLockupEpochs_NewValue = 0;
   // const epochAlignTimestamp_NewValue = 1608883200;
-  // const epochPeriod_NewValue = 300;
+  // const epochPeriod_NewValue = 60;
 
   // await boardroom.setLockUp(withdrawLockupEpochs_NewValue
   //   ,rewardLockupEpochs_NewValue

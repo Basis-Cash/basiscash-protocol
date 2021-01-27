@@ -74,7 +74,7 @@ contract DAIBASLPTokenSharePool is
     address public foundationA;
     uint256 public basAllocationPercentage = 10;
 
-    uint256 public DURATION = 365 days;
+    uint256 public DURATION = 150 days;
 
     uint256 public starttime;
     uint256 public periodFinish = 0;

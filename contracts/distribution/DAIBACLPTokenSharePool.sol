@@ -181,7 +181,7 @@ contract DAIBACLPTokenSharePool is
 
     modifier checkhalve() {
         if (block.timestamp >= periodFinish) {
-            initreward = initreward.mul(75).div(100);
+            initreward = initreward.mul(50).div(100);
 
             rewardRate = initreward.div(DURATION);
             periodFinish = block.timestamp.add(DURATION);

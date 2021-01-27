@@ -49,7 +49,7 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public cashPriceCeiling;
     uint256 public bondDepletionFloor;
     uint256 private accumulatedSeigniorage = 0;
-    uint256 public fundAllocationRate = 2; // %
+    uint256 public fundAllocationRate = 10; // %
     // add inflationPercentCeil
     uint256 public inflationPercentCeil;
 
@@ -64,7 +64,7 @@ contract Treasury is ContractGuard, Epoch {
         address _boardroom,
         address _fund,
         uint256 _startTime
-    ) public Epoch(5 minutes, _startTime, 0) {
+    ) public Epoch(12 hours, _startTime, 0) {
         cash = _cash;
         bond = _bond;
         share = _share;

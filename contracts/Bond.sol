@@ -7,7 +7,7 @@ contract Bond is ERC20Burnable, Ownable, Operator {
     /**
      * @notice Constructs the Basis Bond ERC-20 contract.
      */
-    constructor() public ERC20('BAB', 'BAB') {}
+    constructor() public ERC20('BDB', 'BDB') {}
 
     /**
      * @notice Operator mints basis bonds to a recipient
