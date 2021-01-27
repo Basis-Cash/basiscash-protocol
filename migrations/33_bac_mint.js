@@ -15,6 +15,6 @@ module.exports = async (deployer, network, accounts) => {
   const cash = await Cash.deployed();  
   await cash.mint(accounts[0], initialCashAmount);
 
-  console.log(`Deposited ${initial_amount} BAC to `,accounts[0]);
+  console.log(`Deposited ${initial_amount} BDC to `,accounts[0]);
 
 }

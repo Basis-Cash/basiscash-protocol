@@ -14,6 +14,6 @@ module.exports = async (deployer, network, accounts) => {
   const share = await Share.deployed();  
   await share.mint(accounts[0], initialCashAmount);
 
-  console.log(`Deposited ${INITIAL_BAC_FOR_POOLS} BAS to `,accounts[0]);
+  console.log(`Deposited ${INITIAL_BAC_FOR_POOLS} BDS to `,accounts[0]);
 
 }

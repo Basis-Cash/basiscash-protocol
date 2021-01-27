@@ -74,8 +74,8 @@ async function migration(deployer, network, accounts) {
     share.address, dai.address, unit, unit, unit, unit, accounts[0],  deadline(),
   );
 
-  console.log(`DAI-BAC pair address: ${await uniswap.getPair(dai.address, cash.address)}`);
-  console.log(`DAI-BAS pair address: ${await uniswap.getPair(dai.address, share.address)}`);
+  console.log(`DAI-BDC pair address: ${await uniswap.getPair(dai.address, cash.address)}`);
+  console.log(`DAI-BDS pair address: ${await uniswap.getPair(dai.address, share.address)}`);
 
   // Deploy boardroom
   console.log("deployer.deploy(Boardroom, cash.address, share.address);");
