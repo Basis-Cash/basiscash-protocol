@@ -77,8 +77,8 @@ contract Treasury is ContractGuard, Epoch {
         cashPriceOne = 10**18;
         cashPriceCeiling = uint256(105).mul(cashPriceOne).div(10**2);
 
-        // inflation at most 4%
-        inflationPercentCeil = uint256(4).mul(cashPriceOne).div(10**2);
+        // inflation at most 5%
+        inflationPercentCeil = uint256(5).mul(cashPriceOne).div(10**2);
 
         bondDepletionFloor = uint256(1000).mul(cashPriceOne);
     }
