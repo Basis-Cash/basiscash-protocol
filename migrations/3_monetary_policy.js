@@ -91,8 +91,8 @@ async function migration(deployer, network, accounts) {
     uniswap.address,
     cash.address,
     dai.address,
-    DAY,
-    POOL_START_DATE
+    // DAY,
+    // POOL_START_DATE
   );
 
   let startTime = POOL_START_DATE;

@@ -32,6 +32,5 @@ module.exports = async (deployer, network, accounts) => {
 
   console.log("booardroom allocateSeigniorage");
   await boardroom.allocateSeigniorage(SEIGNIORAGE_AMOUNT)
-  
 
 }

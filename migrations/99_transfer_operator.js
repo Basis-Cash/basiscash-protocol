@@ -26,21 +26,21 @@ module.exports = async (deployer, network, accounts) => {
   const treasury = await Treasury.deployed();
   console.log("treasury address is: ",treasury.address);
 
-  const timelock = await deployer.deploy(Timelock, accounts[0], 2 * DAY);
+  for await (const contract of [ cash, share, bond ]) {
+    console.log(contract.address, " transferOperator to", treasury.address);
+    await contract.transferOperator(treasury.address);
 
-  // for await (const contract of [ cash, share, bond ]) {
-  //   console.log(contract.address, " transferOperator to", treasury.address);
-  //   await contract.transferOperator(treasury.address);
+    console.log(contract.address, " transferOwnership to", treasury.address);
+    await contract.transferOwnership(treasury.address);
+  }
 
-  //   console.log(contract.address, " transferOwnership to", treasury.address);
-  //   await contract.transferOwnership(treasury.address);
-  // }
+  // transfer boardroom
+  console.log("boardroom address ",boardroom.address, " transferOperator to ",treasury.address);
+  await boardroom.transferOperator(treasury.address);
+  console.log("boardroom address ",boardroom.address, " transferOwnership to ",treasury.address);
+  await boardroom.transferOwnership(treasury.address);
 
-  // //transfer boardroom
-  // console.log("boardroom address ",boardroom.address, " transferOperator to ",treasury.address);
-  // await boardroom.transferOperator(treasury.address);
-  // console.log("boardroom address ",boardroom.address, " transferOwnership to ",timelock.address);
-  // await boardroom.transferOwnership(timelock.address);
+  // const timelock = await deployer.deploy(Timelock, accounts[0], 2 * DAY);
 
   // //trasfer treasury
   // console.log("treasury address ",treasury.address, " transferOperator to ",timelock.address);
@@ -48,5 +48,5 @@ module.exports = async (deployer, network, accounts) => {
   // console.log("treasury address ",treasury.address, " transferOwnership to ",timelock.address);
   // await treasury.transferOwnership(timelock.address);
 
-  // console.log(`Transferred the operator role from the deployer (${accounts[0]}) to Treasury (${Treasury.address})`);
+  console.log(`Transferred the operator role from the deployer (${accounts[0]}) to Treasury (${Treasury.address})`);
 }

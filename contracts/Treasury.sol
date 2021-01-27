@@ -250,7 +250,7 @@ contract Treasury is ContractGuard, Epoch {
         checkMigration
         checkStartTime
         checkEpoch
-        checkOperator
+        // checkOperator
     {
         _updateCashPrice();
         uint256 cashPrice = _getCashPrice(seigniorageOracle);
