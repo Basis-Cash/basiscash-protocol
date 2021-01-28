@@ -15,7 +15,8 @@
     "deploy:ropsten": "truffle migrate --network ropsten --skip-dry-run",
     "deploy:rinkeby": "truffle migrate --network rinkeby",
     "deploy:mainnet": "truffle migrate --network mainnet",
-    "deploy:huobitest": "truffle migrate --network huobitest --skip-dry-run"
+    "deploy:huobitest": "truffle migrate --network huobitest --skip-dry-run",
+    "deploy:heco": "truffle migrate --network heco --skip-dry-run"
   },
   "devDependencies": {
     "@ethersproject/address": "^5.0.0-beta",
@@ -37,7 +38,7 @@
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.0",
     "ethereumjs-util": "^7.0.7",
-    "ethers": "^5.0.25",
+    "ethers": "^5.0.26",
     "ganache-cli": "^6.12.1",
     "hardhat": "^2.0.6",
     "hardhat-gas-reporter": "^1.0.1",

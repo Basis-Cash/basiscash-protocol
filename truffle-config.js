@@ -76,7 +76,31 @@ module.exports = {
       provider: function() {
         return new HDWalletProvider(mnemonic, "https://http-testnet.hecochain.com")
       },
-      network_id: 256
+      network_id: 256,
+      blockGasLimit: 7612388,
+      gas: 7500000,
+      gasPrice: 20000000000,
+      gasLimit: 7500000,
+      networkCheckTimeout: 1000000,
+      timeoutBlocks: 200,
+      confirmations: 1,
+      websockets: true,
+      from: MMaddress
+    },
+    heco: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "wss://ws-mainnet-node.huobichain.com")
+      },
+      network_id: 128,
+      blockGasLimit: 7612388,
+      gas: 7500000,
+      gasPrice: 20000000000,
+      gasLimit: 7500000,
+      networkCheckTimeout: 1000000,
+      timeoutBlocks: 200,
+      confirmations: 1,
+      websockets: true,
+      from: MMaddress
     }
     // Another network with more advanced options...
     // advanced: {

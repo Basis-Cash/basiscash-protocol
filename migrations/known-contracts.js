@@ -6,12 +6,14 @@ module.exports = {
     ropsten: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
     rinkeby: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
     huobitest: '0x0b199d7C17F6761140eB9b9cAec4F889137dfE18',
+    heco: '0xb0b670fc1F7724119963018DB0BfA86aDb22d941',
   },
   UniswapV2Router02: {
     mainnet: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
     ropsten: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
     rinkeby: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
     huobitest: '0x930D6909112BdAC4662433FEb9FEF26265F34b8a',
+    heco: '0xED7d5F38C79115ca12fe6C0041abb22F0A06C300',
   },
   DAI: {
     mainnet: '0x6b175474e89094c44da98b954eedeac495271d0f',

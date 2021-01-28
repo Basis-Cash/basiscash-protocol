@@ -5,6 +5,7 @@ const Bond = artifacts.require('Bond');
 const Share = artifacts.require('Share');
 const Timelock = artifacts.require('Timelock');
 const Oracle = artifacts.require('Oracle');
+const { ethers } = require("ethers");
 
 
 const MINUTE = 60;
@@ -14,6 +15,14 @@ const SEIGNIORAGE_AMOUNT = web3.utils.toBN(10 ** 18).muln(10000).toString();
 
 
 module.exports = async (deployer, network, accounts) => {
+
+  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
+
+  // The Metamask plugin also allows signing transactions to
+  // send ether and pay to change state within the blockchain.
+  // For this, you need the account signer...
+  const operator = provider.getSigner();
+
   const cash = await Cash.deployed();
   console.log("cash address is: ",cash.address);
 
@@ -23,14 +32,17 @@ module.exports = async (deployer, network, accounts) => {
   const treasury = await Treasury.deployed();
   console.log("treasury address is: ",treasury.address);
 
-  const timelock = await Timelock.deployed();
-  console.log("timelock address is: ",timelock.address);
+  const cash_operator = await cash.operator.call();
+  console.log("cash_operator : ",cash_operator);
 
   console.log("cash minted ",SEIGNIORAGE_AMOUNT);
+  
   await cash.mint(treasury.address, SEIGNIORAGE_AMOUNT);
+  console.log("minted bdc: ",SEIGNIORAGE_AMOUNT);
+
   await cash.approve(boardroom.address, SEIGNIORAGE_AMOUNT);
 
   console.log("booardroom allocateSeigniorage");
-  await boardroom.allocateSeigniorage(SEIGNIORAGE_AMOUNT)
+  await boardroom.allocateSeigniorage(SEIGNIORAGE_AMOUNT);
 
 }

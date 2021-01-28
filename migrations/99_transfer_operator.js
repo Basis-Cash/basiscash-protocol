@@ -34,7 +34,6 @@ module.exports = async (deployer, network, accounts) => {
     await contract.transferOwnership(treasury.address);
   }
 
-  // transfer boardroom
   console.log("boardroom address ",boardroom.address, " transferOperator to ",treasury.address);
   await boardroom.transferOperator(treasury.address);
   console.log("boardroom address ",boardroom.address, " transferOwnership to ",treasury.address);
