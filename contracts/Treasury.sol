@@ -175,27 +175,8 @@ contract Treasury is ContractGuard, Epoch {
 
     function buyBonds(uint256 amount, uint256 targetPrice)
         external
-        onlyOneBlock
-        checkMigration
-        checkStartTime
-        checkOperator
     {
-        require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
-
-        uint256 cashPrice = _getCashPrice(bondOracle);
-        require(cashPrice == targetPrice, 'Treasury: cash price moved');
-        require(
-            cashPrice < cashPriceOne, // price < $1
-            'Treasury: cashPrice not eligible for bond purchase'
-        );
-
-        uint256 bondPrice = cashPrice;
-
-        IBasisAsset(cash).burnFrom(msg.sender, amount);
-        IBasisAsset(bond).mint(msg.sender, amount.mul(1e18).div(bondPrice));
-        _updateCashPrice();
-
-        emit BoughtBonds(msg.sender, amount);
+        require(false, 'Treasury: can no longer purchase bonds');
     }
 
     function redeemBonds(uint256 amount, uint256 targetPrice)
