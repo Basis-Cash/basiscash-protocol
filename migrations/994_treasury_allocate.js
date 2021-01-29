@@ -18,7 +18,7 @@ module.exports = async (deployer, network, accounts) => {
     console.log("treasury address is: ",treasury.address);
   
     
-    await treasury.allocateSeigniorage();
+    // await treasury.allocateSeigniorage();
     
 
     // const cash = await Cash.deployed();
