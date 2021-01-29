@@ -2,4 +2,4 @@ export const TREASURY_START_DATE = Date.parse('2020-12-22T00:00:00Z') / 1000;
 export const ORACLE_START_DATE = Date.parse('2020-12-19T00:00:00Z') / 1000;
 // export const UNI_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
 export const UNI_FACTORY = '0xb0b670fc1F7724119963018DB0BfA86aDb22d941';
-export const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f';
+export const DAI = '0x416ddDbdd418e329FD26a7dceAD900F0b58F2886';
