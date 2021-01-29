@@ -64,7 +64,7 @@ contract Treasury is ContractGuard, Epoch {
         address _boardroom,
         address _fund,
         uint256 _startTime
-    ) public Epoch(12 hours, _startTime, 0) {
+    ) public Epoch(5 minutes, _startTime, 0) {
         cash = _cash;
         bond = _bond;
         share = _share;
@@ -250,7 +250,7 @@ contract Treasury is ContractGuard, Epoch {
         checkMigration
         checkStartTime
         checkEpoch
-        // checkOperator
+        checkOperator
     {
         _updateCashPrice();
         uint256 cashPrice = _getCashPrice(seigniorageOracle);
@@ -267,7 +267,7 @@ contract Treasury is ContractGuard, Epoch {
         uint256 percentage = cashPrice.sub(cashPriceCeiling);
         // add inflation as maximum = 4%
         percentage = Math.min(percentage, inflationPercentCeil);
-
+        
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
         IBasisAsset(cash).mint(address(this), seigniorage);
 

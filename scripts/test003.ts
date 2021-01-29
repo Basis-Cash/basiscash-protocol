@@ -7,7 +7,7 @@ import {
   TREASURY_START_DATE,
   UNI_FACTORY,
 } from '../deploy.config';
-import OLD from '../deployments/0128.json';
+import OLD from '../deployments/012901.json';
 import { wait } from './utils';
 
 const MINUTE = 60;
@@ -73,181 +73,175 @@ async function main() {
 
   
   
-
-  let tx;
-
-  console.log('\n===================================================\n');
-
-  console.log('=> Deploy\n');
-
-  const simpleFund = await SimpleFund.connect(operator).deploy();
-  await wait(
-    simpleFund.deployTransaction.hash,
-    `\nDeploy fund contract => ${simpleFund.address}`
-  );
-
-  const bondOracle = await Oracle.connect(operator).deploy(
-    UNI_FACTORY,
-    cash.address,
-    DAI,
-    HOUR,
-    ORACLE_START_DATE,
-    override
-  );
-  await wait(
-    bondOracle.deployTransaction.hash,
-    `\nDeploy new Oracle => ${bondOracle.address}`
-  );
-
-  // const newBoardroom = await Boardroom.connect(operator).deploy(
-  //   cash.address,
-  //   share.address,
-  //   override
-  // );
-  // await wait(
-  //   newBoardroom.deployTransaction.hash,
-  //   `\nDeploy new Boardroom => ${newBoardroom.address}`
-  // );
-
-  const newTreasury = await Treasury.connect(operator).deploy(
-    cash.address,
-    bond.address,
-    share.address,
-    bondOracle.address,
-    seigniorageOracle.address,
-    boardroom.address,
-    simpleFund.address,
-    TREASURY_START_DATE,
-    override
-  );
-  await wait(
-    newTreasury.deployTransaction.hash,
-    `\nDeploy new Treasury => ${newTreasury.address}`
-  );
-
-  console.log('\n===================================================\n');
-
-  console.log('=> RBAC\n');
-
-  // tx = await newBoardroom
-  //   .connect(operator)
-  //   .transferOperator(newTreasury.address, override);
-  // await wait(tx.hash, 'boardroom.transferOperator');
-
-  // tx = await newBoardroom
-  //   .connect(operator)
-  //   .transferOwnership(timelock.address, override);
-  // await wait(tx.hash, 'boardroom.transferOwnership');
-
-  tx = await simpleFund
-    .connect(operator)
-    .transferOperator(timelock.address, override);
-  await wait(tx.hash, 'fund.transferOperator');
-
-  tx = await simpleFund
-    .connect(operator)
-    .transferOwnership(timelock.address, override);
-  await wait(tx.hash, 'fund.transferOwnership');
-
-  tx = await newTreasury
-    .connect(operator)
-    .transferOperator(timelock.address, override);
-  await wait(tx.hash, 'treasury.transferOperator');
-
-  tx = await newTreasury
-    .connect(operator)
-    .transferOwnership(timelock.address, override);
-  await wait(tx.hash, 'treasury.transferOwnership');
-
-  console.log('\n===================================================\n');
-
-  console.log('=> Migration\n');
-
   let eta;
   let calldata;
   let txHash;
+  let tx;
 
-  // 1. transfer operator to old treasury
-  eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
-  // eta = Math.round(new Date().getTime() / 1000) + 10 * MINUTE;
-  calldata = [
-    boardroom.address,
-    0,
-    'transferOperator(address)',
-    encodeParameters(['address'], [treasury.address]),
-    eta,
-  ];
-  txHash = keccak256(
-    encodeParameters(
-      ['address', 'uint256', 'string', 'bytes', 'uint256'],
-      calldata
-    )
-  );
+  // const SEIGNIORAGE_AMOUNT = ethers.constants.WeiPerEther.mul(10000).toString();
+  // console.log("--------- boardroom allocate -----------");
+  // await boardroom
+  //   .connect(operator)
+  //   .allocateSeigniorage(SEIGNIORAGE_AMOUNT);
+  // await cash
+  //   .connect(operator)
+  //   .mint(treasury.address,SEIGNIORAGE_AMOUNT);
+  // console.log("--------- end of boardroom allocate -----------");
 
-  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
-  await wait(
-    tx.hash,
-    `\n1. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
-  );
-  console.log(`Tx execution ETA: ${eta}`);
+  console.log("---------- treasury.allocateSeigniorage ------------");
 
-  if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
-    throw new Error('wtf');
-  }
+  const hre = require("hardhat");
 
-  // 2. migrate treasury
-  eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
-  calldata = [
-    treasury.address,
-    0,
-    'migrate(address)',
-    encodeParameters(['address'], [newTreasury.address]),
-    eta,
-  ];
-  txHash = keccak256(
-    encodeParameters(
-      ['address', 'uint256', 'string', 'bytes', 'uint256'],
-      calldata
-    )
-  );
+  await treasury
+    .allocateSeigniorage()
+    .catch((error) =>{
+      console.log("error: ",error);
+    });
 
-  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
-  await wait(
-    tx.hash,
-    `\n2. timelock.queueTransaction (treasury.migrate) => txHash: ${txHash}`
-  );
-  console.log(`Tx execution ETA: ${eta}`);
+  // const nextEpochPoint = await seigniorageOracle.nextEpochPoint();
+  // console.log("nextEpochPoint: ",nextEpochPoint.toString());
 
-  if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
-    throw new Error('wtf');
-  }
+  // let transactionHash = "0xcd83bc3b5d5062253aa4ab0a0f23a3d81baa51b0f2b8346076b0cb675681a417"
 
-  // 3. transfer operator to new treasury
-  eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
-  calldata = [
-    boardroom.address,
-    0,
-    'transferOperator(address)',
-    encodeParameters(['address'], [newTreasury.address]),
-    eta,
-  ];
-  txHash = keccak256(
-    encodeParameters(
-      ['address', 'uint256', 'string', 'bytes', 'uint256'],
-      calldata
-    )
-  );
+  // provider.getTransaction(transactionHash).then((transaction) => {
+  //     console.log(transaction);
+  // });
 
-  tx = await timelock.connect(operator).queueTransaction(...calldata, override);
-  await wait(
-    tx.hash,
-    `\n3. timelock.queueTransaction (boardroom.transferOperator) => txHash: ${txHash}`
-  );
-  console.log(`Tx execution ETA: ${eta}`);
+  // provider.getTransactionReceipt(transactionHash).then((receipt) => {
+  //     console.log(receipt);
+  // });
+  
 
-  if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
-    throw new Error('wtf');
-  }
+  // console.log("---------- end of treasury.allocateSeigniorage ------------");
+
+  console.log("---------- treasury.price ------------");
+
+  const getBondOraclePrice = await treasury.getBondOraclePrice.call();
+  console.log("getBondOraclePrice: ",getBondOraclePrice.toString());
+
+  const getSeigniorageOraclePrice = await treasury.getSeigniorageOraclePrice.call();
+  console.log("getSeigniorageOraclePrice: ",getSeigniorageOraclePrice.toString());
+
+  const getReserve = await treasury.getReserve.call();
+  console.log("getReserve: ",getReserve.toString());
+
+  console.log("---------- end of treasury.price ------------");
+
+  console.log("---------- treasury.core ------------");
+
+  const fund_address = await treasury.fund.call();
+  console.log("fund_address: ",fund_address.toString());
+
+  const cash_address = await treasury.cash.call();
+  console.log("cash_address: ",cash_address.toString());
+
+  const bond_address = await treasury.bond.call();
+  console.log("bond_address: ",bond_address.toString());
+
+  const share_address = await treasury.share.call();
+  console.log("share_address: ",share_address.toString());
+
+  const boardroom_address = await treasury.boardroom.call();
+  console.log("boardroom_address: ",boardroom_address.toString());
+
+
+  console.log("---------- end of treasury.core ------------");
+
+  console.log("---------- treasury.params ------------");
+
+  // const migrated = await treasury.migrated.call();
+  // console.log("migrated: ",migrated.toString());
+
+  // const initialized = await treasury.initialized.call();
+  // console.log("initialized: ",initialized.toString());
+
+  // const cashPriceOne = await treasury.cashPriceOne.call();
+  // console.log("cashPriceOne: ",cashPriceOne.toString());
+
+  const cashPriceCeiling = await treasury.cashPriceCeiling.call();
+  console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
+
+  // const bondDepletionFloor = await treasury.bondDepletionFloor.call();
+  // console.log("bondDepletionFloor: ",bondDepletionFloor.toString());
+
+  // const fundAllocationRate = await treasury.fundAllocationRate.call();
+  // console.log("fundAllocationRate: ",fundAllocationRate.toString());
+
+  const inflationPercentCeil = await treasury.inflationPercentCeil.call();
+  console.log("inflationPercentCeil: ",inflationPercentCeil.toString());
+
+  const cash_totalSupply = await cash.totalSupply.call();
+  console.log("cash_totalSupply: ",cash_totalSupply.toString());
+
+  const cash_balanceOfTreasury = await cash.balanceOf(treasury.address);
+  console.log("cash_balanceOfTreasury: ",cash_balanceOfTreasury.toString());
+
+  console.log("---------- end of treasury.params ------------");
+
+  
+
+
+
+
+
+  // 2. treasury.allocateSeigniorage queueTransaction
+  // eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
+  // eta = Math.round(new Date().getTime() / 1000) + 300;
+  // calldata = [
+  //   treasury.address,
+  //   0,
+  //   'allocateSeigniorage()',
+  //   0,
+  //   eta,
+  // ];
+  // txHash = keccak256(
+  //   encodeParameters(
+  //     ['address', 'uint256', 'string', 'bytes', 'uint256'],
+  //     calldata
+  //   )
+  // );
+
+  // tx = await timelock.connect(operator).queueTransaction(...calldata, override);
+  // await wait(
+  //   tx.hash,
+  //   `\n2. timelock.queueTransaction (treasury.allocateSeigniorage) => txHash: ${txHash}`
+  // );
+  // console.log(`Tx execution ETA: ${eta}`);
+
+  // if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
+  //   throw new Error('wtf');
+  // }
+
+  // 3. treasury.allocateSeigniorage execTransaction
+  // eta = Math.round(new Date().getTime() / 1000) + 2 * DAY + 60;
+  // eta = 1611907005;
+  // calldata = [
+  //   treasury.address,
+  //   0,
+  //   'allocateSeigniorage()',
+  //   0,
+  //   eta,
+  // ];
+  // txHash = keccak256(
+  //   encodeParameters(
+  //     ['address', 'uint256', 'string', 'bytes', 'uint256'],
+  //     calldata
+  //   )
+  // );
+
+  // tx = await timelock.connect(operator).executeTransaction(...calldata, override);
+  // await wait(
+  //   tx.hash,
+  //   `\n2. timelock.executeTransaction (treasury.allocateSeigniorage) => txHash: ${txHash}`
+  // );
+  // console.log(`Tx execution ETA: ${eta}`);
+
+  // if (!(await timelock.connect(operator).queuedTransactions(txHash))) {
+  //   throw new Error('wtf');
+  // }
+
+
+
 
   console.log('OK!');
 

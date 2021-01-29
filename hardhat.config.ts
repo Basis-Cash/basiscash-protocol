@@ -10,7 +10,7 @@ export default {
   default: 'heco',
   networks: {
     heco: {
-      url: "https://http-mainnet-node.huobichain.com",
+      url: "https://http-mainnet-node1.hecochain.com",
       network_id: 128,
       blockGasLimit: 7612388,
       gas: 7500000,

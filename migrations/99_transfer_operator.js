@@ -39,7 +39,7 @@ module.exports = async (deployer, network, accounts) => {
   console.log("boardroom address ",boardroom.address, " transferOwnership to ",treasury.address);
   await boardroom.transferOwnership(treasury.address);
 
-  const timelock = await deployer.deploy(Timelock, accounts[0], 2 * DAY);
+  const timelock = await deployer.deploy(Timelock, accounts[0], 2 * MINUTE);
 
   //trasfer treasury
   console.log("treasury address ",treasury.address, " transferOperator to ",timelock.address);
