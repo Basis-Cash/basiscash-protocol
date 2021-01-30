@@ -57,6 +57,7 @@
     "@openzeppelin/contracts": "3.2.0",
     "@uniswap/v2-core": "^1.0.1",
     "dotenv": "^8.2.0",
+    "eth-revert-reason": "^1.0.3",
     "ethers-utils": "^2.1.11"
   }
 }

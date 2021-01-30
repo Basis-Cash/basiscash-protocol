@@ -35,12 +35,19 @@ module.exports = async (deployer, network, accounts) => {
   const cash_operator = await cash.operator.call();
   console.log("cash_operator : ",cash_operator);
 
-  console.log("cash minted ",SEIGNIORAGE_AMOUNT);
-  
-  await cash.mint(treasury.address, SEIGNIORAGE_AMOUNT);
-  console.log("minted bdc: ",SEIGNIORAGE_AMOUNT);
 
-  await cash.approve(boardroom.address, SEIGNIORAGE_AMOUNT);
+
+  // console.log("cash minted ",SEIGNIORAGE_AMOUNT);
+  // await cash.mint(treasury.address, SEIGNIORAGE_AMOUNT);
+  // console.log("minted bdc: ",SEIGNIORAGE_AMOUNT);
+
+  // await cash.approve(boardroom.address, SEIGNIORAGE_AMOUNT);
+
+  const cash_totalSupply = await cash.totalSupply.call();
+  console.log("cash_totalSupply: ",cash_totalSupply.toString());
+
+  const board_operator = await boardroom.operator.call();
+  console.log("board_operator: ",board_operator);
 
   console.log("booardroom allocateSeigniorage");
   await boardroom.allocateSeigniorage(SEIGNIORAGE_AMOUNT);

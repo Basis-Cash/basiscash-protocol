@@ -64,7 +64,7 @@ contract Treasury is ContractGuard, Epoch {
         address _boardroom,
         address _fund,
         uint256 _startTime
-    ) public Epoch(5 minutes, _startTime, 0) {
+    ) public Epoch(1 minutes, _startTime, 0) {
         cash = _cash;
         bond = _bond;
         share = _share;

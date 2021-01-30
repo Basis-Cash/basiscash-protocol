@@ -7,7 +7,7 @@ import {
   TREASURY_START_DATE,
   UNI_FACTORY,
 } from '../deploy.config';
-import OLD from '../deployments/012901.json';
+import OLD from '../deployments/013001.json';
 import { wait } from './utils';
 
 const MINUTE = 60;
@@ -31,7 +31,8 @@ async function main() {
   const [operator] = await ethers.getSigners();
 
   const estimateGasPrice = await provider.getGasPrice();
-  const gasPrice = estimateGasPrice.mul(3).div(2);
+  const gasPrice = estimateGasPrice.mul(10).div(2);
+
   console.log(`Gas Price: ${ethers.utils.formatUnits(gasPrice, 'gwei')} gwei`);
   const override = { gasPrice };
 
@@ -43,9 +44,9 @@ async function main() {
   const cash = await ethers.getContractAt('Cash', OLD.Cash);
   const bond = await ethers.getContractAt('Bond', OLD.Bond);
   const share = await ethers.getContractAt('Share', OLD.Share);
-  console.log("cash.address: ",cash.address);
-  console.log("bond.address: ",bond.address);
-  console.log("share.address: ",share.address);
+  // console.log("cash.address: ",cash.address);
+  // console.log("bond.address: ",bond.address);
+  // console.log("share.address: ",share.address);
 
   // === core
   const seigniorageOracle = await ethers.getContractAt('Oracle', OLD.Oracle);
@@ -53,10 +54,10 @@ async function main() {
   const treasury = await ethers.getContractAt('Treasury', OLD.Treasury);
   const boardroom = await ethers.getContractAt('Boardroom', OLD.Boardroom);
 
-  console.log("seigniorageOracle: ",seigniorageOracle.address);
-  console.log("timelock: ",timelock.address);
-  console.log("treasury: ",treasury.address);
-  console.log("boardroom: ",boardroom.address);
+  // console.log("seigniorageOracle: ",seigniorageOracle.address);
+  // console.log("timelock: ",timelock.address);
+  // console.log("treasury: ",treasury.address);
+  // console.log("boardroom: ",boardroom.address);
 
   console.log('Deployments');
   console.log(JSON.stringify(OLD, null, 2));
@@ -88,33 +89,13 @@ async function main() {
   //   .mint(treasury.address,SEIGNIORAGE_AMOUNT);
   // console.log("--------- end of boardroom allocate -----------");
 
-  console.log("---------- treasury.allocateSeigniorage ------------");
+  console.log("---------- treasury.info ------------");
 
-  const hre = require("hardhat");
-
-  await treasury
-    .allocateSeigniorage()
-    .catch((error) =>{
-      console.log("error: ",error);
-    });
-
-  // const nextEpochPoint = await seigniorageOracle.nextEpochPoint();
-  // console.log("nextEpochPoint: ",nextEpochPoint.toString());
-
-  // let transactionHash = "0xcd83bc3b5d5062253aa4ab0a0f23a3d81baa51b0f2b8346076b0cb675681a417"
-
-  // provider.getTransaction(transactionHash).then((transaction) => {
-  //     console.log(transaction);
-  // });
-
-  // provider.getTransactionReceipt(transactionHash).then((receipt) => {
-  //     console.log(receipt);
-  // });
+  const cash_totalSupply = await cash.totalSupply.call();
+  console.log("cash_totalSupply: ",cash_totalSupply.toString());
   
-
-  // console.log("---------- end of treasury.allocateSeigniorage ------------");
-
-  console.log("---------- treasury.price ------------");
+  const nextEpochPoint = await seigniorageOracle.nextEpochPoint();
+  console.log("nextEpochPoint: ",nextEpochPoint.toString());
 
   const getBondOraclePrice = await treasury.getBondOraclePrice.call();
   console.log("getBondOraclePrice: ",getBondOraclePrice.toString());
@@ -125,29 +106,32 @@ async function main() {
   const getReserve = await treasury.getReserve.call();
   console.log("getReserve: ",getReserve.toString());
 
-  console.log("---------- end of treasury.price ------------");
+  const cashPriceCeiling = await treasury.cashPriceCeiling.call();
+  console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
 
-  console.log("---------- treasury.core ------------");
+  console.log("---------- end of treasury.info ------------");
 
-  const fund_address = await treasury.fund.call();
-  console.log("fund_address: ",fund_address.toString());
+  // console.log("---------- treasury.core ------------");
 
-  const cash_address = await treasury.cash.call();
-  console.log("cash_address: ",cash_address.toString());
+  // const fund_address = await treasury.fund.call();
+  // console.log("fund_address: ",fund_address.toString());
 
-  const bond_address = await treasury.bond.call();
-  console.log("bond_address: ",bond_address.toString());
+  // const cash_address = await treasury.cash.call();
+  // console.log("cash_address: ",cash_address.toString());
 
-  const share_address = await treasury.share.call();
-  console.log("share_address: ",share_address.toString());
+  // const bond_address = await treasury.bond.call();
+  // console.log("bond_address: ",bond_address.toString());
 
-  const boardroom_address = await treasury.boardroom.call();
-  console.log("boardroom_address: ",boardroom_address.toString());
+  // const share_address = await treasury.share.call();
+  // console.log("share_address: ",share_address.toString());
+
+  // const boardroom_address = await treasury.boardroom.call();
+  // console.log("boardroom_address: ",boardroom_address.toString());
 
 
-  console.log("---------- end of treasury.core ------------");
+  // console.log("---------- end of treasury.core ------------");
 
-  console.log("---------- treasury.params ------------");
+  // console.log("---------- treasury.params ------------");
 
   // const migrated = await treasury.migrated.call();
   // console.log("migrated: ",migrated.toString());
@@ -158,25 +142,25 @@ async function main() {
   // const cashPriceOne = await treasury.cashPriceOne.call();
   // console.log("cashPriceOne: ",cashPriceOne.toString());
 
-  const cashPriceCeiling = await treasury.cashPriceCeiling.call();
-  console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
+  // const cashPriceCeiling = await treasury.cashPriceCeiling.call();
+  // console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
 
-  // const bondDepletionFloor = await treasury.bondDepletionFloor.call();
-  // console.log("bondDepletionFloor: ",bondDepletionFloor.toString());
+  // // const bondDepletionFloor = await treasury.bondDepletionFloor.call();
+  // // console.log("bondDepletionFloor: ",bondDepletionFloor.toString());
 
-  // const fundAllocationRate = await treasury.fundAllocationRate.call();
-  // console.log("fundAllocationRate: ",fundAllocationRate.toString());
+  // // const fundAllocationRate = await treasury.fundAllocationRate.call();
+  // // console.log("fundAllocationRate: ",fundAllocationRate.toString());
 
-  const inflationPercentCeil = await treasury.inflationPercentCeil.call();
-  console.log("inflationPercentCeil: ",inflationPercentCeil.toString());
+  // const inflationPercentCeil = await treasury.inflationPercentCeil.call();
+  // console.log("inflationPercentCeil: ",inflationPercentCeil.toString());
 
-  const cash_totalSupply = await cash.totalSupply.call();
-  console.log("cash_totalSupply: ",cash_totalSupply.toString());
+  // const cash_totalSupply = await cash.totalSupply.call();
+  // console.log("cash_totalSupply: ",cash_totalSupply.toString());
 
-  const cash_balanceOfTreasury = await cash.balanceOf(treasury.address);
-  console.log("cash_balanceOfTreasury: ",cash_balanceOfTreasury.toString());
+  // const cash_balanceOfTreasury = await cash.balanceOf(treasury.address);
+  // console.log("cash_balanceOfTreasury: ",cash_balanceOfTreasury.toString());
 
-  console.log("---------- end of treasury.params ------------");
+  // console.log("---------- end of treasury.params ------------");
 
   
 

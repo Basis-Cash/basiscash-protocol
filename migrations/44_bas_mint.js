@@ -1,4 +1,4 @@
-const { bacPools, INITIAL_BAC_FOR_POOLS } = require('../pools');
+const { bacPools, INITIAL_BAC_FOR_POOLS } = require('./pools');
 
 // Pools
 // deployed first
