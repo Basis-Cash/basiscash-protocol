@@ -50,7 +50,8 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public stop_migration_v2;
     address public cashV2;
     address public shareV2;
-    mapping(address => uint256) public claimableBonds;
+    mapping(uint8 => mapping(address => uint256)) public claimableBondsBucket;
+    uint8 activeClaimableBucket = 0;
 
     // ========== PARAMS
     uint256 public cashPriceOne;
@@ -256,6 +257,10 @@ contract Treasury is ContractGuard, Epoch {
         emit RedeemedBonds(msg.sender, amount);
     }
 
+    function addClaimableBonds(uint256 amount) internal {
+        claimableBondsBucket[activeClaimableBucket][msg.sender] = claimableBondsBucket[activeClaimableBucket][msg.sender].add(amount);
+    }
+
     function exchangeBonds(uint256 amount)
         external
         onlyOneBlock
@@ -277,7 +282,8 @@ contract Treasury is ContractGuard, Epoch {
         );
 
         IBasisAsset(bond).burnFrom(msg.sender, amount);
-        claimableBonds[msg.sender] = claimableBonds[msg.sender].add(amount);
+
+        addClaimableBonds(amount);
         _updateCashPrice();
 
         emit ExchangedBonds(msg.sender, amount);
