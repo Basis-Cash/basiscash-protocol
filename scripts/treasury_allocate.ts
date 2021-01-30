@@ -1,5 +1,7 @@
 import { network, ethers } from 'hardhat';
 import { ParamType, keccak256 } from 'ethers/lib/utils';
+const Web3 = require('web3');
+const web3 = new Web3(Web3.givenProvider);
 
 import {
   DAI,
@@ -38,8 +40,16 @@ async function main() {
   console.log(`Gas Price: ${ethers.utils.formatUnits(gasPrice, 'gwei')} gwei`);
   const override = { 
     gasPrice: 20116320554,
-    gasLimit: 7550000
+    gasLimit: 7890000
   };
+
+  const override2 = { 
+    gasPrice: web3.utils.toHex(20116320554),
+    gasLimit: web3.utils.toHex(7890000)
+  };
+
+
+
 
   console.log("provider: ",provider.detectNetwork);
   console.log("operater: ",operator.address);
@@ -86,7 +96,7 @@ async function main() {
 
   console.log("---------- treasury.info ------------");
   
-  await treasury.allocateSeigniorage(override);
+  await treasury.allocateSeigniorage(override2);
   // await treasury.allocateSeigniorage();
   
     
