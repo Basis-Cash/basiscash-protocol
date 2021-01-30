@@ -1,5 +1,5 @@
 import { sign } from "crypto";
-import {ethers} from "hardhat";
+import { ethers } from "hardhat";
 import OLD from '../deployments/013001.json';
 const xiaolongAddress = "0x1df7121c6543888F0f7EcD3C07Ef5A265260c48D";
 
@@ -99,14 +99,40 @@ async function main() {
     // console.log("getBlock10000: ",getBlock10000.toString());
 
     // latestBlock
-    const latestBlock = await provider.getBlock("latest");
-    console.log(latestBlock);
+    // const latestBlock = await provider.getBlock("latest");
+    // console.log(latestBlock);
 
-    const block100 = await provider.getBlock("100");
-    console.log(block100);
-    
+    // const block100004 = await provider.getBlock(100004);
+    // console.log(block100004);
 
-    
+    // const getBlockWithTransactions100004 = await provider.getBlockWithTransactions(100004);
+    // console.log(getBlockWithTransactions100004);
+
+    // const ENS_name = await provider.lookupAddress("0x6fC21092DA55B392b045eD78F4732bff3C580e2c");
+    // console.log("ENS_name: ",ENS_name);
+
+    // const ENS_address = await provider.resolveName("ricmoo.firefly.eth");
+    // console.log("ENS_address: ",ENS_address);
+
+    // const provider_getNetwork = await provider.getNetwork();
+    // console.log(provider_getNetwork);
+
+    // const provider_getBlockNumber = await provider.getBlockNumber();
+    // console.log("provider_getBlockNumber: ",provider_getBlockNumber);
+
+    // const provider_gasPrice = await provider.getGasPrice();
+    // console.log("provider_gasPrice: ",provider_gasPrice.toString());
+
+    // const provider_gasPrice_gWei = ethers.utils.formatUnits(provider_gasPrice.toString(), "gwei");
+    // console.log("provider_gasPrice_gWei: ",provider_gasPrice_gWei);
+
+    // estimate Gas
+    const txHash = "0xa1216d0034998f8c7c482de38fe6c095f309d920fb0fd49d76def58a03c1bc55";
+    // const estimateGas = await provider.estimateGas(await provider.getTransaction(txHash));
+    // console.log("estimateGas: ",estimateGas.toString());
+
+    const txJson = await provider.getTransaction(txHash);
+    console.log(txJson);
 
     
 }
