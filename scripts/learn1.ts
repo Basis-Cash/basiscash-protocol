@@ -12,18 +12,18 @@ async function main() {
     
 
     // get network's blockNumber
-    const blockNumber = provider.getBlockNumber()
-    console.log("blockNumber: ",(await blockNumber).toString());
+    // const blockNumber = provider.getBlockNumber()
+    // console.log("blockNumber: ",(await blockNumber).toString());
 
-    //get Balance
-    const balance = await provider.getBalance(signer.getAddress());
-    console.log("balance: ",balance.toString());
-    const balanceInEth = ethers.utils.formatEther(balance);
-    console.log("balanceInEth: ",balanceInEth);
+    // //get Balance
+    // const balance = await provider.getBalance(signer.getAddress());
+    // console.log("balance: ",balance.toString());
+    // const balanceInEth = ethers.utils.formatEther(balance);
+    // console.log("balanceInEth: ",balanceInEth);
 
-    // convert ETH to Wei
-    const ethNumber = 1.2321282438;
-    console.log("ethNumber ",ethNumber ," in Wei is: ",ethers.utils.parseEther(ethNumber.toString()).toString());
+    // // convert ETH to Wei
+    // const ethNumber = 1.2321282438;
+    // console.log("ethNumber ",ethNumber ," in Wei is: ",ethers.utils.parseEther(ethNumber.toString()).toString());
 
     // writing to the blockchain
     // send tx using signer.sendTransaction
@@ -35,8 +35,8 @@ async function main() {
     // console.log("tx hash: ",(await tx).hash);
 
     // You can also use an ENS name for the contract address
-    const daiAddress = OLD.MockDai;
-    console.log("daiAddress: ",daiAddress);
+    // const daiAddress = OLD.MockDai;
+    // console.log("daiAddress: ",daiAddress);
 
     // The ERC-20 Contract ABI, which is a common contract interface
     // for tokens (this is the Human-Readable ABI format)
@@ -56,14 +56,14 @@ async function main() {
     ];
 
     // The Contract object
-    const daiContract = new ethers.Contract(daiAddress, daiAbi, provider);
+    // const daiContract = new ethers.Contract(daiAddress, daiAbi, provider);
 
-    console.log("daiContract.name: ",(await daiContract.name()).toString());
-    console.log("daiContract.symbol: ",(await daiContract.symbol()).toString());
+    // console.log("daiContract.name: ",(await daiContract.name()).toString());
+    // console.log("daiContract.symbol: ",(await daiContract.symbol()).toString());
     
-    const daiContract_balance = await daiContract.balanceOf(signerAddress);
-    console.log("daiContract_balance: ",daiContract_balance.toString());
-    console.log("daiContract.balance for signer in eth: ",ethers.utils.formatEther(daiContract_balance.toString()));
+    // const daiContract_balance = await daiContract.balanceOf(signerAddress);
+    // console.log("daiContract_balance: ",daiContract_balance.toString());
+    // console.log("daiContract.balance for signer in eth: ",ethers.utils.formatEther(daiContract_balance.toString()));
 
     // transfer oneMockDAI to XiaoLong
     // const daiWithSigner = daiContract.connect(signer);
@@ -79,8 +79,31 @@ async function main() {
     // console.log("filterTo: ",filterTo);
 
     // sign message
-    const signature = await signer.signMessage("hello world");
-    console.log("signature is: ",signature);
+    // const message = "hello world";
+    // const signature = await signer.signMessage("hello world");
+    // console.log("signature for message ", message, " is: ",signature);
+
+    // provider.getBalance
+    // console.log("provider.getBalance: ",(await provider.getBalance(signerAddress)).toString());
+    
+    // provider.getCode
+    // const contractCode = await provider.getCode(daiContract.address);
+    // console.log("contractCode: ",contractCode.toString());
+
+    // provider.getTransactionCount
+    // const getdaiContractTransactionCount = await provider.getTransactionCount(signerAddress);
+    // console.log("getdaiContractTransactionCount: ",getdaiContractTransactionCount.toString());
+
+    // provider.getBlock10000
+    // const getBlock10000 = await provider.getBlock("latest");
+    // console.log("getBlock10000: ",getBlock10000.toString());
+
+    // latestBlock
+    const latestBlock = await provider.getBlock("latest");
+    console.log(latestBlock);
+
+    const block100 = await provider.getBlock("100");
+    console.log(block100);
     
 
     
