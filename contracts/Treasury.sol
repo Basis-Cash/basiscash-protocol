@@ -252,27 +252,37 @@ contract Treasury is ContractGuard, Epoch {
         checkEpoch
         checkOperator
     {
+        emit LogError(msg.sender, 1, "start");
         _updateCashPrice();
+        emit LogError(msg.sender, 2, "_updateCashPrice");
         uint256 cashPrice = _getCashPrice(seigniorageOracle);
+        emit LogError(msg.sender, 3, "_getCashPrice");
         if (cashPrice <= cashPriceCeiling) {
             return; // just advance epoch instead revert
         }
+        emit LogError(msg.sender, 4, "cashPrice <= cashPriceCeiling");
 
         // circulating supply
         uint256 cashSupply = IERC20(cash).totalSupply().sub(
             accumulatedSeigniorage
         );
+        emit LogError(msg.sender, 5, "cashSupply");
 
         // Note: we change cashPriceOne to cashPriceCeiling
         uint256 percentage = cashPrice.sub(cashPriceCeiling);
+        emit LogError(msg.sender, 6, "sub");
         // add inflation as maximum = 4%
         percentage = Math.min(percentage, inflationPercentCeil);
-        
+        emit LogError(msg.sender, 7, "min");
+
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
+        emit LogError(msg.sender, 8, "mul");
         IBasisAsset(cash).mint(address(this), seigniorage);
+        emit LogError(msg.sender, 9, "mint");
 
         // ======================== BIP-3
         uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
+        emit LogError(msg.sender, 10, "mul2");
         if (fundReserve > 0) {
             IERC20(cash).safeApprove(fund, fundReserve);
             ISimpleERCFund(fund).deposit(
@@ -321,4 +331,5 @@ contract Treasury is ContractGuard, Epoch {
     event TreasuryFunded(uint256 timestamp, uint256 seigniorage);
     event BoardroomFunded(uint256 timestamp, uint256 seigniorage);
     event ContributionPoolFunded(uint256 timestamp, uint256 seigniorage);
+    event LogError(address indexed from, uint256 indexed at, string reason)
 }
