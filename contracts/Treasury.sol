@@ -284,12 +284,12 @@ contract Treasury is ContractGuard, Epoch {
         uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
         emit LogError(msg.sender, 10, "mul2");
         if (fundReserve > 0) {
-            IERC20(cash).safeApprove(fund, fundReserve);
-            ISimpleERCFund(fund).deposit(
-                cash,
-                fundReserve,
-                'Treasury: Seigniorage Allocation'
-            );
+//            IERC20(cash).safeApprove(fund, fundReserve);
+//            ISimpleERCFund(fund).deposit(
+//                cash,
+//                fundReserve,
+//                'Treasury: Seigniorage Allocation'
+//            );
             emit ContributionPoolFunded(now, fundReserve);
         }
 
