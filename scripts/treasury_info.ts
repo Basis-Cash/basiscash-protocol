@@ -7,7 +7,7 @@ import {
   TREASURY_START_DATE,
   UNI_FACTORY,
 } from '../deploy.config';
-import OLD from '../deployments/013001.json';
+import OLD from '../deployments/013101.json';
 import { wait } from './utils';
 
 const MINUTE = 60;
