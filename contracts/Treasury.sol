@@ -331,5 +331,5 @@ contract Treasury is ContractGuard, Epoch {
     event TreasuryFunded(uint256 timestamp, uint256 seigniorage);
     event BoardroomFunded(uint256 timestamp, uint256 seigniorage);
     event ContributionPoolFunded(uint256 timestamp, uint256 seigniorage);
-    event LogError(address indexed from, uint256 indexed at, string reason)
+    event LogError(address indexed from, uint256 indexed at, string reason);
 }
