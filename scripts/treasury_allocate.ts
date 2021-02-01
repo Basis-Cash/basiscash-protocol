@@ -94,14 +94,14 @@ async function main() {
   let txHash;
   let tx;
 
-  console.log("---------- treasury.info ------------");
+  console.log("---------- treasury.allocate ------------");
   
   await treasury.allocateSeigniorage(override2);
   // await treasury.allocateSeigniorage();
   
     
 
-  console.log("---------- end of treasury.info ------------");
+  console.log("---------- end of treasury.allocate ------------");
 
 
   

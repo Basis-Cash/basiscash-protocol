@@ -100,15 +100,28 @@ async function migration(deployer, network, accounts) {
     startTime += 5 * DAY;
   }
 
+  // await deployer.deploy(
+  //   Treasury,
+  //   cash.address,
+  //   Bond.address,
+  //   Share.address,
+  //   Oracle.address,
+  //   Oracle.address,
+  //   Boardroom.address,
+  //   accounts[1],
+  //   startTime,
+  // );
+  const SimpleFund = artifacts.require('SimpleERCFund');
+  await deployer.deploy(SimpleFund);
   await deployer.deploy(
     Treasury,
     cash.address,
     Bond.address,
     Share.address,
-    Oracle.address,
-    Oracle.address,
+    BondOracle.address,
+    SeigniorageOracle.address,
     Boardroom.address,
-    accounts[1],
+    SimpleFund.address,
     startTime,
   );
 }
