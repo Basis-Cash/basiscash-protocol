@@ -7,7 +7,7 @@ import {
   TREASURY_START_DATE,
   UNI_FACTORY,
 } from '../deploy.config';
-import OLD from '../deployments/020101.json';
+import OLD from '../deployments/013101.json';
 import { wait } from './utils';
 
 const MINUTE = 60;
@@ -56,6 +56,19 @@ async function main() {
   const mockDai = await ethers.getContractAt('MockDai', OLD.MockDai);
   const daibacklptoken_basPool = await ethers.getContractAt('DAIBACLPTokenSharePool', OLD.DAIBACLPTokenSharePool);
   
+//   const basisShare = await daibacklptoken_basPool.basisShare.call();
+//   console.log("basisShare: ",basisShare.toString());
+
+    // const foundationA = await daibacklptoken_basPool.foundationA.call();
+    // console.log("foundationA: ",foundationA.toString());
+
+    const DURATION = await daibacklptoken_basPool.DURATION.call();
+    console.log("DURATION: ",DURATION.toString());
+
+    const rewardRate = await daibacklptoken_basPool.rewardRate.call();
+    console.log("rewardRate: ",rewardRate.toString());
+
+    await daibacklptoken_basPool.stake(ethers.constants.WeiPerEther);
 
 
 }

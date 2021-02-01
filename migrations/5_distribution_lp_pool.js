@@ -26,8 +26,12 @@ module.exports = async (deployer, network, accounts) => {
   const dai_bac_lpt = await oracle.pairFor(uniswapFactory.address, Cash.address, dai.address);
   const dai_bas_lpt = await oracle.pairFor(uniswapFactory.address, Share.address, dai.address);
 
+  const SimpleFund = artifacts.require('SimpleERCFund');
+  const simpleFund = await SimpleFund.deployed();
+  console.log("simepleFund Address: ",simpleFund.address);
+
   console.log("deploy DAI-BDC LP")
-  await deployer.deploy(DAIBACLPToken_BASPool, Share.address, dai_bac_lpt, accounts[1],POOL_START_DATE);
+  await deployer.deploy(DAIBACLPToken_BASPool, Share.address, dai_bac_lpt, simpleFund.address,POOL_START_DATE);
   console.log("deploy DAI-BDS LP")
-  await deployer.deploy(DAIBASLPToken_BASPool, Share.address, dai_bas_lpt, accounts[1],POOL_START_DATE);
+  await deployer.deploy(DAIBASLPToken_BASPool, Share.address, dai_bas_lpt, simpleFund.address,POOL_START_DATE);
 };
