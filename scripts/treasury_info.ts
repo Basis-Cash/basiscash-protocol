@@ -111,6 +111,12 @@ async function main() {
 
   console.log("---------- end of treasury.info ------------");
 
+  console.log("---------- boardroom info -----------");
+  const boardroom_totalSupply = await boardroom.totalSupply.call();
+  console.log("boardroom_totalSupply: ",boardroom_totalSupply.toString());
+
+  console.log("---------- end of boardroom info -----------");
+
   // console.log("---------- treasury.core ------------");
 
   // const fund_address = await treasury.fund.call();
