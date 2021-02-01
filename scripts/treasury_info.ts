@@ -53,6 +53,7 @@ async function main() {
   const timelock = await ethers.getContractAt('Timelock', OLD.Timelock);
   const treasury = await ethers.getContractAt('Treasury', OLD.Treasury);
   const boardroom = await ethers.getContractAt('Boardroom', OLD.Boardroom);
+  const daibacklptoken_basPool = await ethers.getContractAt('DAIBACLPToken_BASPool',OLD.bac-dai-lp-pool);
 
   // console.log("seigniorageOracle: ",seigniorageOracle.address);
   // console.log("timelock: ",timelock.address);
