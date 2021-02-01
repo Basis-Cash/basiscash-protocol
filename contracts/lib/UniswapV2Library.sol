@@ -19,6 +19,8 @@ library UniswapV2Library {
         require(token0 != address(0), 'UniswapV2Library: ZERO_ADDRESS');
     }
 
+    // ropsten_uniswap：hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash
+    // heco_mdex: 2ad889f82040abccb2649ea6a874796c1601fb67f91a747a80e08860c73ddf24
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(
         address factory,
@@ -33,7 +35,7 @@ library UniswapV2Library {
                         hex'ff',
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash
+                        hex'2ad889f82040abccb2649ea6a874796c1601fb67f91a747a80e08860c73ddf24' // init code hash
                     )
                 )
             )
