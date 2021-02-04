@@ -109,7 +109,7 @@ async function main() {
     ,rewardLockupEpochs_NewValue
     ,epochAlignTimestamp_NewValue
     ,epochPeriod_NewValue
-    ,override2);
+    );
   console.log("---- end of setupLockup ---");
   
   

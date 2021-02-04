@@ -53,6 +53,7 @@ async function main() {
   const timelock = await ethers.getContractAt('Timelock', OLD.Timelock);
   const treasury = await ethers.getContractAt('Treasury', OLD.Treasury);
   const boardroom = await ethers.getContractAt('Boardroom', OLD.Boardroom);
+  const mockdai = await ethers.getContractAt("MockDai",OLD.MockDai);
   const daibacklptoken_basPool = await ethers.getContractAt('DAIBACLPTokenSharePool',OLD.DAIBACLPTokenSharePool);
 
   // console.log("seigniorageOracle: ",seigniorageOracle.address);
@@ -91,6 +92,9 @@ async function main() {
   // console.log("--------- end of boardroom allocate -----------");
 
   console.log("---------- treasury.info ------------");
+
+  const mockdai_totalSupply = await mockdai.totalSupply.call();
+  console.log("mockdai_totalSupply: ",mockdai_totalSupply.toString());
 
   const treasury_operator = await treasury.operator.call();
   console.log("treasury_operator: ",treasury_operator);
