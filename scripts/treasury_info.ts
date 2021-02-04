@@ -92,6 +92,9 @@ async function main() {
 
   console.log("---------- treasury.info ------------");
 
+  const treasury_operator = await treasury.operator.call();
+  console.log("treasury_operator: ",treasury_operator);
+
   const cash_totalSupply = await cash.totalSupply.call();
   console.log("cash_totalSupply: ",cash_totalSupply.toString());
   
