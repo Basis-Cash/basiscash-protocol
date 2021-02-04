@@ -98,28 +98,43 @@ async function main() {
   const cash_totalSupply = await cash.totalSupply.call();
   console.log("cash_totalSupply: ",cash_totalSupply.toString());
   
-  const nextEpochPoint = await seigniorageOracle.nextEpochPoint();
-  console.log("nextEpochPoint: ",nextEpochPoint.toString());
+  // const nextEpochPoint = await seigniorageOracle.nextEpochPoint();
+  // console.log("nextEpochPoint: ",nextEpochPoint.toString());
 
-  const getBondOraclePrice = await treasury.getBondOraclePrice.call();
-  console.log("getBondOraclePrice: ",getBondOraclePrice.toString());
+  // const treasury_getCurrentEpoch = await treasury.getCurrentEpoch.call();
+  // console.log("treasury_getCurrentEpoch: ",treasury_getCurrentEpoch.toString());
 
-  const getSeigniorageOraclePrice = await treasury.getSeigniorageOraclePrice.call();
-  console.log("getSeigniorageOraclePrice: ",getSeigniorageOraclePrice.toString());
+  // const treasury_getPeriod = await treasury.getPeriod.call();
+  // console.log("treasury_getPeriod: ",treasury_getPeriod.toString());
 
-  const getReserve = await treasury.getReserve.call();
-  console.log("getReserve: ",getReserve.toString());
+  // const treasury_getStartTime = await treasury.getStartTime.call();
+  // console.log("treasury_getStartTime: ",treasury_getStartTime.toString());
 
-  const cashPriceCeiling = await treasury.cashPriceCeiling.call();
-  console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
+  const treasury_nextEpochPoint = await treasury.nextEpochPoint.call();
+  console.log("treasury_nextEpochPoint: ",treasury_nextEpochPoint.toString());
+
+
+
+
+  // const getBondOraclePrice = await treasury.getBondOraclePrice.call();
+  // console.log("getBondOraclePrice: ",getBondOraclePrice.toString());
+
+  // const getSeigniorageOraclePrice = await treasury.getSeigniorageOraclePrice.call();
+  // console.log("getSeigniorageOraclePrice: ",getSeigniorageOraclePrice.toString());
+
+  // const getReserve = await treasury.getReserve.call();
+  // console.log("getReserve: ",getReserve.toString());
+
+  // const cashPriceCeiling = await treasury.cashPriceCeiling.call();
+  // console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
 
   console.log("---------- end of treasury.info ------------");
 
-  console.log("---------- boardroom info -----------");
+  // console.log("---------- boardroom info -----------");
   const boardroom_totalSupply = await boardroom.totalSupply.call();
   console.log("boardroom_totalSupply: ",boardroom_totalSupply.toString());
 
-  console.log("---------- end of boardroom info -----------");
+  // console.log("---------- end of boardroom info -----------");
 
   // console.log("---------- treasury.core ------------");
 

@@ -20,6 +20,8 @@ const Treasury = artifacts.require('Treasury');
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 const UniswapV2Router02 = artifacts.require('UniswapV2Router02');
 
+const MINUTE = 60;
+const HOUR = 60 * MINUTE;
 const DAY = 86400;
 
 async function migration(deployer, network, accounts) {
@@ -91,7 +93,7 @@ async function migration(deployer, network, accounts) {
     uniswap.address,
     cash.address,
     dai.address,
-    DAY,
+    HOUR,
     POOL_START_DATE
   );
 
