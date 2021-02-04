@@ -97,8 +97,8 @@ async function main() {
 
   console.log("----------- Parameters -------------- ");
 
-  const operator_address = await boardroom.operator.call();
-  console.log("operator_address: ",operator_address);
+  const boardroom_operator_address = await boardroom.operator.call();
+  console.log("boardroom_operator_address: ",boardroom_operator_address);
 
   const canWithdraw = await boardroom.canWithdraw(address0);
   console.log ("canWithdraw: ",canWithdraw.toString());
@@ -116,17 +116,17 @@ async function main() {
   console.log("getCanClaimTime----------------: ",getCanClaimTime.toString());
 
 
-  const  withdrawLockupEpochs = await boardroom.withdrawLockupEpochs.call();
-  console.log("withdrawLockupEpochs: ",withdrawLockupEpochs.toString());
+  // const  withdrawLockupEpochs = await boardroom.withdrawLockupEpochs.call();
+  // console.log("withdrawLockupEpochs: ",withdrawLockupEpochs.toString());
 
-  const  rewardLockupEpochs = await boardroom.rewardLockupEpochs.call();
-  console.log("rewardLockupEpochs: ",rewardLockupEpochs.toString());
+  // const  rewardLockupEpochs = await boardroom.rewardLockupEpochs.call();
+  // console.log("rewardLockupEpochs: ",rewardLockupEpochs.toString());
 
-  const  epochAlignTimestamp = await boardroom.epochAlignTimestamp.call();
-  console.log("epochAlignTimestamp: ",epochAlignTimestamp.toString());
+  // const  epochAlignTimestamp = await boardroom.epochAlignTimestamp.call();
+  // console.log("epochAlignTimestamp: ",epochAlignTimestamp.toString());
 
-  const  epochPeriod = await boardroom.epochPeriod.call();
-  console.log("epochPeriod: ",epochPeriod.toString());
+  // const  epochPeriod = await boardroom.epochPeriod.call();
+  // console.log("epochPeriod: ",epochPeriod.toString());
 
   console.log("----------- End of Parameters -------------- ");
 

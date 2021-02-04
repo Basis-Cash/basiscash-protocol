@@ -27,7 +27,7 @@ function hex_to_ascii(str1) {
 async function main() {
     console.log("hello world");
     let hash;
-    hash = "0x8a6e5171573093b71735be8e84437615cdfc95ad8d4336027f87430496985f89";
+    hash = "0xc0ead28f53fd719d11a517b6a812bfe7c4b5a1e85b265c43d6d8939beb6d043c";
     console.log("------------------------------")
     
     console.log(ethers.provider.network);

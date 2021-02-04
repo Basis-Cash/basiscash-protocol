@@ -105,8 +105,7 @@ async function main() {
   const epochAlignTimestamp_NewValue = 1608883200;
   const epochPeriod_NewValue = 60;
 
-  await boardroom.connect(operator)
-    .setLockUp(withdrawLockupEpochs_NewValue
+  await boardroom.setLockUp(withdrawLockupEpochs_NewValue
     ,rewardLockupEpochs_NewValue
     ,epochAlignTimestamp_NewValue
     ,epochPeriod_NewValue
