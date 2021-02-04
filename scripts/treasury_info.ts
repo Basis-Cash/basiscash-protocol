@@ -116,17 +116,17 @@ async function main() {
 
 
 
-  // const getBondOraclePrice = await treasury.getBondOraclePrice.call();
-  // console.log("getBondOraclePrice: ",getBondOraclePrice.toString());
+  const getBondOraclePrice = await treasury.getBondOraclePrice.call();
+  console.log("getBondOraclePrice: ",getBondOraclePrice.toString());
 
-  // const getSeigniorageOraclePrice = await treasury.getSeigniorageOraclePrice.call();
-  // console.log("getSeigniorageOraclePrice: ",getSeigniorageOraclePrice.toString());
+  const getSeigniorageOraclePrice = await treasury.getSeigniorageOraclePrice.call();
+  console.log("getSeigniorageOraclePrice: ",getSeigniorageOraclePrice.toString());
 
-  // const getReserve = await treasury.getReserve.call();
-  // console.log("getReserve: ",getReserve.toString());
+  const getReserve = await treasury.getReserve.call();
+  console.log("getReserve: ",getReserve.toString());
 
-  // const cashPriceCeiling = await treasury.cashPriceCeiling.call();
-  // console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
+  const cashPriceCeiling = await treasury.cashPriceCeiling.call();
+  console.log("cashPriceCeiling: ",cashPriceCeiling.toString());
 
   console.log("---------- end of treasury.info ------------");
 
