@@ -68,7 +68,7 @@ async function main() {
     const rewardRate = await daibacklptoken_basPool.rewardRate.call();
     console.log("rewardRate: ",rewardRate.toString());
 
-    await daibacklptoken_basPool.stake(ethers.constants.WeiPerEther);
+    
 
 
 }
