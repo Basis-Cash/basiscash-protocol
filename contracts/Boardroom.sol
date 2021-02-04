@@ -50,7 +50,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
     using SafeMath for uint256;
     using Safe112 for uint112;
 
-    	
+
     /* ========== PARAMETERS =============== */
     uint256 public withdrawLockupEpochs = 4;
     uint256 public rewardLockupEpochs = 0;
@@ -182,24 +182,24 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
     /* ========== GOVERNANCE ================== */
     function setLockUp(
-        uint256 _withdrawLockupEpochs, 
+        uint256 _withdrawLockupEpochs,
         uint256 _rewardLockupEpochs,
-        uint256 _epochAlignTimestamp, 
+        uint256 _epochAlignTimestamp,
         uint256 _epochPeriod
-    ) 
-        external 
-        onlyOperator 
+    )
+        external
+        onlyOperator
     {
         require(
-            _withdrawLockupEpochs >= _rewardLockupEpochs 
-            && _withdrawLockupEpochs <= 21, 
+            _withdrawLockupEpochs >= _rewardLockupEpochs
+            && _withdrawLockupEpochs <= 21,
             "LockupEpochs: out of range"
         );
         require(_epochPeriod <= 1 days, "EpochPeriod: out of range");
         require(
-            _epochAlignTimestamp.add(_epochPeriod.mul(2)) < block.timestamp, 
+            _epochAlignTimestamp.add(_epochPeriod.mul(2)) < block.timestamp,
             "EpochAlignTimestamp: too late"
-        ); 
+        );
         withdrawLockupEpochs = _withdrawLockupEpochs;
         rewardLockupEpochs = _rewardLockupEpochs;
         epochAlignTimestamp = _epochAlignTimestamp;

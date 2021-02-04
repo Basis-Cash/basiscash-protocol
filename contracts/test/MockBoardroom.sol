@@ -31,6 +31,15 @@ contract MockBoardroom is IBoardroom, Operator {
         emit RewardAdded(msg.sender, amount);
     }
 
+    function setLockUp(
+        uint256 _withdrawLockupEpochs,
+        uint256 _rewardLockupEpochs,
+        uint256 _epochAlignTimestamp,
+        uint256 _epochPeriod
+    ) external override onlyOperator {
+
+    }
+
     /* ========== EVENTS ========== */
 
     event RewardAdded(address indexed user, uint256 reward);

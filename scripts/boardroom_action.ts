@@ -24,7 +24,7 @@ function encodeParameters(
   return abi.encode(types, values);
 }
 
-const override2 = { 
+const override2 = {
     gasPrice: web3.utils.toHex(20116320554),
     gasLimit: web3.utils.toHex(7890000)
   };
@@ -43,12 +43,12 @@ async function main() {
   const gasLimit = 7550000;
 
   console.log(`Gas Price: ${ethers.utils.formatUnits(gasPrice, 'gwei')} gwei`);
-  const override = { 
+  const override = {
     gasPrice: 20116320554,
     gasLimit: 7890000
   };
 
-  const override2 = { 
+  const override2 = {
     gasPrice: web3.utils.toHex(20116320554),
     gasLimit: web3.utils.toHex(7890000)
   };
@@ -98,22 +98,27 @@ async function main() {
   let tx;
 
   console.log("---------- boardroom.action ------------");
-  
+
   console.log("---- setupLockup ---");
   const withdrawLockupEpochs_NewValue = 6;
   const rewardLockupEpochs_NewValue = 0;
   const epochAlignTimestamp_NewValue = 1608883200;
   const epochPeriod_NewValue = 60;
 
-  await boardroom.setLockUp(withdrawLockupEpochs_NewValue
-    ,rewardLockupEpochs_NewValue
-    ,epochAlignTimestamp_NewValue
-    ,epochPeriod_NewValue
-    );
+  // await boardroom.setLockUp(withdrawLockupEpochs_NewValue
+  //   ,rewardLockupEpochs_NewValue
+  //   ,epochAlignTimestamp_NewValue
+  //   ,epochPeriod_NewValue
+  //   );
+  await treasury.setLockUp(withdrawLockupEpochs_NewValue
+      ,rewardLockupEpochs_NewValue
+      ,epochAlignTimestamp_NewValue
+      ,epochPeriod_NewValue
+  );
   console.log("---- end of setupLockup ---");
-  
-  
-    
+
+
+
 
   console.log("---------- end of boardroom.action ------------");
 

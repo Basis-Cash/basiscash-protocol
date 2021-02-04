@@ -189,7 +189,7 @@ contract Treasury is ContractGuard, Epoch {
     {
         seigniorageCeil = _seigniorageCeil;
     }
-    
+
 
 
     /* ========== MUTABLE FUNCTIONS ========== */
@@ -263,28 +263,28 @@ contract Treasury is ContractGuard, Epoch {
         checkEpoch
         checkOperator
     {
-        
+
         _updateCashPrice();
         uint256 cashPrice = _getCashPrice(seigniorageOracle);
-        
+
         if (cashPrice <= cashPriceCeiling) {
             return; // just advance epoch instead revert
         }
-        
+
         // circulating supply
         uint256 cashSupply = IERC20(cash).totalSupply().sub(
             accumulatedSeigniorage
         );
         // Note: we change cashPriceOne to cashPriceCeiling
         uint256 percentage = cashPrice.sub(cashPriceCeiling);
-        
+
         // add inflation as maximum = 4%
         percentage = Math.min(percentage, inflationPercentCeil);
         uint256 seigniorage = cashSupply.mul(percentage).div(1e18);
         seigniorage = Math.min(seigniorage,seigniorageCeil);
 
         IBasisAsset(cash).mint(address(this), seigniorage);
-        
+
 
         // ======================== BIP-3
         uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
@@ -319,6 +319,15 @@ contract Treasury is ContractGuard, Epoch {
             IBoardroom(boardroom).allocateSeigniorage(boardroomReserve);
             emit BoardroomFunded(now, boardroomReserve);
         }
+    }
+
+    function setLockUp(
+        uint256 _withdrawLockupEpochs,
+        uint256 _rewardLockupEpochs,
+        uint256 _epochAlignTimestamp,
+        uint256 _epochPeriod
+    ) external onlyOperator {
+        IBoardroom(boardroom).setLockUp(_withdrawLockupEpochs, _rewardLockupEpochs, _epochAlignTimestamp, _epochPeriod);
     }
 
     // GOV
