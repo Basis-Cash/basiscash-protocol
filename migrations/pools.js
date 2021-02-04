@@ -5,7 +5,7 @@ const INITIAL_BAS_FOR_DAI_BAS = 150000;
 
 // const POOL_START_DATE = Date.parse('2020-11-30T00:00:00Z') / 1000;
 
-const POOL_START_DATE = Date.parse('2021-02-04T06:25:00Z') / 1000;
+const POOL_START_DATE = Date.parse('2021-02-04T07:12:00Z') / 1000;
 
 const bacPools = [
   { contractName: 'BACDAIPool', token: 'DAI' },
