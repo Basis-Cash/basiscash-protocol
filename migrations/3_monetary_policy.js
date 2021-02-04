@@ -93,7 +93,7 @@ async function migration(deployer, network, accounts) {
     uniswap.address,
     cash.address,
     dai.address,
-    HOUR,
+    MINUTE,
     POOL_START_DATE
   );
 
