@@ -50,7 +50,8 @@ contract Treasury is ContractGuard, Epoch {
     uint256 public stop_migration_v2;
     address public cashV2;
     address public shareV2;
-    mapping(address => uint256) public claimableBonds;
+    mapping(address => mapping(uint256 => uint256)) public claimableBondsBucket; // claimableBondsBucket[wallet][epoch] = amount
+    uint256 MINIMUM_EPOCH = 38;
 
     // ========== PARAMS
     uint256 public cashPriceOne;
@@ -256,6 +257,68 @@ contract Treasury is ContractGuard, Epoch {
         emit RedeemedBonds(msg.sender, amount);
     }
 
+    function calculateClaimableBondsForEpoch(address wallet, uint256 epoch) view public returns (uint256) {
+        uint256 epoch_delta = getCurrentEpoch() - epoch;
+        uint256 tax_percentage = (epoch_delta > 4) ? 0: 10*(5 - epoch_delta);
+        return claimableBondsBucket[wallet][epoch].mul(100 - tax_percentage).div(100);
+    }
+
+    function claimBondsForEpoch(uint256 epoch) public
+        onlyOneBlock
+        checkMigration
+        checkStartTime
+        checkOperator
+        checkOperatorV2
+        checkInitializedV2
+        checkMigrationWindowV2
+    {
+        uint256 amount = calculateClaimableBondsForEpoch(msg.sender, epoch);
+        claimableBondsBucket[msg.sender][epoch]=0;
+        require(
+            IERC20(cashV2).balanceOf(address(this)) >= amount,
+            'Treasury: treasury currently does not hold the amount of MICv2 needed to exchange for given bonds'
+        );
+        IERC20(cashV2).safeTransfer(msg.sender, amount);
+    }
+
+    function calculateClaimableBonds(address wallet) view public returns (uint256) {
+        uint256 claimableBonds = 0;
+        uint256 epoch = getCurrentEpoch();
+        while (epoch > MINIMUM_EPOCH) {
+            claimableBonds = claimableBonds.add(calculateClaimableBondsForEpoch(wallet, epoch));
+            epoch = epoch.sub(1);
+        }
+        return claimableBonds;
+    }
+
+    function claimBonds() public
+        onlyOneBlock
+        checkMigration
+        checkStartTime
+        checkOperator
+        checkOperatorV2
+        checkInitializedV2
+        checkMigrationWindowV2
+    {
+        uint256 amount = 0;
+        uint256 epoch = getCurrentEpoch();
+        while (epoch > MINIMUM_EPOCH) {
+            amount = amount.add(calculateClaimableBondsForEpoch(msg.sender, epoch));
+            claimableBondsBucket[msg.sender][epoch]=0;
+            epoch = epoch.sub(1);
+        }
+        require(
+            IERC20(cashV2).balanceOf(address(this)) >= amount,
+            'Treasury: treasury currently does not hold the amount of MICv2 needed to exchange for given bonds'
+        );
+        IERC20(cashV2).safeTransfer(msg.sender, amount);
+    }
+
+    function addClaimableBonds(uint256 amount) internal {
+        uint256 current_epoch = getCurrentEpoch();
+        claimableBondsBucket[msg.sender][current_epoch] = claimableBondsBucket[msg.sender][current_epoch].add(amount);
+    }
+
     function exchangeBonds(uint256 amount)
         external
         onlyOneBlock
@@ -271,13 +334,10 @@ contract Treasury is ContractGuard, Epoch {
             IERC20(bond).balanceOf(msg.sender) >= amount,
             'Treasury: sender does not have enough bonds to exchange amount'
         );
-        require(
-            IERC20(cashV2).balanceOf(address(this)) >= amount,
-            'Treasury: treasury currently does not hold the amount of MICv2 needed to exchange for given bonds'
-        );
 
         IBasisAsset(bond).burnFrom(msg.sender, amount);
-        claimableBonds[msg.sender] = claimableBonds[msg.sender].add(amount);
+
+        addClaimableBonds(amount);
         _updateCashPrice();
 
         emit ExchangedBonds(msg.sender, amount);
