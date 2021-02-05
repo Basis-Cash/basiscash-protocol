@@ -368,26 +368,7 @@ describe('Treasury', () => {
       }
     });
 
-    it('should work correctly', async () => {
-      await cash.connect(ant).approve(router.address, swapAmount);
-
-      await swapToken(provider, router, ant, swapAmount, cash, dai);
-      await advanceTimeAndBlock(provider, oraclePeriod);
-      await oracle.update();
-
-      const price = await oracle.consult(cash.address, ETH);
-      const antBalance = await cash.balanceOf(ant.address);
-
-      await cash.connect(ant).approve(treasury.address, antBalance);
-      await treasury.connect(ant).buyBonds(antBalance, price);
-
-      expect(await cash.balanceOf(ant.address)).to.eq(ZERO);
-      expect(await bond.balanceOf(ant.address)).to.eq(
-        antBalance.mul(ETH).div(price)
-      );
-    });
-
-    it('should fail when cash price is over $1', async () => {
+    it('should always fail', async () => {
       await dai.connect(operator).mint(ant.address, swapAmount);
       await dai.connect(ant).approve(router.address, swapAmount);
 
@@ -400,31 +381,10 @@ describe('Treasury', () => {
 
       await cash.connect(ant).approve(treasury.address, antBalance);
       await expect(
-        treasury.connect(ant).buyBonds(ZERO.add(1), price)
-      ).to.revertedWith('Treasury: cashPrice not eligible for bond purchase');
+        treasury.connect(ant).buyBonds(ZERO, price)
+      ).to.revertedWith('Treasury: can no longer purchase bonds');
     });
 
-    it('should fail if price does not match with current price', async () => {
-      await dai.connect(operator).mint(ant.address, swapAmount);
-      await dai.connect(ant).approve(router.address, swapAmount);
-
-      await swapToken(provider, router, ant, swapAmount, dai, cash);
-      await advanceTimeAndBlock(provider, oraclePeriod);
-      await oracle.update();
-
-      const antBalance = await cash.balanceOf(ant.address);
-
-      await cash.connect(ant).approve(treasury.address, antBalance);
-      await expect(
-        treasury.connect(ant).buyBonds(antBalance, ETH)
-      ).to.revertedWith('Treasury: cash price moved');
-    });
-
-    it('should fail when user tries to purchase bonds with zero amount', async () => {
-      await expect(
-        treasury.connect(ant).buyBonds(ZERO, await treasury.getCashPrice())
-      ).to.revertedWith('Treasury: cannot purchase bonds with zero amount');
-    });
   });
 
   describe('#redeemBonds', () => {
