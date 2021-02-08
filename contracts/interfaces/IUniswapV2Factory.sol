@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 interface IUniswapV2Factory {
     event PairCreated(

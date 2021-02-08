@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 library Safe112 {
     function add(uint112 a, uint112 b) internal pure returns (uint256) {

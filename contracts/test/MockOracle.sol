@@ -1,8 +1,9 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
-import '../interfaces/IOracle.sol';
+import '../oracle/IOracle.sol';
 
 contract MockOracle is IOracle {
     using SafeMath for uint256;
@@ -15,7 +16,7 @@ contract MockOracle is IOracle {
 
     uint256 startTime;
 
-    constructor() public {
+    constructor() {
         startTime = block.timestamp;
     }
 

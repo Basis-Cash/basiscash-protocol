@@ -1,4 +1,5 @@
-pragma solidity ^0.6.12;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 contract ContractGuard {
     mapping(uint256 => mapping(address => bool)) private _status;

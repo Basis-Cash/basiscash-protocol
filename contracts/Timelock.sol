@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: BSD-3-Clause
+pragma solidity >=0.6.0 <0.8.0;
 
 /*
  * Copyright 2020 Compound Labs, Inc.
@@ -72,7 +73,7 @@ contract Timelock {
 
     mapping(bytes32 => bool) public queuedTransactions;
 
-    constructor(address admin_, uint256 delay_) public {
+    constructor(address admin_, uint256 delay_) {
         require(
             delay_ >= MINIMUM_DELAY,
             'Timelock::constructor: Delay must exceed minimum delay.'
@@ -143,9 +144,8 @@ contract Timelock {
             'Timelock::queueTransaction: Estimated execution block must satisfy delay.'
         );
 
-        bytes32 txHash = keccak256(
-            abi.encode(target, value, signature, data, eta)
-        );
+        bytes32 txHash =
+            keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = true;
 
         emit QueueTransaction(txHash, target, value, signature, data, eta);
@@ -164,9 +164,8 @@ contract Timelock {
             'Timelock::cancelTransaction: Call must come from admin.'
         );
 
-        bytes32 txHash = keccak256(
-            abi.encode(target, value, signature, data, eta)
-        );
+        bytes32 txHash =
+            keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = false;
 
         emit CancelTransaction(txHash, target, value, signature, data, eta);
@@ -184,9 +183,8 @@ contract Timelock {
             'Timelock::executeTransaction: Call must come from admin.'
         );
 
-        bytes32 txHash = keccak256(
-            abi.encode(target, value, signature, data, eta)
-        );
+        bytes32 txHash =
+            keccak256(abi.encode(target, value, signature, data, eta));
         require(
             queuedTransactions[txHash],
             "Timelock::executeTransaction: Transaction hasn't been queued."
@@ -214,9 +212,8 @@ contract Timelock {
         }
 
         // solium-disable-next-line security/no-call-value
-        (bool success, bytes memory returnData) = target.call{value: value}(
-            callData
-        );
+        (bool success, bytes memory returnData) =
+            target.call{value: value}(callData);
         require(
             success,
             'Timelock::executeTransaction: Transaction execution reverted.'

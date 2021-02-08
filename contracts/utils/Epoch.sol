@@ -1,9 +1,10 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 import '@openzeppelin/contracts/math/Math.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
-import '../owner/Operator.sol';
+import '../access/Operator.sol';
 
 contract Epoch is Operator {
     using SafeMath for uint256;
@@ -18,7 +19,7 @@ contract Epoch is Operator {
         uint256 _period,
         uint256 _startTime,
         uint256 _startEpoch
-    ) public {
+    ) {
         require(_startTime > block.timestamp, 'Epoch: invalid start time');
         period = _period;
         startTime = _startTime;
@@ -28,13 +29,13 @@ contract Epoch is Operator {
     /* ========== Modifier ========== */
 
     modifier checkStartTime {
-        require(now >= startTime, 'Epoch: not started yet');
+        require(block.timestamp >= startTime, 'Epoch: not started yet');
 
         _;
     }
 
     modifier checkEpoch {
-        require(now > startTime, 'Epoch: not started yet');
+        require(block.timestamp > startTime, 'Epoch: not started yet');
         require(callable(), 'Epoch: not allowed');
 
         _;

@@ -1,7 +1,9 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.6.0 <0.8.0;
 
-import '@openzeppelin/contracts/math/SafeMath.sol';
-import '../interfaces/IUniswapV2Pair.sol';
+import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
+
+import {IUniswapV2Pair} from '../interfaces/IUniswapV2Pair.sol';
 
 library UniswapV2Library {
     using SafeMath for uint256;
@@ -47,10 +49,8 @@ library UniswapV2Library {
         address tokenB
     ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (address token0, ) = sortTokens(tokenA, tokenB);
-        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(
-            pairFor(factory, tokenA, tokenB)
-        )
-            .getReserves();
+        (uint256 reserve0, uint256 reserve1, ) =
+            IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
         (reserveA, reserveB) = tokenA == token0
             ? (reserve0, reserve1)
             : (reserve1, reserve0);
@@ -113,11 +113,8 @@ library UniswapV2Library {
         amounts = new uint256[](path.length);
         amounts[0] = amountIn;
         for (uint256 i; i < path.length - 1; i++) {
-            (uint256 reserveIn, uint256 reserveOut) = getReserves(
-                factory,
-                path[i],
-                path[i + 1]
-            );
+            (uint256 reserveIn, uint256 reserveOut) =
+                getReserves(factory, path[i], path[i + 1]);
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
         }
     }
@@ -132,11 +129,8 @@ library UniswapV2Library {
         amounts = new uint256[](path.length);
         amounts[amounts.length - 1] = amountOut;
         for (uint256 i = path.length - 1; i > 0; i--) {
-            (uint256 reserveIn, uint256 reserveOut) = getReserves(
-                factory,
-                path[i - 1],
-                path[i]
-            );
+            (uint256 reserveIn, uint256 reserveOut) =
+                getReserves(factory, path[i - 1], path[i]);
             amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
         }
     }

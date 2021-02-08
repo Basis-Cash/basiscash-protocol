@@ -1,9 +1,10 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 import {Math} from '@openzeppelin/contracts/math/Math.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 
-import {Operator} from '../owner/Operator.sol';
+import {Operator} from '../access/Operator.sol';
 import {Curve} from './Curve.sol';
 
 contract SigmoidThreshold is Operator, Curve {
@@ -20,7 +21,7 @@ contract SigmoidThreshold is Operator, Curve {
         uint256 _maxSupply,
         uint256 _minCeiling,
         uint256 _maxCeiling
-    ) public {
+    ) {
         minSupply = _minSupply;
         maxSupply = _maxSupply;
         minCeiling = _minCeiling;

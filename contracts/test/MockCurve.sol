@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 import {Curve} from '../curve/Curve.sol';
 
@@ -13,7 +14,7 @@ contract MockCurve is Curve {
         uint256 _maxSupply,
         uint256 _minCeiling,
         uint256 _maxCeiling
-    ) public {
+    ) {
         ceiling = _ceiling;
         minSupply = _minSupply;
         maxSupply = _maxSupply;

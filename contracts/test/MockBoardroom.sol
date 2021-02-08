@@ -1,37 +1,90 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.8.0;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import '../owner/Operator.sol';
-import '../interfaces/IBoardroom.sol';
+import '../access/Operator.sol';
+import {IBoardroom} from '../boardroom/v2/Boardroom.sol';
 
 contract MockBoardroom is IBoardroom, Operator {
     using SafeERC20 for IERC20;
 
     /* ========== STATE VARIABLES ========== */
 
-    IERC20 public cash;
+    /* ================= CALLS ================= */
 
-    /* ========== CONSTRUCTOR ========== */
-
-    constructor(address _cash) public {
-        cash = IERC20(_cash);
+    function totalSupply() external pure override returns (uint256) {
+        return 0;
     }
 
-    /* ========== MUTATIVE FUNCTIONS ========== */
-
-    function allocateSeigniorage(uint256 amount)
+    function balanceOf(address _owner)
         external
+        pure
         override
-        onlyOperator
+        returns (uint256)
     {
-        require(amount > 0, 'Boardroom: Cannot allocate 0');
-        cash.safeTransferFrom(msg.sender, address(this), amount);
-        emit RewardAdded(msg.sender, amount);
+        return uint256(_owner);
     }
 
-    /* ========== EVENTS ========== */
+    function rewardTokensAt(uint256 _index)
+        external
+        pure
+        override
+        returns (address)
+    {
+        return address(_index);
+    }
 
-    event RewardAdded(address indexed user, uint256 reward);
+    function rewardTokensLength() external pure override returns (uint256) {
+        return 0;
+    }
+
+    function rewardPoolsAt(uint256 _index)
+        external
+        pure
+        override
+        returns (address)
+    {
+        return address(_index);
+    }
+
+    function rewardPoolsLength() external pure override returns (uint256) {
+        return 0;
+    }
+
+    function lastSnapshotIndex(address _token)
+        external
+        pure
+        override
+        returns (uint256)
+    {
+        require(_token == address(0x0), 'Mock');
+        return 0;
+    }
+
+    function rewardEarned(address _token, address _director)
+        external
+        pure
+        override
+        returns (uint256)
+    {
+        require(_token == address(0x0), 'Mock');
+        require(_director == address(0x0), 'Mock');
+        return 0;
+    }
+
+    /* ================= TXNS ================= */
+
+    function deposit(uint256 _amount) external override {}
+
+    function withdraw(uint256 _amount) external override {}
+
+    function claimReward() external override {}
+
+    function exit() external override {}
+
+    function collectReward() external override {
+        emit RewardCollected(msg.sender, msg.sender, msg.sender, 0);
+    }
 }
