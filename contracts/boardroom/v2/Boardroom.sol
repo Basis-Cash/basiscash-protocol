@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.8.0;
 
+import 'hardhat/console.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -13,7 +14,7 @@ interface IRewardPool {
     function collect() external returns (address, uint256);
 }
 
-interface IBoardroom {
+interface IBoardroomV2 {
     /* ================= EVENTS ================= */
 
     event DepositShare(address indexed owner, uint256 amount);
@@ -28,6 +29,16 @@ interface IBoardroom {
         address indexed target,
         address indexed token,
         uint256 amount
+    );
+    event RewardCollectionFailedWithReason(
+        address indexed operator,
+        address indexed target,
+        string reason
+    );
+    event RewardCollectionFailedWithData(
+        address indexed operator,
+        address indexed target,
+        bytes data
     );
 
     /* ================= CALLS ================= */
@@ -64,7 +75,7 @@ interface IBoardroom {
     function collectReward() external;
 }
 
-interface IBoardroomGov {
+interface IBoardroomV2Gov {
     /* ================= EVENTS ================= */
 
     event RewardTokenAdded(address indexed operator, address token);
@@ -85,7 +96,12 @@ interface IBoardroomGov {
     function removeRewardPool(address _pool) external;
 }
 
-contract Boardroom is IBoardroom, IBoardroomGov, TokenStoreWrapper, Ownable {
+contract BoardroomV2 is
+    IBoardroomV2,
+    IBoardroomV2Gov,
+    TokenStoreWrapper,
+    Ownable
+{
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -189,6 +205,8 @@ contract Boardroom is IBoardroom, IBoardroomGov, TokenStoreWrapper, Ownable {
      * @param _director staker address
      */
     modifier updateReward(address _director) {
+        collectReward();
+
         for (uint256 i = 0; i < rewardTokens.length(); i++) {
             address token = rewardTokens.at(i);
 
@@ -199,8 +217,6 @@ contract Boardroom is IBoardroom, IBoardroomGov, TokenStoreWrapper, Ownable {
                 seats[token][_director] = seat;
             }
         }
-
-        collectReward();
 
         _;
     }
@@ -335,7 +351,7 @@ contract Boardroom is IBoardroom, IBoardroomGov, TokenStoreWrapper, Ownable {
      */
     function deposit(uint256 _amount)
         public
-        override(IBoardroom, TokenStoreWrapper)
+        override(IBoardroomV2, TokenStoreWrapper)
         checkMigration
         updateReward(_msgSender())
     {
@@ -349,7 +365,7 @@ contract Boardroom is IBoardroom, IBoardroomGov, TokenStoreWrapper, Ownable {
      */
     function withdraw(uint256 _amount)
         public
-        override(IBoardroom, TokenStoreWrapper)
+        override(IBoardroomV2, TokenStoreWrapper)
         directorExists
         updateReward(_msgSender())
     {
@@ -386,27 +402,39 @@ contract Boardroom is IBoardroom, IBoardroomGov, TokenStoreWrapper, Ownable {
     function collectReward() public override {
         if (store.totalSupply() > 0) {
             for (uint256 i = 0; i < rewardPools.length(); i++) {
-                (address token, uint256 amount) =
-                    IRewardPool(rewardPools.at(i)).collect();
+                try IRewardPool(rewardPools.at(i)).collect() returns (
+                    address token,
+                    uint256 amount
+                ) {
+                    if (amount == 0) {
+                        continue;
+                    }
 
-                uint256 prevRPS = getLastSnapshot(token).rewardPerShare;
-                uint256 nextRPS =
-                    prevRPS.add(amount.mul(1e18).div(store.totalSupply()));
+                    uint256 prevRPS = getLastSnapshot(token).rewardPerShare;
+                    uint256 nextRPS =
+                        prevRPS.add(amount.mul(1e18).div(store.totalSupply()));
 
-                BoardSnapshot memory newSnapshot =
-                    BoardSnapshot({
-                        at: block.number,
-                        rewardReceived: amount,
-                        rewardPerShare: nextRPS
-                    });
-                history[token].push(newSnapshot);
+                    BoardSnapshot memory newSnapshot =
+                        BoardSnapshot({
+                            at: block.number,
+                            rewardReceived: amount,
+                            rewardPerShare: nextRPS
+                        });
+                    history[token].push(newSnapshot);
 
-                emit RewardCollected(
-                    _msgSender(),
-                    rewardPools.at(i),
-                    token,
-                    amount
-                );
+                    emit RewardCollected(
+                        _msgSender(),
+                        rewardPools.at(i),
+                        token,
+                        amount
+                    );
+                } catch Error(string memory reason) {
+                    emit RewardCollectionFailedWithReason(
+                        _msgSender(),
+                        rewardPools.at(i),
+                        reason
+                    );
+                }
             }
         }
     }

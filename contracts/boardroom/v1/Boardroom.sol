@@ -72,7 +72,7 @@ contract Boardroom is ShareWrapper, ContractGuard, Operator {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(IERC20 _cash, IERC20 _share) public {
+    constructor(IERC20 _cash, IERC20 _share) {
         cash = _cash;
         share = _share;
 

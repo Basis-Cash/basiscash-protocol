@@ -12,7 +12,7 @@ import {
 
 import {ICurve} from '../curve/Curve.sol';
 import {IOracle} from '../oracle/IOracle.sol';
-import {IBoardroom} from '../boardroom/v2/Boardroom.sol';
+import {IBoardroomV2} from '../boardroom/v2/Boardroom.sol';
 import {IBasisAsset} from '../assets/IBasisAsset.sol';
 import {ISimpleERCFund} from '../cdf/ISimpleERCFund.sol';
 import {Babylonian} from '../lib/Babylonian.sol';
@@ -345,7 +345,7 @@ contract Treasury is ContractGuard, Epoch {
         uint256 boardroomReserve = seigniorage.sub(treasuryReserve);
         if (boardroomReserve > 0) {
             IERC20(cash).safeApprove(boardroom, boardroomReserve);
-            // IBoardroom(boardroom).allocateSeigniorage(boardroomReserve);
+            // IBoardroomV2(boardroom).allocateSeigniorage(boardroomReserve);
             emit BoardroomFunded(block.timestamp, boardroomReserve);
         }
     }

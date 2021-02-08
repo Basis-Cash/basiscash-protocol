@@ -8,7 +8,10 @@
     "dev": "hardhat node",
     "test": "hardhat test",
     "compile": "hardhat compile",
-    "coverage": "hardhat coverage"
+    "coverage": "hardhat coverage",
+    "docker": "docker build -t bc-v2 . && docker run -it --rm bc-v2",
+    "deploy:rinkeby": "yarn docker npx hardhat run ./scripts/deploy.ts --network rinkeby",
+    "deploy:mainnet": "yarn docker npx hardhat run ./scripts/deploy.ts --network mainnet"
   },
   "devDependencies": {
     "@ethersproject/address": "^5.0.10",

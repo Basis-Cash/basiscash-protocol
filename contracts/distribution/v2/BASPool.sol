@@ -87,7 +87,7 @@ contract BASPool is IPool, IPoolGov, PoolStoreWrapper, Ownable {
     /* ================= MODIFIER ================= */
 
     modifier checkStart() {
-        require(block.timestamp >= startTime, 'BACPool: not started');
+        require(block.timestamp >= startTime, 'BASPool: not started');
 
         _;
     }
@@ -98,6 +98,11 @@ contract BASPool is IPool, IPoolGov, PoolStoreWrapper, Ownable {
      */
     modifier updateReward(uint256 _pid, address _target) {
         Pool memory pool = pools[_pid];
+
+        if (pool.lastUpdateTime == 0) {
+            pool.lastUpdateTime = startTime;
+        }
+
         pool.rewardPerTokenStored = rewardPerToken(_pid);
         pool.lastUpdateTime = applicableRewardTime();
         pools[_pid] = pool;

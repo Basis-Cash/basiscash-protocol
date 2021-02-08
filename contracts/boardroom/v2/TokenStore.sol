@@ -72,7 +72,9 @@ contract TokenStore is ITokenStore, ITokenStoreGov, Operator {
 
     bool public emergency = false;
 
-    constructor() Operator() {}
+    constructor(address _token) Operator() {
+        token = _token;
+    }
 
     /* ================= GOV - OWNER ONLY ================= */
 
@@ -98,13 +100,13 @@ contract TokenStore is ITokenStore, ITokenStoreGov, Operator {
      * @dev CAUTION: MUST USE 1:1 TOKEN MIGRATION
      */
     function setToken(address newToken) public override onlyOwner {
-        require(
-            IERC20(token).totalSupply() ==
-                IERC20(newToken).balanceOf(address(this)), // check 1:1
-            'TokenStore: invalid condition'
-        );
         address oldToken = token;
         token = newToken;
+        IERC20(newToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            totalSupply()
+        );
         emit TokenChanged(_msgSender(), newToken, oldToken);
     }
 

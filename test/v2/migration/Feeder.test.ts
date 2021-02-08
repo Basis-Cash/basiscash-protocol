@@ -153,5 +153,8 @@ describe('Feeder', () => {
     await expect(feeder.connect(operator).feed()).to.revertedWith(
       'Feeder: finished'
     );
+
+    await feeder.connect(operator).finalize();
+    expect(await shareV2.owner()).to.eq(operator.address);
   });
 });

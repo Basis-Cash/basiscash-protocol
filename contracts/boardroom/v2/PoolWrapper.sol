@@ -18,19 +18,21 @@ contract PoolWrapper is IRewardPool, Operator, ERC20 {
     constructor(address _pool, uint256 _pid) ERC20('BAS Pool Wrapper', 'BPW') {
         pool = IPool(_pool);
         pid = _pid;
+
+        _mint(msg.sender, 1e18);
     }
 
     /* ================= GOV - OWNER ONLY ================= */
 
     function deposit(uint256 _amount) public onlyOwner {
-        super._mint(address(this), _amount);
-        super.approve(address(pool), _amount);
+        _mint(address(this), _amount);
+        approve(address(pool), _amount);
         pool.deposit(pid, _amount);
     }
 
     function withdraw(uint256 _amount) public onlyOwner {
         pool.withdraw(pid, _amount);
-        super._burn(address(this), _amount);
+        _burn(address(this), _amount);
     }
 
     /* ================= TXNS - OPERATOR ONLY ================= */

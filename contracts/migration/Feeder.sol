@@ -6,7 +6,7 @@ import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import {IBoardroom} from '../boardroom/v2/Boardroom.sol';
+import {IBoardroomV2} from '../boardroom/v2/Boardroom.sol';
 import {BASPool, IPool} from '../distribution/v2/BASPool.sol';
 import {IPoolStore, IPoolStoreGov} from '../distribution/v2/PoolStore.sol';
 
@@ -68,10 +68,8 @@ contract Feeder is IFeeder, Ownable {
         v2Boardroom = _v2Boardroom;
 
         // pool id
-        v2BASPoolId = IPoolStore(_v2BASPoolStore).poolIdsOf(address(v2BAS))[0];
-        v2BASLPPoolId = IPoolStore(_v2BASPoolStore).poolIdsOf(address(v2BASLP))[
-            0
-        ];
+        v2BASPoolId = IPoolStore(_v2BASPoolStore).poolIdsOf(_v2BAS)[0];
+        v2BASLPPoolId = IPoolStore(_v2BASPoolStore).poolIdsOf(_v2BASLP)[0];
 
         // params
         startTime = _startTime;
@@ -85,7 +83,7 @@ contract Feeder is IFeeder, Ownable {
         IPool(v2BASPool).update(v2BASPoolId);
         IPool(v2BASPool).update(v2BASLPPoolId);
 
-        IBoardroom(v2Boardroom).collectReward();
+        IBoardroomV2(v2Boardroom).collectReward();
     }
 
     function feed() external override {
@@ -110,6 +108,6 @@ contract Feeder is IFeeder, Ownable {
         require(block.timestamp >= expiry, 'Feeder: not finished');
 
         update(1e18, 0);
-        Ownable(v2BASPool).transferOwnership(_msgSender());
+        Ownable(v2BASPoolStore).transferOwnership(_msgSender());
     }
 }
