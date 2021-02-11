@@ -100,20 +100,34 @@ async function main() {
   const boardroom_operator_address = await boardroom.operator.call();
   console.log("boardroom_operator_address: ",boardroom_operator_address);
 
-  const canWithdraw = await boardroom.canWithdraw(address0);
-  console.log ("canWithdraw: ",canWithdraw.toString());
 
-  const canClaimReward = await boardroom.canClaimReward(address0);
-  console.log ("canClaimReward: ",canClaimReward.toString());
 
-  const getCurrentEpochTimestamp = await boardroom.getCurrentEpochTimestamp.call();
-  console.log("getCurrentEpochTimestamp-------: ",getCurrentEpochTimestamp.toString());
+  const boardroom_withdrawLockupEpochs = await boardroom.withdrawLockupEpochs.call();
+  console.log("boardroom_withdrawLockupEpochs: ",boardroom_withdrawLockupEpochs.toString());
 
-  const getCanWithdrawTime = await boardroom.getCanWithdrawTime(address0);
-  console.log("getCanWithdrawTime-------------: ",getCanWithdrawTime.toString());
+  const boardroom_rewardLockupEpochs = await boardroom.rewardLockupEpochs.call();
+  console.log("boardroom_rewardLockupEpochs: ",boardroom_rewardLockupEpochs.toString());
 
-  const getCanClaimTime = await boardroom.getCanClaimTime(address0);
-  console.log("getCanClaimTime----------------: ",getCanClaimTime.toString());
+  const boardroom_epochAlignTimestamp = await boardroom.epochAlignTimestamp.call();
+  console.log("boardroom_epochAlignTimestamp: ",boardroom_epochAlignTimestamp.toString());
+
+  const boardroom_epochPeriod = await boardroom.epochPeriod.call();
+  console.log("boardroom_epochPeriod: ",boardroom_epochPeriod.toString());
+
+  // const canWithdraw = await boardroom.canWithdraw(address0);
+  // console.log ("canWithdraw: ",canWithdraw.toString());
+
+  // const canClaimReward = await boardroom.canClaimReward(address0);
+  // console.log ("canClaimReward: ",canClaimReward.toString());
+
+  // const getCurrentEpochTimestamp = await boardroom.getCurrentEpochTimestamp.call();
+  // console.log("getCurrentEpochTimestamp-------: ",getCurrentEpochTimestamp.toString());
+
+  // const getCanWithdrawTime = await boardroom.getCanWithdrawTime(address0);
+  // console.log("getCanWithdrawTime-------------: ",getCanWithdrawTime.toString());
+
+  // const getCanClaimTime = await boardroom.getCanClaimTime(address0);
+  // console.log("getCanClaimTime----------------: ",getCanClaimTime.toString());
 
 
   // const  withdrawLockupEpochs = await boardroom.withdrawLockupEpochs.call();
