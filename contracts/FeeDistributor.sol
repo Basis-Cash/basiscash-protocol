@@ -1,19 +1,21 @@
 pragma solidity ^0.6.0;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import './owner/Operator.sol';
 import './interfaces/IFeeDistributor.sol';
+import './interfaces/IBoardroomv2.sol';
 
 contract FeeDistributor is IFeeDistributor, Operator {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     IERC20 public token;
 
     //first address tokens get transferred to
-    address public firstTransferAddress; 
+    address public boardroomAddress; 
     //% of tokens that get transferred to first address (1 = 0.1%)
-    uint256 public firstTransferAddressPercent = 500; 
+    uint256 public boardroomAddressPercent = 500; 
     //% of tokens sent to first address that get transferred to the fund reserve (1 = 0.1%)
     uint256 public fundAllocationRate = 10;
     //The fund reserve
@@ -34,19 +36,20 @@ contract FeeDistributor is IFeeDistributor, Operator {
     {
         require(msg.sender == address(token));
         
-        uint256 firstTransferAddressAmount = amount.mul(firstTransferAddressPercent).div(1000);
-        uint256 secondTransferAddressAmount = amount.sub(firstTransferAddressAmount);
+        uint256 boardroomAddressAmount = amount.mul(boardroomAddressPercent).div(1000);
+        uint256 secondTransferAddressAmount = amount.sub(boardroomAddressAmount);
         
-        uint256 fundReserveAmount = firstTransferAddressAmount.mul(fundAllocationRate).div(1000);
+        uint256 fundReserveAmount = boardroomAddressAmount.mul(fundAllocationRate).div(1000);
         if (fundReserveAmount > 0) {
             //using ISimpleERCFund(fund).deposit() would consume more gas, not sure if that is needed
             _safeTransfer(fundAddress, fundReserveAmount);
-            firstTransferAddressAmount = firstTransferAddressAmount.sub(fundReserveAmount);
+            boardroomAddressAmount = boardroomAddressAmount.sub(fundReserveAmount);
         }
         
-        if(firstTransferAddressAmount > 0) {
-            //Change to whatever method the boardroom uses i.e. addClaimableTaxes
-            _safeTransfer(firstTransferAddress, firstTransferAddressAmount);
+        if(boardroomAddressAmount > 0) {
+            token.safeApprove(boardroomAddress, 0);
+            token.safeApprove(boardroomAddress, boardroomAddressAmount);
+            IBoardroomv2(boardroomAddress).addClaimableTaxes(boardroomAddressAmount);
         }
         if(secondTransferAddressAmount > 0) {
             _safeTransfer(secondTransferAddress, secondTransferAddressAmount);
@@ -68,13 +71,13 @@ contract FeeDistributor is IFeeDistributor, Operator {
 
     /* ========== GOVERNANCE ========== */
     
-    function setFirstTransferAddress(address _address) public onlyOperator {
-        firstTransferAddress = _address;
+    function setBoardroomAddress(address _address) public onlyOperator {
+        boardroomAddress = _address;
     }
     
-    function setFirstTransferAddressPercent(uint256 _amount) public onlyOperator {
+    function setBoardroomAddressPercent(uint256 _amount) public onlyOperator {
         require(_amount < 1000);
-        firstTransferAddressPercent = _amount;
+        boardroomAddressPercent = _amount;
     }
 
     function setFundAddress(address _address) public onlyOperator {
