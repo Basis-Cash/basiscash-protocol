@@ -5,9 +5,9 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import './lib/Safe112.sol';
-import './owner/Operator.sol';
 import './utils/ContractGuard.sol';
 import './interfaces/IBasisAsset.sol';
+import './utils/Epoch.sol';
 
 contract ShareWrapper {
     using SafeMath for uint256;
@@ -44,7 +44,7 @@ contract ShareWrapper {
     }
 }
 
-contract Boardroomv2 is ShareWrapper, ContractGuard, Operator {
+contract Boardroomv2 is ShareWrapper, ContractGuard, Epoch {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -75,7 +75,9 @@ contract Boardroomv2 is ShareWrapper, ContractGuard, Operator {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(IERC20 _cash, IERC20 _share) public {
+    constructor(IERC20 _cash, IERC20 _share, uint256 _startTime) 
+        public Epoch(6 hours, _startTime, 0) 
+    {
         cash = _cash;
         share = _share;
 
@@ -224,8 +226,6 @@ contract Boardroomv2 is ShareWrapper, ContractGuard, Operator {
     function claimTaxesForEpoch(uint256 epoch) public
         onlyOneBlock
         checkMigration
-        checkStartTime
-        checkOperator
     {
         uint256 amount = calculateClaimableTaxesForEpoch(msg.sender, epoch);
         claimableTaxesBucket[msg.sender][epoch]=0;
