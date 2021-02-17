@@ -71,7 +71,7 @@ contract ShareLpMigrator is ContractGuard {
         //Transfer LPv1 to the contract
         IERC20(lp_old).safeTransferFrom(msg.sender, address(this), amount);
 
-        //Remove liquidity, which puts USDT and MICv1 in the contract
+        //Remove liquidity, which puts USDT and MISv1 in the contract
         IERC20(lp_old).safeApprove(univ2Router2, 0);
         IERC20(lp_old).safeApprove(univ2Router2, amount);
         IUniswapV2Router(univ2Router2).removeLiquidity(
