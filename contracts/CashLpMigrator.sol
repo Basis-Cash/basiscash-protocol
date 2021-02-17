@@ -117,10 +117,10 @@ contract CashLpMigrator is ContractGuard {
         uint256 cash_new_amount = IERC20(cash_new).balanceOf(address(this));
             
         //Add USDT + MICv2 liquidity to Curve, which puts LPv2 in the contract
-        IERC20(usdt).safeApprove(curvePool, 0);
-        IERC20(usdt).safeApprove(curvePool, usdt_amount);
-        IERC20(cash_new).safeApprove(curvePool, 0);
-        IERC20(cash_new).safeApprove(curvePool, cash_new_amount);
+        IERC20(usdt).safeApprove(curveDepositer, 0);
+        IERC20(usdt).safeApprove(curveDepositer, usdt_amount);
+        IERC20(cash_new).safeApprove(curveDepositer, 0);
+        IERC20(cash_new).safeApprove(curveDepositer, cash_new_amount);
         //args are: address, [cash, dai, usdc, usdt], min_mint_amount
         ICurveMeta(curveDepositer).add_liquidity(curvePool, [cash_new_amount, 0, 0, usdt_amount], 1);
     }
