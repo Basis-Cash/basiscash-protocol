@@ -150,7 +150,4 @@ contract CashLpMigrator is ContractGuard {
         //if that is the case, then I don't need to check the cash price in this contract
         IStakingRewardsv2(stakingContract).stakeLockedFor(msg.sender, IERC20(lp_new).balanceOf(address(this)));
     }
-
-    // CORE
-    event ExchangedCash(address indexed from, uint256 amount);
 }
