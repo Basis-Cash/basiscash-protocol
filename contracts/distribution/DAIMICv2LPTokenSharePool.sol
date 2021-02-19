@@ -103,10 +103,10 @@ contract DAIMICv2LPTokenSharePool is
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
-            uint256 earned = earned(account);
+            uint256 earnedNew = earnedNew(account);
             uint256 fee = ISharePoolFeeDistributor(feeDistributor).calculateFeeAmount();
             ISharePoolFeeDistributor(feeDistributor).addFee(fee);
-            rewards[account] = rewards[account].add(earned).sub(fee);
+            rewards[account] = rewards[account].add(earnedNew).sub(fee);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
         _;
@@ -132,9 +132,7 @@ contract DAIMICv2LPTokenSharePool is
 
     function earned(address account) public view returns (uint256) {
         return
-            balanceOf(account)
-                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
-                .div(1e18);
+            earnedNew(account).add(rewards[account]);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
@@ -219,5 +217,12 @@ contract DAIMICv2LPTokenSharePool is
 
     function setFeeDistributorAddress(address _address) public onlyOperator {
         feeDistributor = _address;
+    }
+
+    function earnedNew(address account) private view returns (uint256) {
+        return
+            balanceOf(account)
+                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
+                .div(1e18);
     }
 }
