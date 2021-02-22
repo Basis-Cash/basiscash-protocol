@@ -63,10 +63,12 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '../interfaces/IRewardDistributionRecipient.sol';
 
 import '../token/LPTokenWrapper.sol';
+import '../owner/Operator.sol';
 
 contract DAIMICLPTokenSharePool is
     LPTokenWrapper,
-    IRewardDistributionRecipient
+    IRewardDistributionRecipient,
+    Operator
 {
     IERC20 public mithShare;
     uint256 public constant DURATION = 30 days;
@@ -79,6 +81,7 @@ contract DAIMICLPTokenSharePool is
     uint256 public rewardPerTokenStored;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => bool) public contractWhitelist;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
@@ -140,6 +143,8 @@ contract DAIMICLPTokenSharePool is
         checkStart
     {
         require(amount > 0, 'Cannot stake 0');
+        require(msg.sender == tx.origin || contractWhitelist[msg.sender] == true, "no contracts");
+
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -209,5 +214,13 @@ contract DAIMICLPTokenSharePool is
             periodFinish = starttime.add(DURATION);
             emit RewardAdded(reward);
         }
+    }
+
+    function addToWhitelist(address _contractAddress) public onlyOperator {
+        contractWhitelist[_contractAddress] = true;
+    }
+
+    function removeFromWhitelist(address _contractAddress) public onlyOperator {
+        contractWhitelist[_contractAddress] = false;
     }
 }
