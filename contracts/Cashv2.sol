@@ -13,7 +13,7 @@ contract Cashv2 is ERC20Burnable, Operator {
     /**
      * @notice Constructs the Basis Cash ERC-20 contract.
      */
-    constructor() public ERC20('MIC', 'MIC') {
+    constructor() public ERC20('MIC2', 'MIC2') {
         // Mints 1 Basis Cash to contract creator for initial Uniswap oracle deployment.
         // Will be burned after oracle deployment
         _mint(msg.sender, 1 * 10**18);
@@ -61,33 +61,24 @@ contract Cashv2 is ERC20Burnable, Operator {
         internal 
         override 
     {
-        require(sender != address(0), "ERC20: transfer from the zero address");
-        require(recipient != address(0), "ERC20: transfer to the zero address");
-
         if (amount > 0) {
-            _beforeTokenTransfer(sender, recipient, amount);
-            _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
-
-            if(feeChecker.isTransferTaxed(sender, recipient)) {
+            if(IFeeChecker(feeChecker).isTransferTaxed(sender, recipient)) {
                 uint256 feeAmount = IFeeChecker(feeChecker).calculateFeeAmount(sender, recipient, amount);
                 uint256 transferToAmount = amount.sub(feeAmount);
 
-                _balances[recipient] = _balances[recipient].add(transferToAmount);
-                emit Transfer(sender, recipient, transferToAmount);
+                super._transfer(sender, recipient, transferToAmount);
 
                 if(feeAmount > 0) {
-                    _balances[feeDistributor] = _balances[feeDistributor].add(feeAmount);
-                    emit Transfer(sender, feeDistributor, feeAmount);
+                    super._transfer(sender, feeDistributor, feeAmount);
                     IFeeDistributor(feeDistributor).addFee(feeAmount);
                 }
             }
             else {
-                _balances[recipient] = _balances[recipient].add(amount);
-                emit Transfer(sender, recipient, amount);
+                super._transfer(sender, recipient, amount);
             }
         }
         else {
-            emit Transfer(sender, recipient, amount);
+            super._transfer(sender, recipient, amount);
         }
     }
 
