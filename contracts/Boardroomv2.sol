@@ -225,7 +225,6 @@ contract Boardroomv2 is ShareWrapper, ContractGuard, Epoch {
 
     function claimTaxesForEpoch(uint256 epoch) public
         onlyOneBlock
-        checkMigration
     {
         uint256 amount = calculateClaimableTaxesForEpoch(msg.sender, epoch);
         claimableTaxesBucket[msg.sender][epoch]=0;
