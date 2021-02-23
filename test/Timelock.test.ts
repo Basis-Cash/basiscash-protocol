@@ -69,7 +69,7 @@ describe('Timelock', () => {
     share = await Share.connect(operator).deploy();
     timelock = await Timelock.connect(operator).deploy(
       operator.address,
-      2 * DAY
+      1 * DAY
     );
 
     boardroom = await Boardroom.connect(operator).deploy(
@@ -113,7 +113,7 @@ describe('Timelock', () => {
     });
 
     it('should work correctly', async () => {
-      const eta = (await latestBlocktime(provider)) + 2 * DAY + 30;
+      const eta = (await latestBlocktime(provider)) + 1 * DAY + 30;
       const signature = 'migrate(address)';
       const data = encodeParameters(['address'], [newTreasury.address]);
       const calldata = [treasury.address, 0, signature, data, eta];

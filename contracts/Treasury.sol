@@ -33,6 +33,7 @@ contract Treasury is ContractGuard, Epoch {
     // ========== FLAGS
     bool public migrated = false;
     bool public initialized = false;
+    bool public initializedV2 = false;
 
     // ========== CORE
     address public fund;
@@ -43,6 +44,14 @@ contract Treasury is ContractGuard, Epoch {
 
     address public bondOracle;
     address public seigniorageOracle;
+
+    // ========== V2
+    uint256 public start_migration_v2;
+    uint256 public stop_migration_v2;
+    address public cashV2;
+    address public shareV2;
+    mapping(address => mapping(uint256 => uint256)) public claimableBondsBucket; // claimableBondsBucket[wallet][epoch] = amount
+    uint256 MINIMUM_EPOCH = 38;
 
     // ========== PARAMS
     uint256 public cashPriceOne;
@@ -79,6 +88,17 @@ contract Treasury is ContractGuard, Epoch {
     }
 
     /* =================== Modifier =================== */
+    modifier checkInitializedV2 {
+         require(initializedV2, 'Treasury has not initialized V2 yet!');
+
+         _;
+    }
+
+    modifier checkMigrationWindowV2 {
+        require(start_migration_v2>= block.timestamp && stop_migration_v2 <= block.timestamp, 'Treasury: currently not inside of V2 migration window!');
+
+        _;
+    }
 
     modifier checkMigration {
         require(!migrated, 'Treasury: migrated');
@@ -92,6 +112,16 @@ contract Treasury is ContractGuard, Epoch {
                 IBasisAsset(bond).operator() == address(this) &&
                 IBasisAsset(share).operator() == address(this) &&
                 Operator(boardroom).operator() == address(this),
+            'Treasury: need more permission'
+        );
+
+        _;
+    }
+
+    modifier checkOperatorV2 {
+        require(
+            IBasisAsset(cashV2).operator() == address(this) &&
+                IBasisAsset(shareV2).operator() == address(this),
             'Treasury: need more permission'
         );
 
@@ -156,6 +186,23 @@ contract Treasury is ContractGuard, Epoch {
         emit Migration(target);
     }
 
+    function setupV2(address _cashv2, address _sharev2, uint256 _start_migration_v2, uint256 _stop_migration_v2) public onlyOperator {
+         require(!initializedV2, 'Treasury did already setup V2!');
+         // v2 migration window
+         start_migration_v2 = _start_migration_v2;
+         stop_migration_v2 = _stop_migration_v2;
+
+         // cash v2
+         cashV2 = _cashv2;
+         Operator(cashV2).transferOperator(address(this));
+         Operator(cashV2).transferOwnership(address(this));
+
+         // share v2
+         shareV2 = _sharev2;
+         Operator(shareV2).transferOperator(address(this));
+         Operator(shareV2).transferOwnership(address(this));
+    }
+
     function setFund(address newFund) public onlyOperator {
         fund = newFund;
         emit ContributionPoolChanged(msg.sender, newFund);
@@ -208,6 +255,92 @@ contract Treasury is ContractGuard, Epoch {
         _updateCashPrice();
 
         emit RedeemedBonds(msg.sender, amount);
+    }
+
+    function calculateClaimableBondsForEpoch(address wallet, uint256 epoch) view public returns (uint256) {
+        uint256 epoch_delta = getCurrentEpoch() - epoch;
+        uint256 tax_percentage = (epoch_delta > 4) ? 0: 10*(5 - epoch_delta);
+        return claimableBondsBucket[wallet][epoch].mul(100 - tax_percentage).div(100);
+    }
+
+    function claimBondsForEpoch(uint256 epoch) public
+        onlyOneBlock
+        checkMigration
+        checkStartTime
+        checkOperator
+        checkOperatorV2
+        checkInitializedV2
+        checkMigrationWindowV2
+    {
+        uint256 amount = calculateClaimableBondsForEpoch(msg.sender, epoch);
+        claimableBondsBucket[msg.sender][epoch]=0;
+        require(
+            IERC20(cashV2).balanceOf(address(this)) >= amount,
+            'Treasury: treasury currently does not hold the amount of MICv2 needed to exchange for given bonds'
+        );
+        IERC20(cashV2).safeTransfer(msg.sender, amount);
+    }
+
+    function calculateClaimableBonds(address wallet) view public returns (uint256) {
+        uint256 claimableBonds = 0;
+        uint256 epoch = getCurrentEpoch();
+        while (epoch > MINIMUM_EPOCH) {
+            claimableBonds = claimableBonds.add(calculateClaimableBondsForEpoch(wallet, epoch));
+            epoch = epoch.sub(1);
+        }
+        return claimableBonds;
+    }
+
+    function claimBonds() public
+        onlyOneBlock
+        checkMigration
+        checkStartTime
+        checkOperator
+        checkOperatorV2
+        checkInitializedV2
+        checkMigrationWindowV2
+    {
+        uint256 amount = 0;
+        uint256 epoch = getCurrentEpoch();
+        while (epoch > MINIMUM_EPOCH) {
+            amount = amount.add(calculateClaimableBondsForEpoch(msg.sender, epoch));
+            claimableBondsBucket[msg.sender][epoch]=0;
+            epoch = epoch.sub(1);
+        }
+        require(
+            IERC20(cashV2).balanceOf(address(this)) >= amount,
+            'Treasury: treasury currently does not hold the amount of MICv2 needed to exchange for given bonds'
+        );
+        IERC20(cashV2).safeTransfer(msg.sender, amount);
+    }
+
+    function addClaimableBonds(uint256 amount) internal {
+        uint256 current_epoch = getCurrentEpoch();
+        claimableBondsBucket[msg.sender][current_epoch] = claimableBondsBucket[msg.sender][current_epoch].add(amount);
+    }
+
+    function exchangeBonds(uint256 amount)
+        external
+        onlyOneBlock
+        checkMigration
+        checkStartTime
+        checkOperator
+        checkOperatorV2
+        checkInitializedV2
+        checkMigrationWindowV2
+    {
+        require(amount > 0, 'Treasury: cannot exchange bonds with zero amount');
+        require(
+            IERC20(bond).balanceOf(msg.sender) >= amount,
+            'Treasury: sender does not have enough bonds to exchange amount'
+        );
+
+        IBasisAsset(bond).burnFrom(msg.sender, amount);
+
+        addClaimableBonds(amount);
+        _updateCashPrice();
+
+        emit ExchangedBonds(msg.sender, amount);
     }
 
     function allocateSeigniorage()
@@ -280,6 +413,7 @@ contract Treasury is ContractGuard, Epoch {
     );
 
     // CORE
+    event ExchangedBonds(address indexed from, uint256 amount);
     event RedeemedBonds(address indexed from, uint256 amount);
     event BoughtBonds(address indexed from, uint256 amount);
     event TreasuryFunded(uint256 timestamp, uint256 seigniorage);
