@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/Basis-cash/basiscashprotocol)](https://github.com/Basis-Cash/basiscash-protocol/blob/master/LICENSE)
 [![Coverage Status](https://coveralls.io/repos/github/Basis-Cash/basiscash-protocol/badge.svg?branch=master)](https://coveralls.io/github/Basis-Cash/basiscash-protocol?branch=master)
 
-Basis Cash is a lightweight implementation of the [Basis Protocol](http://basis.io) on Ethereum. 
+Basis Cash is a lightweight implementation of the [Basis Protocol](https://basis.io) on Ethereum. 
 
 ## History of Basis 
 
