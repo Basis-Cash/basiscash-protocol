@@ -11,6 +11,16 @@ import {Epoch} from '../utils/Epoch.sol';
 import {IUniswapV2Pair} from '../interfaces/IUniswapV2Pair.sol';
 import {IUniswapV2Factory} from '../interfaces/IUniswapV2Factory.sol';
 
+interface IOracle {
+    function update() external;
+
+    function consult(address token, uint256 amountIn)
+        external
+        view
+        returns (uint256 amountOut);
+    // function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestamp);
+}
+
 // fixed window oracle that recomputes the average price for the entire period once every period
 // note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
 contract Oracle is Epoch {

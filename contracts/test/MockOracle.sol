@@ -3,7 +3,7 @@ pragma solidity >=0.7.0 <0.8.0;
 
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
-import '../oracle/IOracle.sol';
+import '../oracle/Oracle.sol';
 
 contract MockOracle is IOracle {
     using SafeMath for uint256;

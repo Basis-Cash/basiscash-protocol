@@ -132,6 +132,18 @@ describe('PoolStore', () => {
       expect(await store.emergency()).to.be.false;
     });
 
+    it('feeder setting', async () => {
+      await expect(store.connect(operator).setWeightFeeder(ant.address))
+        .to.emit(store, 'WeightFeederChanged')
+        .withArgs(operator.address, operator.address, ant.address);
+      expect(await store.weightFeeder()).to.eq(ant.address);
+
+      await store.connect(ant).functions['setPool(uint256,uint256)'](0, 3);
+      await expect(
+        store.connect(operator).functions['setPool(uint256,uint256)'](0, 3)
+      ).to.revertedWith('PoolStore: unauthorized');
+    });
+
     it('pool setting', async () => {
       await expect(
         store.connect(operator).addPool('Test Pool 2', token.address, 2)

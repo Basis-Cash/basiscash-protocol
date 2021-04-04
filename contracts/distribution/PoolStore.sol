@@ -5,7 +5,7 @@ import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import {Operator} from '../../access/Operator.sol';
+import {Operator} from '../access/Operator.sol';
 
 interface IPoolStore {
     /* ================= EVENTS ================= */
@@ -69,6 +69,12 @@ interface IPoolStoreGov {
     event EmergencyReported(address indexed reporter);
     event EmergencyResolved(address indexed resolver);
 
+    event WeightFeederChanged(
+        address indexed operator,
+        address indexed oldFeeder,
+        address indexed newFeeder
+    );
+
     event PoolAdded(
         address indexed operator,
         uint256 indexed pid,
@@ -95,6 +101,9 @@ interface IPoolStoreGov {
     function reportEmergency() external;
 
     function resolveEmergency() external;
+
+    // feeder
+    function setWeightFeeder(address _newFeeder) external;
 
     // pool setting
     function addPool(
@@ -130,8 +139,11 @@ contract PoolStore is IPoolStore, IPoolStoreGov, Operator {
     mapping(address => uint256[]) public indexByToken;
 
     bool public emergency = false;
+    address public weightFeeder;
 
-    constructor() Operator() {}
+    constructor() Operator() {
+        weightFeeder = _msgSender();
+    }
 
     /* ================= GOV - OWNER ONLY ================= */
 
@@ -151,6 +163,15 @@ contract PoolStore is IPoolStore, IPoolStoreGov, Operator {
     function resolveEmergency() public override onlyOwner {
         emergency = false;
         emit EmergencyResolved(_msgSender());
+    }
+
+    /*
+     * @param _newFeeder weight feeder address to change
+     */
+    function setWeightFeeder(address _newFeeder) public override onlyOwner {
+        address oldFeeder = weightFeeder;
+        weightFeeder = _newFeeder;
+        emit WeightFeederChanged(_msgSender(), oldFeeder, _newFeeder);
     }
 
     /**
@@ -180,8 +201,8 @@ contract PoolStore is IPoolStore, IPoolStoreGov, Operator {
     function setPool(uint256 _pid, uint256 _weight)
         public
         override
+        onlyWeightFeeder
         checkPoolId(_pid)
-        onlyOwner
     {
         Pool memory pool = pools[_pid];
 
@@ -211,6 +232,12 @@ contract PoolStore is IPoolStore, IPoolStoreGov, Operator {
     }
 
     /* ================= MODIFIER ================= */
+
+    modifier onlyWeightFeeder {
+        require(_msgSender() == weightFeeder, 'PoolStore: unauthorized');
+
+        _;
+    }
 
     modifier checkPoolId(uint256 _pid) {
         require(_pid <= pools.length, 'PoolStore: invalid pid');

@@ -13,9 +13,11 @@ abstract contract PoolStoreWrapper is Context {
     IPoolStore public store;
 
     function deposit(uint256 _pid, uint256 _amount) public virtual {
-        IERC20 token = IERC20(store.tokenOf(_pid));
-        token.safeTransferFrom(_msgSender(), address(this), _amount);
-        token.safeIncreaseAllowance(address(store), _amount);
+        IERC20(store.tokenOf(_pid)).safeTransferFrom(
+            _msgSender(),
+            address(this),
+            _amount
+        );
         store.deposit(_pid, _msgSender(), _amount);
     }
 

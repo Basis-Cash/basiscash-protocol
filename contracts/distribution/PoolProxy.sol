@@ -5,47 +5,44 @@ import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import {Operator} from '../../access/Operator.sol';
-import {IPool} from '../../distribution/v2/IPool.sol';
-import {IRewardPool} from './Boardroom.sol';
+import {IPool} from './IPool.sol';
+import {Operator} from '../access/Operator.sol';
 
-contract PoolWrapper is IRewardPool, Operator, ERC20 {
+contract PoolProxy is Operator, ERC20 {
     using SafeERC20 for IERC20;
 
-    IPool public pool;
+    address public pool;
     uint256 public pid;
 
-    constructor(address _pool, uint256 _pid) ERC20('BAS Pool Wrapper', 'BPW') {
-        pool = IPool(_pool);
-        pid = _pid;
-
-        _mint(msg.sender, 1e18);
-    }
+    constructor() ERC20('Pool Proxy Token', 'PPT') {}
 
     /* ================= GOV - OWNER ONLY ================= */
 
+    function setPool(address _newPool) public onlyOwner {
+        pool = _newPool;
+    }
+
+    function setPid(uint256 _newPid) public {
+        pid = _newPid;
+    }
+
     function deposit(uint256 _amount) public onlyOwner {
         _mint(address(this), _amount);
-        approve(address(pool), _amount);
-        pool.deposit(pid, _amount);
+        approve(pool, _amount);
+        IPool(pool).deposit(pid, _amount);
     }
 
     function withdraw(uint256 _amount) public onlyOwner {
-        pool.withdraw(pid, _amount);
+        IPool(pool).withdraw(pid, _amount);
         _burn(address(this), _amount);
     }
 
     /* ================= TXNS - OPERATOR ONLY ================= */
 
-    function collect()
-        external
-        override
-        onlyOperator
-        returns (address, uint256)
-    {
-        pool.claimReward(pid);
+    function collect() external onlyOperator returns (address, uint256) {
+        IPool(pool).claimReward(pid);
 
-        address token = pool.tokenOf(pid);
+        address token = IPool(pool).tokenOf(pid);
         uint256 amount = IERC20(token).balanceOf(address(this));
 
         IERC20(token).safeTransfer(_msgSender(), amount);

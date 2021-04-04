@@ -68,5 +68,13 @@ interface IPoolGov {
 
     /* ================= TXNS ================= */
 
-    function notifyReward(uint256 _amount, uint256 _period) external;
+    function setPeriod(uint256 _startTime, uint256 _period) external;
+
+    function setReward(uint256 _amount) external;
+
+    function setExtraRewardRate(uint256 _extra) external;
+
+    function stop() external;
+
+    function migrate(address _newPool, uint256 _amount) external;
 }

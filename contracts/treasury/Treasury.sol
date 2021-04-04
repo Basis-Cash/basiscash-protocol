@@ -11,53 +11,25 @@ import {
 } from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
 import {ICurve} from '../curve/Curve.sol';
-import {IOracle} from '../oracle/IOracle.sol';
-import {IBoardroomV2} from '../boardroom/v2/Boardroom.sol';
+import {IOracle} from '../oracle/Oracle.sol';
 import {IBasisAsset} from '../assets/IBasisAsset.sol';
 import {ISimpleERCFund} from '../cdf/ISimpleERCFund.sol';
 import {Babylonian} from '../lib/Babylonian.sol';
-import {FixedPoint} from '../lib/FixedPoint.sol';
-import {Safe112} from '../lib/Safe112.sol';
 import {Operator} from '../access/Operator.sol';
 import {Epoch} from '../utils/Epoch.sol';
+import {SeigniorageProxy} from './SeigniorageProxy.sol';
 import {ContractGuard} from '../utils/ContractGuard.sol';
+import {TreasuryState} from './TreasuryState.sol';
 
 /**
  * @title Basis Cash Treasury contract
  * @notice Monetary policy logic to adjust supplies of basis cash assets
  * @author Summer Smith & Rick Sanchez
  */
-contract Treasury is ContractGuard, Epoch {
-    using FixedPoint for *;
+contract Treasury is TreasuryState, ContractGuard {
     using SafeERC20 for IERC20;
-    using Address for address;
     using SafeMath for uint256;
-    using Safe112 for uint112;
-
-    /* ========== STATE VARIABLES ========== */
-
-    // ========== FLAGS
-    bool public migrated = false;
-    bool public initialized = false;
-
-    // ========== CORE
-    address public fund;
-    address public cash;
-    address public bond;
-    address public share;
-    address public curve;
-    address public boardroom;
-
-    address public bondOracle;
-    address public seigniorageOracle;
-
-    // ========== PARAMS
-    uint256 public cashPriceOne;
-
-    uint256 public lastBondOracleEpoch = 0;
-    uint256 public bondCap = 0;
-    uint256 public accumulatedSeigniorage = 0;
-    uint256 public fundAllocationRate = 2; // %
+    using Address for address;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -65,9 +37,9 @@ contract Treasury is ContractGuard, Epoch {
         address _cash,
         address _bond,
         address _share,
-        address _bondOracle,
-        address _seigniorageOracle,
-        address _boardroom,
+        address _bOracle,
+        address _sOracle,
+        address _seigniorageProxy,
         address _fund,
         address _curve,
         uint256 _startTime
@@ -76,10 +48,11 @@ contract Treasury is ContractGuard, Epoch {
         bond = _bond;
         share = _share;
         curve = _curve;
-        bondOracle = _bondOracle;
-        seigniorageOracle = _seigniorageOracle;
 
-        boardroom = _boardroom;
+        bOracle = _bOracle;
+        sOracle = _sOracle;
+        seigniorageProxy = _seigniorageProxy;
+
         fund = _fund;
 
         cashPriceOne = 10**18;
@@ -89,18 +62,6 @@ contract Treasury is ContractGuard, Epoch {
 
     modifier checkMigration {
         require(!migrated, 'Treasury: migrated');
-
-        _;
-    }
-
-    modifier checkOperator {
-        require(
-            IBasisAsset(cash).operator() == address(this) &&
-                IBasisAsset(bond).operator() == address(this) &&
-                IBasisAsset(share).operator() == address(this) &&
-                Operator(boardroom).operator() == address(this),
-            'Treasury: need more permission'
-        );
 
         _;
     }
@@ -128,11 +89,11 @@ contract Treasury is ContractGuard, Epoch {
 
     // oracle
     function getBondOraclePrice() public view returns (uint256) {
-        return _getCashPrice(bondOracle);
+        return _getCashPrice(bOracle);
     }
 
     function getSeigniorageOraclePrice() public view returns (uint256) {
-        return _getCashPrice(seigniorageOracle);
+        return _getCashPrice(sOracle);
     }
 
     function _getCashPrice(address oracle) internal view returns (uint256) {
@@ -143,78 +104,10 @@ contract Treasury is ContractGuard, Epoch {
         }
     }
 
-    /* ========== GOVERNANCE ========== */
-
-    // MIGRATION
-    function initialize() public checkOperator {
-        require(!initialized, 'Treasury: initialized');
-
-        // set accumulatedSeigniorage to it's balance
-        accumulatedSeigniorage = IERC20(cash).balanceOf(address(this));
-
-        initialized = true;
-        emit Initialized(_msgSender(), block.number);
-    }
-
-    function migrate(address target) public onlyOperator checkOperator {
-        require(!migrated, 'Treasury: migrated');
-
-        // cash
-        Operator(cash).transferOperator(target);
-        Operator(cash).transferOwnership(target);
-        IERC20(cash).transfer(target, IERC20(cash).balanceOf(address(this)));
-
-        // bond
-        Operator(bond).transferOperator(target);
-        Operator(bond).transferOwnership(target);
-        IERC20(bond).transfer(target, IERC20(bond).balanceOf(address(this)));
-
-        // share
-        Operator(share).transferOperator(target);
-        Operator(share).transferOwnership(target);
-        IERC20(share).transfer(target, IERC20(share).balanceOf(address(this)));
-
-        migrated = true;
-        emit Migration(target);
-    }
-
-    // FUND
-    function setFund(address newFund) public onlyOperator {
-        address oldFund = fund;
-        fund = newFund;
-        emit ContributionPoolChanged(_msgSender(), oldFund, newFund);
-    }
-
-    function setFundAllocationRate(uint256 newRate) public onlyOperator {
-        uint256 oldRate = fundAllocationRate;
-        fundAllocationRate = newRate;
-        emit ContributionPoolRateChanged(_msgSender(), oldRate, newRate);
-    }
-
-    // ORACLE
-    function setBondOracle(address newOracle) public onlyOperator {
-        address oldOracle = bondOracle;
-        bondOracle = newOracle;
-        emit BondOracleChanged(_msgSender(), oldOracle, newOracle);
-    }
-
-    function setSeigniorageOracle(address newOracle) public onlyOperator {
-        address oldOracle = seigniorageOracle;
-        seigniorageOracle = newOracle;
-        emit SeigniorageOracleChanged(_msgSender(), oldOracle, newOracle);
-    }
-
-    // TWEAK
-    function setCeilingCurve(address newCurve) public onlyOperator {
-        address oldCurve = newCurve;
-        curve = newCurve;
-        emit CeilingCurveChanged(_msgSender(), oldCurve, newCurve);
-    }
-
     /* ========== MUTABLE FUNCTIONS ========== */
 
     function _updateConversionLimit(uint256 cashPrice) internal {
-        uint256 currentEpoch = Epoch(bondOracle).getLastEpoch(); // lastest update time
+        uint256 currentEpoch = Epoch(bOracle).getLastEpoch(); // lastest update time
         if (lastBondOracleEpoch != currentEpoch) {
             uint256 percentage = cashPriceOne.sub(cashPrice);
             uint256 bondSupply = IERC20(bond).totalSupply();
@@ -227,11 +120,11 @@ contract Treasury is ContractGuard, Epoch {
     }
 
     function _updateCashPrice() internal {
-        if (Epoch(bondOracle).callable()) {
-            try IOracle(bondOracle).update() {} catch {}
+        if (Epoch(bOracle).callable()) {
+            try IOracle(bOracle).update() {} catch {}
         }
-        if (Epoch(seigniorageOracle).callable()) {
-            try IOracle(seigniorageOracle).update() {} catch {}
+        if (Epoch(sOracle).callable()) {
+            try IOracle(sOracle).update() {} catch {}
         }
     }
 
@@ -245,7 +138,7 @@ contract Treasury is ContractGuard, Epoch {
     {
         require(amount > 0, 'Treasury: cannot purchase bonds with zero amount');
 
-        uint256 cashPrice = _getCashPrice(bondOracle);
+        uint256 cashPrice = _getCashPrice(bOracle);
         require(cashPrice <= targetPrice, 'Treasury: cash price moved');
         require(
             cashPrice < cashPriceOne, // price < $1
@@ -272,7 +165,7 @@ contract Treasury is ContractGuard, Epoch {
     {
         require(amount > 0, 'Treasury: cannot redeem bonds with zero amount');
 
-        uint256 cashPrice = _getCashPrice(bondOracle);
+        uint256 cashPrice = _getCashPrice(bOracle);
         require(
             cashPrice > getCeilingPrice(), // price > $1.05
             'Treasury: cashPrice not eligible for bond purchase'
@@ -301,7 +194,7 @@ contract Treasury is ContractGuard, Epoch {
         checkOperator
     {
         _updateCashPrice();
-        uint256 cashPrice = _getCashPrice(seigniorageOracle);
+        uint256 cashPrice = _getCashPrice(sOracle);
         if (cashPrice <= getCeilingPrice()) {
             return; // just advance epoch instead revert
         }
@@ -314,13 +207,13 @@ contract Treasury is ContractGuard, Epoch {
         // ======================== BIP-3
         uint256 fundReserve = seigniorage.mul(fundAllocationRate).div(100);
         if (fundReserve > 0) {
-            IERC20(cash).safeApprove(fund, fundReserve);
+            IERC20(cash).safeIncreaseAllowance(fund, fundReserve);
             ISimpleERCFund(fund).deposit(
                 cash,
                 fundReserve,
                 'Treasury: Seigniorage Allocation'
             );
-            emit ContributionPoolFunded(block.timestamp, fundReserve);
+            emit FundedToCommunityFund(block.timestamp, fundReserve);
         }
 
         seigniorage = seigniorage.sub(fundReserve);
@@ -341,50 +234,19 @@ contract Treasury is ContractGuard, Epoch {
             emit TreasuryFunded(block.timestamp, treasuryReserve);
         }
 
-        // boardroom
-        uint256 boardroomReserve = seigniorage.sub(treasuryReserve);
-        if (boardroomReserve > 0) {
-            IERC20(cash).safeApprove(boardroom, boardroomReserve);
-            // IBoardroomV2(boardroom).allocateSeigniorage(boardroomReserve);
-            emit BoardroomFunded(block.timestamp, boardroomReserve);
+        // seigniorage
+        seigniorage = seigniorage.sub(treasuryReserve);
+        if (seigniorage > 0) {
+            IERC20(cash).safeIncreaseAllowance(seigniorageProxy, seigniorage);
+            SeigniorageProxy(seigniorageProxy).allocateSeigniorage(seigniorage);
+            emit SeigniorageDistributed(block.timestamp, seigniorage);
         }
     }
-
-    /* ========== EVENTS ========== */
-
-    // GOV
-    event Initialized(address indexed executor, uint256 at);
-    event Migration(address indexed target);
-    event ContributionPoolChanged(
-        address indexed operator,
-        address oldFund,
-        address newFund
-    );
-    event ContributionPoolRateChanged(
-        address indexed operator,
-        uint256 oldRate,
-        uint256 newRate
-    );
-    event BondOracleChanged(
-        address indexed operator,
-        address oldOracle,
-        address newOracle
-    );
-    event SeigniorageOracleChanged(
-        address indexed operator,
-        address oldOracle,
-        address newOracle
-    );
-    event CeilingCurveChanged(
-        address indexed operator,
-        address oldCurve,
-        address newCurve
-    );
 
     // CORE
     event RedeemedBonds(address indexed from, uint256 amount);
     event BoughtBonds(address indexed from, uint256 amount);
     event TreasuryFunded(uint256 timestamp, uint256 seigniorage);
-    event BoardroomFunded(uint256 timestamp, uint256 seigniorage);
-    event ContributionPoolFunded(uint256 timestamp, uint256 seigniorage);
+    event SeigniorageDistributed(uint256 timestamp, uint256 seigniorage);
+    event FundedToCommunityFund(uint256 timestamp, uint256 seigniorage);
 }

@@ -5,7 +5,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../access/Operator.sol';
-import {IBoardroomV2} from '../boardroom/v2/Boardroom.sol';
+import {IBoardroomV2} from '../boardroom/Boardroom.sol';
 
 contract MockBoardroom is IBoardroomV2, Operator {
     using SafeERC20 for IERC20;

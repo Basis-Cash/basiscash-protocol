@@ -6,7 +6,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import {Math} from '@openzeppelin/contracts/math/Math.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 
-import {IRewardPool} from '../boardroom/v2/Boardroom.sol';
+import {IRewardPool} from '../boardroom/Boardroom.sol';
 
 contract MockBoardroomPool is IRewardPool {
     using SafeMath for uint256;
