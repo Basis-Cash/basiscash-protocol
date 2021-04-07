@@ -22,7 +22,7 @@ contract PoolProxy is Operator, ERC20 {
         pool = _newPool;
     }
 
-    function setPid(uint256 _newPid) public {
+    function setPid(uint256 _newPid) public onlyOwner {
         pid = _newPid;
     }
 
